@@ -21,8 +21,13 @@ def create_app(test_config=None):
     if test_config:
         app.config.update(test_config)
 
-    # Enable CORS for frontend Vite dev server (5173) and localhost
-    CORS(app, resources={r"/api/*": {"origins": "*"}})
+    # Enable CORS for frontend deployment (Vercel) and local dev
+    CORS(
+        app,
+        resources={r"/*": {"origins": "*"}},
+        methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+        allow_headers=["Content-Type", "Authorization", "X-Requested-With"]
+    )
 
     # Initialize database tables and initial seed data
     init_db()
@@ -41,12 +46,15 @@ def create_app(test_config=None):
     app.register_blueprint(logs_bp)
     app.register_blueprint(tls_bp)
 
+    @app.route("/", methods=["GET"])
+    @app.route("/health", methods=["GET"])
     @app.route("/api/health", methods=["GET"])
     def health_check():
         return jsonify({
             "status": "ONLINE",
-            "service": "Industrial SecureSim SCADA Security Engine",
+            "service": "AegisGrid ICS SCADA Security Engine",
             "version": "1.0.0",
+            "api_prefix": "/api",
             "modules_supported": [
                 "Module 1: Classical Cryptography",
                 "Module 2: Modern Symmetric, Asymmetric, Hashing & PKI",

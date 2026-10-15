@@ -3,22 +3,80 @@
  * Connects React frontend to Flask REST API endpoints.
  */
 
-const BASE_URL = '/api';
+/**
+ * Resolves the API base URL:
+ * - If VITE_API_URL is configured (e.g. in Vercel), normalizes it and ensures /api prefix exactly once.
+ *   Examples handled:
+ *     "https://app.onrender.com"     -> "https://app.onrender.com/api"
+ *     "https://app.onrender.com/"    -> "https://app.onrender.com/api"
+ *     "https://app.onrender.com/api" -> "https://app.onrender.com/api"
+ *     "https://app.onrender.com/api/"-> "https://app.onrender.com/api"
+ * - If VITE_API_URL is unset/empty, falls back to '/api' for Vite local dev proxy.
+ */
+function resolveBaseUrl() {
+  const envUrl = (import.meta.env.VITE_API_URL || '').trim();
+  if (!envUrl) {
+    return '/api';
+  }
+  const stripped = envUrl.replace(/\/+$/, '');
+  return stripped.endsWith('/api') ? stripped : `${stripped}/api`;
+}
+
+export const BASE_URL = resolveBaseUrl();
 
 async function fetchJson(url, options = {}) {
+  const endpoint = url.startsWith('/') ? url : `/${url}`;
+  const fullUrl = `${BASE_URL}${endpoint}`;
+
   try {
-    const res = await fetch(`${BASE_URL}${url}`, {
+    const res = await fetch(fullUrl, {
       headers: {
         'Content-Type': 'application/json',
         ...options.headers,
       },
       ...options,
     });
-    const data = await res.json();
-    return { ok: res.ok, status: res.status, data };
+
+    const contentType = res.headers.get('content-type') || '';
+    let data;
+
+    if (contentType.includes('application/json')) {
+      try {
+        data = await res.json();
+      } catch {
+        data = { error: 'Failed to parse JSON response from server' };
+      }
+    } else {
+      const text = await res.text();
+      // Detect Render / Cloud Gateway cold-start and downtime HTML pages
+      if (res.status === 502 || res.status === 503 || res.status === 504) {
+        data = {
+          error: `Backend instance is starting up on Render (HTTP ${res.status}). Free tier instances spin down after inactivity — please allow ~30-50s for wakeup.`,
+          isColdStart: true,
+          status: res.status
+        };
+      } else {
+        data = {
+          error: text.length > 200 ? `Server returned HTTP ${res.status}` : text || `HTTP ${res.status}`,
+          status: res.status
+        };
+      }
+    }
+
+    return { ok: res.ok, status: res.status, data: data || {} };
   } catch (err) {
-    console.error(`API Error on ${url}:`, err);
-    return { ok: false, status: 0, data: { error: err.message || 'Network connection failed' } };
+    console.error(`API Error on ${fullUrl}:`, err);
+    const isNetwork = err.name === 'TypeError' || err.message?.includes('Failed to fetch');
+    return {
+      ok: false,
+      status: 0,
+      data: {
+        error: isNetwork
+          ? 'Cannot reach backend server. The Render service might be spinning up from sleep mode (~30-50s) or blocked by CORS.'
+          : err.message || 'Network connection failed',
+        isNetworkError: isNetwork
+      }
+    };
   }
 }
 

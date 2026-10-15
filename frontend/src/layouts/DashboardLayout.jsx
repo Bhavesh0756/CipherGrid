@@ -17,24 +17,37 @@ import {
   ShieldAlert,
   Terminal
 } from 'lucide-react';
-import { api } from '../services/api';
+import { api, BASE_URL } from '../services/api';
 
 export const DashboardLayout = ({ activeTab, onTabChange, children }) => {
   const [serverOnline, setServerOnline] = useState(false);
   const [tlsReady, setTlsReady] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [connState, setConnState] = useState('CHECKING'); // 'ONLINE' | 'WAKING_UP' | 'DISCONNECTED' | 'CHECKING'
 
   const checkStatus = async () => {
     setIsRefreshing(true);
     try {
       const healthRes = await api.getHealth();
-      setServerOnline(healthRes.ok && healthRes.data?.status === 'ONLINE');
-      const tlsRes = await api.getTlsStatus();
-      setTlsReady(tlsRes.ok && tlsRes.data?.tls_ready);
+      if (healthRes.ok && healthRes.data?.status === 'ONLINE') {
+        setServerOnline(true);
+        setConnState('ONLINE');
+        const tlsRes = await api.getTlsStatus();
+        setTlsReady(tlsRes.ok && tlsRes.data?.tls_ready);
+      } else {
+        setServerOnline(false);
+        setTlsReady(false);
+        if (healthRes.data?.isColdStart) {
+          setConnState('WAKING_UP');
+        } else {
+          setConnState('DISCONNECTED');
+        }
+      }
     } catch {
       setServerOnline(false);
       setTlsReady(false);
+      setConnState('DISCONNECTED');
     } finally {
       setIsRefreshing(false);
     }
@@ -144,19 +157,24 @@ export const DashboardLayout = ({ activeTab, onTabChange, children }) => {
         </nav>
 
         {/* Status Footer */}
-        <div className="p-3 border-t border-[#161f30] space-y-2 shrink-0 bg-[#07090e]/60">
+        <div className="p-3 border-t border-[#161f30] space-y-2 shrink-0 bg-[#07090e]/60" title={`Active API Target: ${BASE_URL}`}>
           <div className={`flex items-center ${sidebarCollapsed ? 'justify-center' : 'justify-between'} text-[11px] px-1`}>
             {!sidebarCollapsed && <span className="text-slate-400 font-medium">Backend API</span>}
             <span className="flex items-center gap-1.5">
-              {serverOnline ? (
+              {connState === 'ONLINE' ? (
                 <>
                   <span className="live-indicator w-2 h-2 rounded-full bg-emerald-400 text-emerald-400" />
                   {!sidebarCollapsed && <span className="text-emerald-400 font-mono-code text-[10px] font-bold">ONLINE</span>}
                 </>
+              ) : connState === 'WAKING_UP' ? (
+                <>
+                  <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+                  {!sidebarCollapsed && <span className="text-amber-400 font-mono-code text-[10px] font-bold">WAKING UP (~30s)</span>}
+                </>
               ) : (
                 <>
                   <WifiOff className="w-3.5 h-3.5 text-rose-400" />
-                  {!sidebarCollapsed && <span className="text-rose-400 font-mono-code text-[10px] font-bold">DISCONNECTED</span>}
+                  {!sidebarCollapsed && <span className="text-rose-400 font-mono-code text-[10px] font-bold">OFFLINE</span>}
                 </>
               )}
             </span>
@@ -198,23 +216,43 @@ export const DashboardLayout = ({ activeTab, onTabChange, children }) => {
               onClick={checkStatus}
               disabled={isRefreshing}
               title="Refresh System Status"
-              className="p-1.5 px-3 rounded-xl bg-[#0f1422] hover:bg-[#161d30] text-slate-300 hover:text-white border border-[#1f2b42] transition-all btn-press flex items-center gap-1.5 text-xs shadow-sm font-semibold"
+              className="p-1.5 px-3 rounded-xl bg-[#0f1422] hover:bg-[#161d30] text-slate-300 hover:text-white border border-[#1f2b42] transition-all btn-press flex items-center gap-1.5 text-xs shadow-sm font-semibold cursor-pointer"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin text-cyan-400' : 'text-slate-400'}`} />
               <span className="hidden sm:inline">Refresh</span>
             </button>
 
             {/* Subsystem Health Pill */}
-            <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#0f1422] border border-[#1f2b42] text-[11px] font-mono-code">
-              <Activity className="w-3.5 h-3.5 text-teal-400" />
-              <span className="text-slate-400">Core Subsystem</span>
-              <span className="text-teal-400 font-bold">ACTIVE</span>
+            <div className={`hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-xl border text-[11px] font-mono-code ${
+              connState === 'ONLINE'
+                ? 'bg-[#0f1422] border-[#1f2b42] text-teal-400'
+                : connState === 'WAKING_UP'
+                ? 'bg-amber-950/30 border-amber-500/30 text-amber-300'
+                : 'bg-rose-950/30 border-rose-500/30 text-rose-300'
+            }`}>
+              <Activity className="w-3.5 h-3.5" />
+              <span className="text-slate-400">Backend:</span>
+              <span className="font-bold">
+                {connState === 'ONLINE' ? 'ACTIVE' : connState === 'WAKING_UP' ? 'WAKING UP (Render)' : 'OFFLINE'}
+              </span>
             </div>
 
             {/* Live Indicator */}
             <div
-              title={serverOnline ? 'Backend Connected' : 'Backend Offline'}
-              className={`w-2.5 h-2.5 rounded-full live-indicator ${serverOnline ? 'bg-emerald-400 text-emerald-400' : 'bg-rose-500 text-rose-500'}`}
+              title={
+                connState === 'ONLINE' 
+                  ? `Backend Connected (${BASE_URL})` 
+                  : connState === 'WAKING_UP'
+                  ? 'Render Free Tier: Instance waking up (~30-50s)'
+                  : 'Backend Disconnected: Check VITE_API_URL or Render status'
+              }
+              className={`w-2.5 h-2.5 rounded-full ${
+                connState === 'ONLINE'
+                  ? 'bg-emerald-400 live-indicator text-emerald-400'
+                  : connState === 'WAKING_UP'
+                  ? 'bg-amber-400 animate-pulse'
+                  : 'bg-rose-500'
+              }`}
             />
           </div>
         </header>
