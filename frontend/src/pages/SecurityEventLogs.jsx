@@ -112,87 +112,96 @@ export const SecurityEventLogs = () => {
   return (
     <div className="space-y-6">
       {/* Page Header */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 p-6 rounded-2xl bg-[#091325]/90 border border-[#1a2c4e] backdrop-blur-xl relative overflow-hidden shadow-xl shadow-black/30">
-        <div className="absolute top-0 right-0 w-80 h-32 bg-sky-500/5 rounded-full blur-3xl pointer-events-none" />
-        <div className="relative z-10">
-          <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-xl bg-sky-500/10 border border-sky-500/30 text-sky-400 shadow-inner">
-              <ScrollText className="w-6 h-6" />
+      <div className="relative overflow-hidden bg-[#0a0f1d]/90 backdrop-blur-md border border-[#17253e] rounded-2xl p-6 shadow-xl shadow-black/40">
+        <div className="absolute inset-x-0 top-0 h-[1.5px] bg-gradient-to-r from-cyan-500/0 via-cyan-500/60 to-sky-500/0" />
+        <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+          <div className="flex items-center gap-3.5">
+            <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-cyan-500/20 to-sky-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 shadow-lg shadow-cyan-950/40">
+              <ScrollText className="w-5 h-5" />
             </div>
             <div>
-              <h1 className="text-xl font-bold tracking-tight text-white flex items-center gap-2">
-                Security Audit & Telemetry Ledger
-              </h1>
-              <p className="text-xs text-slate-400 mt-0.5">
+              <div className="flex items-center gap-2">
+                <h1 className="text-xl font-bold tracking-tight text-white">
+                  Security Audit & Telemetry Ledger
+                </h1>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-mono-code font-semibold bg-cyan-500/10 text-cyan-300 border border-cyan-500/20">
+                  SQLite Journal
+                </span>
+              </div>
+              <p className="text-xs text-slate-400 mt-1">
                 Tamper-evident, zero-leak event journal persisted in SQLite. Cryptographic secrets and private keys are never logged.
               </p>
             </div>
           </div>
-        </div>
 
-        <div className="relative z-10 flex flex-wrap items-center gap-2.5">
-          <button
-            onClick={handleExportJson}
-            className="px-3.5 py-2 rounded-xl bg-slate-800/80 hover:bg-slate-700/80 text-slate-200 text-xs font-medium border border-slate-700/80 hover:border-slate-600 flex items-center gap-2 transition-all shadow-sm active:scale-95"
-          >
-            <Download className="w-3.5 h-3.5 text-sky-400" />
-            <span>Export JSON Ledger</span>
-          </button>
-          <button
-            onClick={handleClearLogs}
-            className="px-3.5 py-2 rounded-xl bg-rose-950/40 hover:bg-rose-900/60 text-rose-300 text-xs font-medium border border-rose-700/40 hover:border-rose-600/60 flex items-center gap-2 transition-all shadow-sm active:scale-95"
-          >
-            <Trash2 className="w-3.5 h-3.5 text-rose-400" />
-            <span>Purge Ledger</span>
-          </button>
+          <div className="flex flex-wrap items-center gap-2.5">
+            <button
+              onClick={handleExportJson}
+              className="px-3.5 py-2 rounded-xl bg-[#070b16] hover:bg-slate-800 text-slate-200 text-xs font-medium border border-[#1a263d] hover:border-slate-600 flex items-center gap-2 transition-all shadow-sm active:scale-95 cursor-pointer"
+            >
+              <Download className="w-3.5 h-3.5 text-cyan-400" />
+              <span>Export JSON Ledger</span>
+            </button>
+            <button
+              onClick={handleClearLogs}
+              className="px-3.5 py-2 rounded-xl bg-rose-950/30 hover:bg-rose-900/50 text-rose-300 text-xs font-medium border border-rose-700/40 hover:border-rose-600/60 flex items-center gap-2 transition-all shadow-sm active:scale-95 cursor-pointer"
+            >
+              <Trash2 className="w-3.5 h-3.5 text-rose-400" />
+              <span>Purge Ledger</span>
+            </button>
+          </div>
         </div>
       </div>
 
       {/* Metrics Row */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
-        <div className="p-4 rounded-xl bg-[#091325]/70 border border-[#162746] flex items-center gap-3">
-          <div className="p-2 rounded-lg bg-sky-500/10 border border-sky-500/20 text-sky-400">
+        <div className="p-4 rounded-2xl bg-[#0a0f1d]/85 backdrop-blur-md border border-[#17253e] flex items-center gap-3.5 relative overflow-hidden shadow-lg shadow-black/20">
+          <div className="absolute inset-x-0 top-0 h-[1.5px] bg-gradient-to-r from-sky-500/0 via-sky-500/60 to-transparent" />
+          <div className="p-2.5 rounded-xl bg-sky-500/10 border border-sky-500/30 text-sky-400 shadow-inner">
             <Activity className="w-4 h-4" />
           </div>
           <div>
-            <div className="text-[11px] text-slate-400">Total Registered</div>
-            <div className="text-lg font-bold text-white font-mono-code">{total}</div>
+            <div className="text-[11px] text-slate-400 font-medium">Total Registered</div>
+            <div className="text-xl font-bold text-white font-mono-code">{total}</div>
           </div>
         </div>
 
-        <div className="p-4 rounded-xl bg-[#091325]/70 border border-[#162746] flex items-center gap-3">
-          <div className="p-2 rounded-lg bg-rose-500/10 border border-rose-500/20 text-rose-400">
+        <div className="p-4 rounded-2xl bg-[#0a0f1d]/85 backdrop-blur-md border border-[#17253e] flex items-center gap-3.5 relative overflow-hidden shadow-lg shadow-black/20">
+          <div className="absolute inset-x-0 top-0 h-[1.5px] bg-gradient-to-r from-rose-500/0 via-rose-500/60 to-transparent" />
+          <div className="p-2.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 shadow-inner">
             <ShieldAlert className="w-4 h-4" />
           </div>
           <div>
-            <div className="text-[11px] text-slate-400">Critical Alerts (Page)</div>
-            <div className="text-lg font-bold text-rose-400 font-mono-code">{criticalCount}</div>
+            <div className="text-[11px] text-slate-400 font-medium">Critical Alerts (Page)</div>
+            <div className="text-xl font-bold text-rose-400 font-mono-code">{criticalCount}</div>
           </div>
         </div>
 
-        <div className="p-4 rounded-xl bg-[#091325]/70 border border-[#162746] flex items-center gap-3">
-          <div className="p-2 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-400">
+        <div className="p-4 rounded-2xl bg-[#0a0f1d]/85 backdrop-blur-md border border-[#17253e] flex items-center gap-3.5 relative overflow-hidden shadow-lg shadow-black/20">
+          <div className="absolute inset-x-0 top-0 h-[1.5px] bg-gradient-to-r from-amber-500/0 via-amber-500/60 to-transparent" />
+          <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 shadow-inner">
             <AlertTriangle className="w-4 h-4" />
           </div>
           <div>
-            <div className="text-[11px] text-slate-400">Warnings (Page)</div>
-            <div className="text-lg font-bold text-amber-400 font-mono-code">{warningCount}</div>
+            <div className="text-[11px] text-slate-400 font-medium">Warnings (Page)</div>
+            <div className="text-xl font-bold text-amber-400 font-mono-code">{warningCount}</div>
           </div>
         </div>
 
-        <div className="p-4 rounded-xl bg-[#091325]/70 border border-[#162746] flex items-center gap-3">
-          <div className="p-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
+        <div className="p-4 rounded-2xl bg-[#0a0f1d]/85 backdrop-blur-md border border-[#17253e] flex items-center gap-3.5 relative overflow-hidden shadow-lg shadow-black/20">
+          <div className="absolute inset-x-0 top-0 h-[1.5px] bg-gradient-to-r from-emerald-500/0 via-emerald-500/60 to-transparent" />
+          <div className="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 shadow-inner">
             <ShieldCheck className="w-4 h-4" />
           </div>
           <div>
-            <div className="text-[11px] text-slate-400">Allowed / Verified</div>
-            <div className="text-lg font-bold text-emerald-400 font-mono-code">{allowCount}</div>
+            <div className="text-[11px] text-slate-400 font-medium">Allowed / Verified</div>
+            <div className="text-xl font-bold text-emerald-400 font-mono-code">{allowCount}</div>
           </div>
         </div>
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="bg-[#091325]/90 border border-[#1a2c4e] rounded-2xl p-4 shadow-xl shadow-black/20 flex flex-col md:flex-row gap-3 items-center justify-between">
+      <div className="bg-[#0a0f1d]/85 backdrop-blur-md border border-[#17253e] rounded-2xl p-4 shadow-xl shadow-black/30 flex flex-col md:flex-row gap-3 items-center justify-between">
         <form onSubmit={handleSearchSubmit} className="flex-1 w-full flex items-center gap-2">
           <div className="relative flex-1">
             <Search className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
@@ -201,12 +210,12 @@ export const SecurityEventLogs = () => {
               placeholder="Search by Device ID, action, message, or cryptographic event..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full bg-[#050c18] border border-slate-700/80 rounded-xl pl-10 pr-3.5 py-2 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 transition-colors"
+              className="w-full bg-[#070b16] border border-[#1a263d] rounded-xl pl-10 pr-3.5 py-2.5 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500/40 transition-all font-mono-code"
             />
           </div>
           <button
             type="submit"
-            className="px-4 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-xs font-semibold shadow-md shadow-sky-900/30 transition-all active:scale-95"
+            className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-cyan-600 to-sky-600 hover:from-cyan-500 hover:to-sky-500 text-white text-xs font-semibold shadow-md shadow-cyan-950/40 transition-all active:scale-95 cursor-pointer"
           >
             Filter
           </button>
@@ -217,7 +226,7 @@ export const SecurityEventLogs = () => {
           <select
             value={severity}
             onChange={(e) => { setSeverity(e.target.value); setPage(0); }}
-            className="bg-[#050c18] border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-sky-500 cursor-pointer"
+            className="bg-[#070b16] border border-[#1a263d] rounded-xl px-3 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-cyan-500 cursor-pointer"
           >
             <option value="ALL">All Severities</option>
             <option value="INFO">INFO Only</option>
@@ -229,7 +238,7 @@ export const SecurityEventLogs = () => {
           <select
             value={eventType}
             onChange={(e) => { setEventType(e.target.value); setPage(0); }}
-            className="bg-[#050c18] border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-sky-500 cursor-pointer max-w-xs"
+            className="bg-[#070b16] border border-[#1a263d] rounded-xl px-3 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-cyan-500 cursor-pointer max-w-xs"
           >
             {eventTypesList.map(t => (
               <option key={t} value={t}>{t === 'ALL' ? 'All Event Types' : t}</option>
@@ -238,33 +247,33 @@ export const SecurityEventLogs = () => {
 
           <button
             onClick={fetchLogs}
-            className="p-2.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-300 border border-slate-700/80 hover:border-slate-600 transition-all active:scale-95"
+            className="p-2.5 rounded-xl bg-[#070b16] hover:bg-slate-800 text-slate-300 border border-[#1a263d] hover:border-slate-600 transition-all active:scale-95 cursor-pointer"
             title="Refresh Ledger"
           >
-            <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin text-sky-400' : ''}`} />
+            <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin text-cyan-400' : ''}`} />
           </button>
         </div>
       </div>
 
       {/* Logs Table */}
-      <div className="bg-[#091325]/90 border border-[#1a2c4e] rounded-2xl overflow-hidden shadow-xl shadow-black/30">
+      <div className="bg-[#0a0f1d]/85 backdrop-blur-md border border-[#17253e] rounded-2xl overflow-hidden shadow-xl shadow-black/40">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="bg-[#050c18]/90 border-b border-[#1a2c4e] text-slate-400 font-semibold tracking-wider uppercase text-[10px]">
+            <thead className="bg-[#070b16] border-b border-[#18253e] text-slate-400 font-semibold tracking-wider uppercase text-[10px]">
               <tr>
-                <th className="py-3.5 px-4">Timestamp</th>
-                <th className="py-3.5 px-3">Severity</th>
-                <th className="py-3.5 px-3">Event Signature</th>
-                <th className="py-3.5 px-3">Source Node</th>
-                <th className="py-3.5 px-3">Verdict</th>
-                <th className="py-3.5 px-4">Telemetry Summary</th>
-                <th className="py-3.5 px-4 text-right">Details</th>
+                <th className="py-3.5 px-4 font-semibold">Timestamp</th>
+                <th className="py-3.5 px-3 font-semibold">Severity</th>
+                <th className="py-3.5 px-3 font-semibold">Event Signature</th>
+                <th className="py-3.5 px-3 font-semibold">Source Node</th>
+                <th className="py-3.5 px-3 font-semibold">Verdict</th>
+                <th className="py-3.5 px-4 font-semibold">Telemetry Summary</th>
+                <th className="py-3.5 px-4 text-right font-semibold">Details</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/50 font-mono-code">
+            <tbody className="divide-y divide-[#152035] font-mono-code">
               {logs.length > 0 ? (
                 logs.map((evt) => (
-                  <tr key={evt.id} className="hover:bg-slate-800/30 transition-colors group">
+                  <tr key={evt.id} className="hover:bg-slate-800/25 transition-colors group">
                     <td className="py-3 px-4 text-slate-400 text-[11px] whitespace-nowrap">
                       <span className="flex items-center gap-1.5 font-mono">
                         <Clock className="w-3 h-3 text-slate-500" />
@@ -276,11 +285,11 @@ export const SecurityEventLogs = () => {
                         {evt.severity}
                       </Badge>
                     </td>
-                    <td className="py-3 px-3 font-semibold text-sky-300 text-[11px] whitespace-nowrap">
+                    <td className="py-3 px-3 font-semibold text-cyan-300 text-[11px] whitespace-nowrap">
                       {evt.event_type}
                     </td>
                     <td className="py-3 px-3">
-                      <span className="px-2 py-0.5 rounded-md bg-slate-800/80 border border-slate-700/60 text-slate-300 text-[10px] font-mono">
+                      <span className="px-2 py-0.5 rounded-md bg-[#070b16] border border-[#1c2942] text-slate-300 text-[10px] font-mono">
                         {evt.device_id || 'AEGIS_CORE'}
                       </span>
                     </td>
@@ -304,7 +313,7 @@ export const SecurityEventLogs = () => {
                     <td className="py-3 px-4 text-right">
                       <button
                         onClick={() => setInspectedEvent(evt)}
-                        className="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-sky-600/20 text-slate-400 hover:text-sky-300 border border-slate-700/60 hover:border-sky-500/40 text-[11px] font-sans inline-flex items-center gap-1.5 transition-all shadow-sm"
+                        className="px-2.5 py-1.5 rounded-lg bg-[#070b16] hover:bg-cyan-600/20 text-slate-300 hover:text-cyan-300 border border-[#1a263d] hover:border-cyan-500/40 text-[11px] font-sans inline-flex items-center gap-1.5 transition-all shadow-sm cursor-pointer"
                         title="View Sanitized Cryptographic Frame"
                       >
                         <Eye className="w-3.5 h-3.5" />
@@ -328,7 +337,7 @@ export const SecurityEventLogs = () => {
         </div>
 
         {/* Pagination Bar */}
-        <div className="p-3.5 bg-[#050c18]/90 border-t border-[#1a2c4e] flex items-center justify-between text-xs text-slate-400">
+        <div className="p-3.5 bg-[#070b16] border-t border-[#18253e] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-400">
           <span>
             Displaying <strong className="text-slate-200">{logs.length}</strong> of <strong className="text-slate-200">{total}</strong> recorded telemetry events
           </span>
@@ -336,18 +345,18 @@ export const SecurityEventLogs = () => {
             <button
               onClick={() => setPage(Math.max(0, page - 1))}
               disabled={page === 0}
-              className="px-2.5 py-1 rounded-lg bg-slate-800/80 hover:bg-slate-700 disabled:opacity-40 text-slate-300 border border-slate-700/60 transition-colors flex items-center gap-1"
+              className="px-2.5 py-1 rounded-lg bg-[#0a0f1d] hover:bg-slate-800 disabled:opacity-40 text-slate-300 border border-[#1a263d] transition-colors flex items-center gap-1 cursor-pointer disabled:cursor-not-allowed"
             >
               <ChevronLeft className="w-3.5 h-3.5" />
               <span>Prev</span>
             </button>
-            <span className="font-mono-code text-slate-300 px-2 py-0.5 rounded bg-slate-900 border border-slate-800 text-[11px]">
+            <span className="font-mono-code text-cyan-300 px-2 py-0.5 rounded bg-[#0a0f1d] border border-[#1a263d] text-[11px]">
               Page {page + 1} / {totalPages}
             </span>
             <button
               onClick={() => setPage(Math.min(totalPages - 1, page + 1))}
               disabled={page >= totalPages - 1}
-              className="px-2.5 py-1 rounded-lg bg-slate-800/80 hover:bg-slate-700 disabled:opacity-40 text-slate-300 border border-slate-700/60 transition-colors flex items-center gap-1"
+              className="px-2.5 py-1 rounded-lg bg-[#0a0f1d] hover:bg-slate-800 disabled:opacity-40 text-slate-300 border border-[#1a263d] transition-colors flex items-center gap-1 cursor-pointer disabled:cursor-not-allowed"
             >
               <span>Next</span>
               <ChevronRight className="w-3.5 h-3.5" />

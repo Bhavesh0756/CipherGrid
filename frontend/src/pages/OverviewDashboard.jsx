@@ -12,7 +12,10 @@ import {
   CheckCircle2,
   XCircle,
   Zap,
-  TrendingUp
+  TrendingUp,
+  Activity,
+  Sparkles,
+  Layers
 } from 'lucide-react';
 import { 
   BarChart, 
@@ -32,13 +35,18 @@ import { api } from '../services/api';
 const CustomTooltip = ({ active, payload, label }) => {
   if (!active || !payload?.length) return null;
   return (
-    <div className="bg-[#080f1e] border border-[#1e3158] rounded-lg px-3 py-2 text-xs shadow-xl">
-      <p className="text-slate-300 font-mono-code mb-1">{label}</p>
+    <div className="bg-[#0b0f19]/95 border border-[#1e2a40] rounded-xl px-4 py-3 text-xs shadow-2xl backdrop-blur-xl space-y-1.5">
+      <p className="text-white font-mono-code font-bold border-b border-slate-800 pb-1 flex items-center justify-between gap-4">
+        <span>{label}</span>
+        <span className="text-[10px] text-cyan-400 font-normal">SCADA Node</span>
+      </p>
       {payload.map((p, i) => (
-        <div key={i} className="flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full" style={{ background: p.fill }} />
-          <span className="text-slate-400">{p.name}:</span>
-          <span className="text-white font-bold">{p.value}</span>
+        <div key={i} className="flex items-center justify-between gap-4 text-[11px]">
+          <span className="flex items-center gap-1.5 text-slate-400">
+            <span className="w-2 h-2 rounded-full" style={{ background: p.fill }} />
+            {p.name}:
+          </span>
+          <span className="font-mono-code font-bold text-white">{p.value} frames</span>
         </div>
       ))}
     </div>
@@ -102,13 +110,15 @@ export const OverviewDashboard = ({ onNavigate }) => {
 
   if (loading && !stats) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] gap-4 animate-fade-in">
+      <div className="flex flex-col items-center justify-center min-h-[440px] gap-4 animate-fade-in">
         <div className="relative">
-          <RefreshCw className="w-8 h-8 animate-spin text-sky-400" />
+          <div className="w-12 h-12 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center shadow-lg shadow-cyan-950/40">
+            <RefreshCw className="w-6 h-6 animate-spin text-cyan-400" />
+          </div>
         </div>
         <div className="text-center">
-          <p className="text-sm text-slate-300 font-medium">Initializing AegisGrid ICS</p>
-          <p className="text-xs text-slate-500 mt-1 font-mono-code">Connecting to SCADA security subsystem...</p>
+          <p className="text-sm text-white font-bold tracking-tight">Initializing AegisGrid Core</p>
+          <p className="text-xs text-slate-400 mt-1 font-mono-code">Querying SQLite audit database & SCADA controller…</p>
         </div>
       </div>
     );
@@ -116,15 +126,15 @@ export const OverviewDashboard = ({ onNavigate }) => {
 
   if (error) {
     return (
-      <div className="p-6 rounded-xl alert-critical animate-fade-in">
+      <div className="p-6 rounded-2xl alert-critical animate-fade-in max-w-2xl mx-auto my-8">
         <div className="flex items-center gap-3 mb-2">
           <AlertTriangle className="w-5 h-5 text-rose-400" />
-          <h3 className="font-semibold text-sm text-rose-200">Backend Connection Error</h3>
+          <h3 className="font-bold text-sm text-rose-200">Backend Connection Error</h3>
         </div>
-        <p className="text-xs text-rose-400/80 mb-4 font-mono-code">{error}</p>
+        <p className="text-xs text-rose-300/80 mb-4 font-mono-code leading-relaxed">{error}</p>
         <button
           onClick={fetchStats}
-          className="px-4 py-1.5 rounded-lg bg-rose-900/50 hover:bg-rose-800 text-xs text-rose-200 border border-rose-700/50 transition-colors btn-press"
+          className="px-4 py-2 rounded-xl bg-rose-900/60 hover:bg-rose-800 text-xs text-rose-200 border border-rose-700/60 transition-colors btn-press font-semibold"
         >
           Retry Connection
         </button>
@@ -142,167 +152,193 @@ export const OverviewDashboard = ({ onNavigate }) => {
       ];
 
   return (
-    <div className="space-y-5">
-      {/* ── Hero Header ── */}
-      <div className="relative overflow-hidden bg-gradient-to-r from-[#0c1428] to-[#0d1a35] border border-[#1a2844] rounded-xl p-5 flowing-border">
-        <div className="absolute inset-0 bg-grid-pattern opacity-40" />
-        <div className="relative flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2 mb-1">
-              <span className="px-2 py-0.5 rounded-full bg-sky-500/15 border border-sky-500/30 text-[10px] font-mono-code text-sky-400 uppercase tracking-wider">
-                Live
+    <div className="space-y-6">
+      {/* ── Elevated Hero Banner ── */}
+      <div className="relative overflow-hidden bg-gradient-to-r from-[#0c101b] via-[#0f1524] to-[#0c111d] border border-cyan-500/20 rounded-2xl p-6 shadow-2xl shadow-black/50 backdrop-blur-xl">
+        {/* Subtle decorative glow & grid */}
+        <div className="absolute top-0 right-0 w-96 h-full bg-gradient-to-l from-cyan-500/10 via-sky-500/5 to-transparent blur-2xl pointer-events-none" />
+        <div className="absolute inset-0 bg-grid-pattern opacity-30 pointer-events-none" />
+
+        <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
+          <div className="space-y-1.5 max-w-2xl">
+            <div className="flex items-center gap-2.5">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-cyan-500/15 border border-cyan-500/30 text-[10px] font-mono-code text-cyan-300 uppercase tracking-wider font-semibold">
+                <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
+                Live SCADA Ingress
               </span>
-              <span className="text-[10px] text-slate-500 font-mono-code">SCADA Cybersecurity Center</span>
+              <span className="text-[10px] text-slate-400 font-mono-code">
+                Purdue Model Tier 1-3 Active
+              </span>
             </div>
-            <h2 className="text-xl font-bold tracking-tight text-white">
-              AegisGrid <span className="text-gradient">Security Dashboard</span>
-            </h2>
-            <p className="text-xs text-slate-400 mt-1 leading-relaxed">
-              Real-time cryptographic monitoring, RBAC policy enforcement, and message integrity verification for virtual ICS endpoints.
+            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white leading-tight">
+              AegisGrid <span className="text-gradient">Security Operations</span>
+            </h1>
+            <p className="text-xs text-slate-300 leading-relaxed max-w-xl">
+              Software-defined industrial control telemetry engine. Enforces hardware admission, AEAD authenticated payload encryption, and real-time least-privilege policy verification.
             </p>
           </div>
-          <div className="flex flex-wrap items-center gap-2 shrink-0">
+
+          <div className="flex flex-wrap items-center gap-3 shrink-0">
             <button
               onClick={handleQuickSimulate}
               disabled={!!simulating}
-              className="px-4 py-2 rounded-lg bg-sky-600 hover:bg-sky-500 disabled:opacity-60 text-white text-xs font-semibold shadow-md shadow-sky-900/40 flex items-center gap-2 transition-all btn-press"
+              className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-cyan-600 to-sky-600 hover:from-cyan-500 hover:to-sky-500 disabled:opacity-60 text-white text-xs font-bold shadow-lg shadow-cyan-950/50 flex items-center gap-2 transition-all btn-press border border-cyan-400/30"
             >
-              <Radio className={`w-3.5 h-3.5 ${simulating === 'auth' ? 'animate-pulse' : ''}`} />
-              <span>{simulating === 'auth' ? 'Processing...' : 'Simulate Auth Message'}</span>
+              <Radio className={`w-4 h-4 ${simulating === 'auth' ? 'animate-pulse text-cyan-200' : ''}`} />
+              <span>{simulating === 'auth' ? 'Processing Payload…' : 'Simulate Auth Message'}</span>
             </button>
             <button
               onClick={handleSimulateAttack}
               disabled={!!simulating}
-              className="px-4 py-2 rounded-lg bg-rose-600/90 hover:bg-rose-500 disabled:opacity-60 text-white text-xs font-semibold shadow-md shadow-rose-950/40 flex items-center gap-2 transition-all btn-press"
+              className="px-4 py-2.5 rounded-xl bg-rose-950/60 hover:bg-rose-900/80 disabled:opacity-60 text-rose-200 text-xs font-bold shadow-lg shadow-rose-950/40 flex items-center gap-2 transition-all btn-press border border-rose-500/40"
             >
-              <ShieldAlert className={`w-3.5 h-3.5 ${simulating === 'attack' ? 'animate-pulse' : ''}`} />
-              <span>{simulating === 'attack' ? 'Processing...' : 'Simulate Attack'}</span>
+              <ShieldAlert className={`w-4 h-4 text-rose-400 ${simulating === 'attack' ? 'animate-pulse' : ''}`} />
+              <span>{simulating === 'attack' ? 'Injecting Threat…' : 'Simulate Attack'}</span>
             </button>
           </div>
         </div>
       </div>
 
-      {/* ── 6 Stat Cards ── */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+      {/* ── 6 Stat Cards Grid ── */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5">
         {[
-          { title: 'Total Devices',     value: stats?.total_devices ?? 0,         subtitle: 'Enrolled endpoints',         icon: Cpu,             color: 'blue'   },
-          { title: 'Authorized Nodes',  value: stats?.authorized_devices ?? 0,    subtitle: 'Active permitted nodes',     icon: ShieldCheck,     color: 'emerald' },
-          { title: 'Messages Processed',value: stats?.messages_processed ?? 0,    subtitle: 'Total telemetry frames',     icon: MessageSquareCode,color: 'sky'   },
-          { title: 'RBAC Rejections',   value: stats?.rejected_requests ?? 0,     subtitle: 'Blocked by policy',          icon: ShieldAlert,     color: 'rose'   },
-          { title: 'Integrity Failures',value: stats?.integrity_failures ?? 0,    subtitle: 'Tampered payloads caught',   icon: AlertTriangle,   color: 'amber'  },
-          { title: 'TLS 1.3 Status',    value: stats?.secure_connection_status?.tls_ready ? 'LIVE' : 'PENDING',
-                                         subtitle: stats?.secure_connection_status?.active_protocol || 'TLS 1.3',
+          { title: 'Enrolled Devices',  value: stats?.total_devices ?? 0,         subtitle: 'Active virtual nodes',       icon: Cpu,             color: 'cyan'    },
+          { title: 'Authorized Nodes',  value: stats?.authorized_devices ?? 0,    subtitle: 'Permitted SCADA links',      icon: ShieldCheck,     color: 'emerald' },
+          { title: 'Frames Ingested',   value: stats?.messages_processed ?? 0,    subtitle: 'Processed telemetry',        icon: MessageSquareCode,color: 'sky'    },
+          { title: 'Policy Dropped',    value: stats?.rejected_requests ?? 0,     subtitle: 'Blocked by RBAC',            icon: ShieldAlert,     color: 'rose'    },
+          { title: 'Integrity Alerts',  value: stats?.integrity_failures ?? 0,    subtitle: 'Tampered payloads caught',   icon: AlertTriangle,   color: 'amber'   },
+          { title: 'TLS 1.3 Transport', value: stats?.secure_connection_status?.tls_ready ? 'READY' : 'PENDING',
+                                         subtitle: stats?.secure_connection_status?.active_protocol || 'TLS 1.3 Strict',
                                          icon: Lock, color: 'teal' },
         ].map((card, i) => (
-          <div key={i} className="animate-fade-slide-up" style={{ animationDelay: `${i * 60}ms` }}>
+          <div key={i} className="animate-fade-slide-up" style={{ animationDelay: `${i * 50}ms` }}>
             <StatCard {...card} />
           </div>
         ))}
       </div>
 
-      {/* ── Communication Flow ── */}
-      <div className="animate-fade-slide-up animate-delay-300">
+      {/* ── End-to-End Cryptographic Communication Pipeline ── */}
+      <div className="animate-fade-slide-up animate-delay-200">
         <CommunicationFlow lastSimulation={lastSimulation} />
       </div>
 
-      {/* ── Charts & Events ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 animate-fade-slide-up animate-delay-400">
-        {/* Bar Chart */}
-        <div className="lg:col-span-7 bg-[#0c1428]/90 border border-[#1a2844] rounded-xl p-5 shadow-lg shadow-black/20 flex flex-col card-hover">
+      {/* ── Charts & Live Security Event Stream ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 animate-fade-slide-up animate-delay-300">
+        {/* Luminous Bar Chart */}
+        <div className="lg:col-span-7 bg-[#0e1320]/85 border border-[#1c263c] rounded-2xl p-6 shadow-xl shadow-black/40 flex flex-col card-hover backdrop-blur-md">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h3 className="text-sm font-semibold text-slate-200 flex items-center gap-2">
-                <TrendingUp className="w-4 h-4 text-sky-400" />
-                Message Integrity Audit
-              </h3>
-              <p className="text-xs text-slate-500 mt-0.5">
-                Accepted (authenticated) vs Rejected (RBAC blocked) messages per device
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 rounded-lg bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
+                  <TrendingUp className="w-4 h-4" />
+                </div>
+                <h3 className="text-sm font-bold text-white tracking-tight">
+                  Message Integrity & Access Audit
+                </h3>
+              </div>
+              <p className="text-xs text-slate-400 mt-1">
+                Authenticated payloads (AES-256-GCM verified) vs Policy-blocked violations per device
               </p>
             </div>
-            <span className="text-[10px] font-mono-code text-sky-400 bg-sky-950/40 px-2 py-0.5 rounded border border-sky-500/30">
-              SQLite Live
+            <span className="text-[10px] font-mono-code text-cyan-400 bg-cyan-950/60 px-2.5 py-1 rounded-full border border-cyan-500/30 shadow-sm">
+              Live SQLite Audit
             </span>
           </div>
 
-          <div className="h-60 w-full flex-1">
+          <div className="h-64 w-full flex-1 pt-2">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={chartData} margin={{ top: 5, right: 10, left: -20, bottom: 20 }} barGap={4}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#1a2844" vertical={false} />
+              <BarChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 20 }} barGap={6}>
+                <defs>
+                  <linearGradient id="barAccepted" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#06b6d4" stopOpacity={0.9} />
+                    <stop offset="100%" stopColor="#0ea5e9" stopOpacity={0.3} />
+                  </linearGradient>
+                  <linearGradient id="barRejected" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#f43f5e" stopOpacity={0.9} />
+                    <stop offset="100%" stopColor="#be123c" stopOpacity={0.3} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="#182236" vertical={false} />
                 <XAxis
                   dataKey="device_id"
-                  stroke="#334155"
+                  stroke="#26354f"
                   fontSize={10}
                   tickLine={false}
                   angle={-12}
                   textAnchor="end"
-                  tick={{ fill: '#64748b' }}
+                  tick={{ fill: '#94a3b8', fontSize: 10 }}
                 />
-                <YAxis stroke="#334155" fontSize={10} tickLine={false} allowDecimals={false} tick={{ fill: '#64748b' }} />
+                <YAxis stroke="#26354f" fontSize={10} tickLine={false} allowDecimals={false} tick={{ fill: '#94a3b8' }} />
                 <Tooltip content={<CustomTooltip />} />
                 <Legend
-                  wrapperStyle={{ fontSize: '11px', paddingTop: '8px', color: '#94a3b8' }}
+                  wrapperStyle={{ fontSize: '11px', paddingTop: '12px', color: '#94a3b8' }}
                   iconSize={8}
                   iconType="circle"
                 />
-                <Bar dataKey="accepted" name="Accepted (Authenticated)" fill="#0ea5e9" radius={[4, 4, 0, 0]} />
-                <Bar dataKey="rejected" name="Rejected (Policy Block)"  fill="#f43f5e" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="accepted" name="Authenticated (Permitted)" fill="url(#barAccepted)" radius={[6, 6, 0, 0]} />
+                <Bar dataKey="rejected" name="Violation (Policy Dropped)" fill="url(#barRejected)" radius={[6, 6, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
         </div>
 
-        {/* Recent Security Events */}
-        <div className="lg:col-span-5 bg-[#0c1428]/90 border border-[#1a2844] rounded-xl p-5 shadow-lg shadow-black/20 flex flex-col card-hover">
-          <div className="flex items-center justify-between mb-3">
+        {/* Live Security Events Stream */}
+        <div className="lg:col-span-5 bg-[#0e1320]/85 border border-[#1c263c] rounded-2xl p-6 shadow-xl shadow-black/40 flex flex-col card-hover backdrop-blur-md">
+          <div className="flex items-center justify-between mb-4">
             <div>
-              <h3 className="text-sm font-semibold text-slate-200">Recent Security Events</h3>
-              <p className="text-xs text-slate-500 mt-0.5">Live cryptographic & RBAC event stream</p>
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 rounded-lg bg-sky-500/10 text-sky-400 border border-sky-500/20">
+                  <Activity className="w-4 h-4" />
+                </div>
+                <h3 className="text-sm font-bold text-white tracking-tight">Recent Security Events</h3>
+              </div>
+              <p className="text-xs text-slate-400 mt-1">Live tamper-evident ledger activity</p>
             </div>
             <button
               onClick={() => onNavigate('logs')}
-              className="text-xs text-sky-400 hover:text-sky-300 font-medium flex items-center gap-1 transition-colors"
+              className="text-xs text-cyan-400 hover:text-cyan-300 font-semibold flex items-center gap-1 transition-colors px-2 py-1 rounded-lg hover:bg-cyan-500/10"
             >
-              <span>View All</span>
+              <span>Explore All</span>
               <ArrowUpRight className="w-3.5 h-3.5" />
             </button>
           </div>
 
-          <div className="flex-1 space-y-1.5 overflow-y-auto max-h-64 pr-0.5">
+          <div className="flex-1 space-y-2 overflow-y-auto max-h-64 pr-1">
             {stats?.recent_events && stats.recent_events.length > 0 ? (
               stats.recent_events.map((evt, i) => (
                 <div
                   key={evt.id}
-                  className="p-2.5 rounded-lg bg-[#080f1e] border border-[#1a2844] hover:border-[#1e3158] transition-colors flex items-start gap-2.5 group animate-fade-in"
-                  style={{ animationDelay: `${i * 50}ms` }}
+                  className="p-3 rounded-xl bg-[#090d16] border border-[#182236] hover:border-cyan-500/30 transition-all flex items-start gap-3 group animate-fade-in"
+                  style={{ animationDelay: `${i * 40}ms` }}
                 >
                   <div className="mt-0.5 shrink-0">
                     {evt.result === 'ALLOW' || evt.result === 'SUCCESS' ? (
-                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                      <CheckCircle2 className="w-4 h-4 text-emerald-400" />
                     ) : (
-                      <XCircle className="w-3.5 h-3.5 text-rose-400" />
+                      <XCircle className="w-4 h-4 text-rose-400" />
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between gap-1">
-                      <span className="text-xs font-semibold text-slate-200 truncate">
+                      <span className="text-xs font-bold text-white group-hover:text-cyan-300 transition-colors truncate">
                         {evt.event_type}
                       </span>
                       <Badge variant={evt.severity} size="xs">{evt.severity}</Badge>
                     </div>
-                    <p className="text-[11px] text-slate-500 line-clamp-1 mt-0.5">{evt.message}</p>
-                    <div className="flex items-center gap-2 mt-1 text-[10px] text-slate-600 font-mono-code">
-                      <span>{evt.device_id || 'SYSTEM'}</span>
-                      <span>·</span>
+                    <p className="text-[11px] text-slate-300 line-clamp-1 mt-0.5">{evt.message}</p>
+                    <div className="flex items-center gap-2 mt-1.5 text-[10px] text-slate-500 font-mono-code">
+                      <span className="px-1.5 py-0.2 rounded bg-slate-900 border border-slate-800 text-slate-400">{evt.device_id || 'CORE'}</span>
+                      <span>•</span>
                       <span>{evt.timestamp ? new Date(evt.timestamp).toLocaleTimeString() : 'Recent'}</span>
                     </div>
                   </div>
                 </div>
               ))
             ) : (
-              <div className="flex flex-col items-center justify-center py-8 text-center">
-                <Zap className="w-6 h-6 text-slate-700 mb-2" />
-                <p className="text-xs text-slate-600">No recent security events.</p>
-                <p className="text-[10px] text-slate-700 mt-0.5">Use the simulator buttons above to generate events.</p>
+              <div className="flex flex-col items-center justify-center py-10 text-center">
+                <Zap className="w-8 h-8 text-slate-600 mb-2 animate-pulse" />
+                <p className="text-xs text-slate-400 font-medium">No recent security events.</p>
+                <p className="text-[10px] text-slate-500 mt-0.5">Use the simulation triggers above to generate live frames.</p>
               </div>
             )}
           </div>

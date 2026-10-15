@@ -1,41 +1,53 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Radio, 
-  Lock, 
-  Terminal, 
-  Layers, 
-  Network, 
-  CheckCircle2, 
-  XCircle, 
+import {
+  Radio,
+  Lock,
+  ShieldCheck,
+  Terminal,
+  Layers,
+  Network,
+  CheckCircle2,
+  XCircle,
   AlertTriangle,
   Play,
+  RefreshCw,
   Search,
-  RefreshCw
+  ExternalLink,
+  Cpu,
+  Server,
+  Sparkles
 } from 'lucide-react';
+import { Badge } from '../components/Badge';
 import { CodeBlock } from '../components/CodeBlock';
 import { api } from '../services/api';
 
 const Panel = ({ children, className = '' }) => (
-  <div className={`bg-[#0c1428]/90 border border-[#1a2844] rounded-xl p-5 shadow-lg shadow-black/20 card-hover space-y-4 ${className}`}>
+  <div className={`bg-[#0e1320]/85 border border-[#1c263c] rounded-2xl p-6 shadow-xl shadow-black/40 backdrop-blur-md card-hover space-y-4 ${className}`}>
     {children}
   </div>
 );
 
 const InfoBanner = ({ icon: Icon, color, children }) => (
   <div className={`p-4 rounded-xl text-xs leading-relaxed flex items-start gap-3 ${color}`}>
-    <Icon className="w-5 h-5 shrink-0 mt-0.5 opacity-70" />
+    <Icon className="w-5 h-5 shrink-0 mt-0.5 opacity-80" />
     <div>{children}</div>
   </div>
 );
 
 export const SecureCommunication = () => {
   const [activeTab, setActiveTab] = useState('tls');
+
+  // TLS Demo state
   const [tlsStatus, setTlsStatus] = useState(null);
   const [isRunningTls, setIsRunningTls] = useState(false);
   const [tlsLiveResults, setTlsLiveResults] = useState(null);
   const [tlsError, setTlsError] = useState(null);
+
+  // IPsec state
   const [ipsecSpec, setIpsecSpec] = useState(null);
   const [ipsecMode, setIpsecMode] = useState('transport');
+
+  // Wireshark state
   const [wiresharkGuide, setWiresharkGuide] = useState(null);
 
   useEffect(() => {
@@ -63,33 +75,41 @@ export const SecureCommunication = () => {
   };
 
   const tabs = [
-    { id: 'tls',        label: 'TLS 1.3 Socket Demo',   icon: Lock,   tag: 'Real Python',   color: 'text-sky-400' },
-    { id: 'ipsec',      label: 'IPsec Simulator',        icon: Layers, tag: 'Conceptual',    color: 'text-teal-400' },
-    { id: 'wireshark',  label: 'Wireshark Guide',        icon: Search, tag: 'Inspection',    color: 'text-blue-400' },
+    { id: 'tls',        label: 'TLS 1.3 Live Sockets',   icon: Lock,   tag: 'Native Python SSL', color: 'text-cyan-400' },
+    { id: 'ipsec',      label: 'IPsec Architecture',     icon: Layers, tag: 'AH vs ESP',         color: 'text-teal-400' },
+    { id: 'wireshark',  label: 'Wireshark Telemetry',    icon: Search, tag: 'Packet Inspection', color: 'text-sky-400' },
   ];
 
   const ipsecRows = [
-    ['Confidentiality (Encryption)', 'NO (Plaintext readable)', true, 'YES (AES-CBC / AES-GCM)', false],
+    ['Confidentiality (Encryption)', 'NO (Plaintext payload)', true, 'YES (AES-CBC / AES-GCM)', false],
     ['Integrity & Authenticity',     'YES (HMAC / ICV)',        false, 'YES (ESP ICV MAC)',       false],
     ['Anti-Replay Protection',       'YES (Sequence numbers)',  false, 'YES (Sequence numbers)',  false],
-    ['Protects Outer IP Header',     'YES (Immutable fields)',  false, 'NO (Header in clear)',   true ],
+    ['Protects Outer IP Header',     'YES (Immutable fields)',  false, 'NO (Outer IP clear)',     true ],
   ];
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-6">
       {/* Header */}
-      <div className="relative overflow-hidden bg-[#0c1428]/90 border border-[#1a2844] rounded-xl p-5 flowing-border">
-        <h2 className="text-xl font-bold tracking-tight text-white flex items-center gap-2">
-          <Radio className="w-5 h-5 text-cyan-400" />
-          Secure Communication Channels
-        </h2>
-        <p className="text-xs text-slate-400 mt-1">
-          Transport Layer Security (real local TLS 1.3 socket demo), Network Layer security (conceptual IPsec AH & ESP simulator), and Wireshark inspection guide.
-        </p>
+      <div className="relative overflow-hidden bg-gradient-to-r from-[#0c101b] via-[#0f1524] to-[#0c111d] border border-cyan-500/20 rounded-2xl p-6 shadow-xl shadow-black/40 backdrop-blur-xl">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
+            <span className="text-[10px] font-mono-code uppercase tracking-wider text-cyan-400 font-semibold">
+              OSI Layer 4 & Layer 3 Security
+            </span>
+          </div>
+          <h2 className="text-xl sm:text-2xl font-extrabold tracking-tight text-white flex items-center gap-2.5">
+            <Radio className="w-6 h-6 text-cyan-400" />
+            Secure Industrial Transport & Network Protocols
+          </h2>
+          <p className="text-xs text-slate-300 max-w-2xl leading-relaxed">
+            Real local TLS 1.3 socket client-server demo with strict certificate verification, conceptual IPsec AH vs ESP architectural framing, and Wireshark capture guides.
+          </p>
+        </div>
       </div>
 
       {/* Tabs */}
-      <div className="flex flex-wrap gap-1.5 p-1 bg-[#080f1e] rounded-xl border border-[#1a2844]">
+      <div className="flex flex-wrap gap-2 p-1.5 bg-[#0a0e18] rounded-2xl border border-slate-800">
         {tabs.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
@@ -97,16 +117,16 @@ export const SecureCommunication = () => {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-all flex-1 min-w-fit justify-center sm:justify-start btn-press ${
+              className={`flex items-center gap-2.5 px-4 py-2.5 rounded-xl text-xs font-semibold transition-all flex-1 min-w-fit justify-center sm:justify-start btn-press ${
                 isActive
-                  ? 'bg-[#0c1428] text-sky-300 border border-sky-500/40 shadow-sm'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-[#0c1428]/60'
+                  ? 'bg-cyan-500/10 text-white border border-cyan-500/40 shadow-lg shadow-cyan-950/30'
+                  : 'text-slate-400 hover:text-white hover:bg-white/[0.04] border border-transparent'
               }`}
             >
-              <Icon className={`w-3.5 h-3.5 ${isActive ? tab.color : 'text-slate-500'}`} />
-              <span className="hidden sm:block">{tab.label}</span>
-              <span className={`font-mono-code text-[9px] px-1.5 rounded border ${
-                isActive ? 'bg-sky-950/40 border-sky-500/30 text-sky-400' : 'bg-[#080f1e] border-[#1a2844] text-slate-600'
+              <Icon className={`w-4 h-4 ${isActive ? tab.color : 'text-slate-500'}`} />
+              <span>{tab.label}</span>
+              <span className={`font-mono-code text-[9px] px-2 py-0.5 rounded-full border ${
+                isActive ? 'bg-cyan-950/60 border-cyan-500/40 text-cyan-300' : 'bg-slate-900 border-slate-800 text-slate-500'
               }`}>
                 {tab.tag}
               </span>
@@ -117,95 +137,111 @@ export const SecureCommunication = () => {
 
       {/* ── TLS DEMO ── */}
       {activeTab === 'tls' && (
-        <div className="space-y-5 animate-fade-slide-up">
-          <InfoBanner icon={Lock} color="alert-info text-sky-300">
-            <strong>Transport Layer Security 1.3 — Real Python Socket Implementation.</strong>
-            <p className="mt-0.5 opacity-80">
-              This spawns an actual local TLS client-server connection using Python's standard <code className="text-sky-300">ssl</code> module. The client validates the server X.509 certificate with <code className="text-sky-300">check_hostname=True</code> and <code className="text-sky-300">verify_mode=CERT_REQUIRED</code>. Communication uses negotiated AEAD ciphers (e.g. TLS_AES_256_GCM_SHA384).
-            </p>
+        <div className="space-y-6 animate-fade-slide-up">
+          <InfoBanner icon={Lock} color="alert-info text-cyan-300">
+            <div>
+              <strong>Transport Layer Security 1.3 — Native Python Socket Tunnel.</strong>
+              <p className="mt-0.5 text-slate-300 leading-relaxed">
+                Spawns a real localhost TLS socket connection via Python's standard <code className="text-cyan-300 font-mono">ssl</code> module. The client strictly validates the server X.509 certificate with <code className="text-cyan-300 font-mono">check_hostname=True</code> and <code className="text-cyan-300 font-mono">verify_mode=CERT_REQUIRED</code>. Encrypted using negotiated AEAD ciphers (TLS_AES_256_GCM_SHA384).
+              </p>
+            </div>
           </InfoBanner>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Panel>
               <div className="flex items-center justify-between">
-                <h3 className="text-sm font-semibold text-slate-200">Live TLS Socket Handshake</h3>
-                <span className="text-[10px] font-mono-code text-sky-400 bg-sky-950/40 px-2 py-0.5 rounded border border-sky-500/30">
-                  Local Python SSL
+                <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                  <div className="p-1.5 rounded-lg bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
+                    <Lock className="w-4 h-4" />
+                  </div>
+                  <span>Live TLS Socket Handshake Test</span>
+                </h3>
+                <span className="text-[10px] font-mono-code text-cyan-300 bg-cyan-950/60 px-2.5 py-0.5 rounded-full border border-cyan-500/30">
+                  Port 8443 (Localhost)
                 </span>
               </div>
 
-              <p className="text-xs text-slate-400 leading-relaxed">
-                Spawns an ephemeral TLS 1.3 server + client in the backend, performs the full cryptographic handshake on localhost, and returns the negotiated socket parameters.
+              <p className="text-xs text-slate-300 leading-relaxed">
+                Executes an ephemeral client-server TLS 1.3 handshake on localhost, verifies certificate trust chain, and returns negotiated cipher suite details.
               </p>
 
               <button
                 onClick={handleRunLiveTlsTest}
                 disabled={isRunningTls}
-                className="w-full py-2.5 rounded-lg bg-sky-600 hover:bg-sky-500 text-white font-semibold text-xs shadow-md shadow-sky-950/40 flex items-center justify-center gap-2 transition-all btn-press disabled:opacity-50"
+                className="w-full py-3 rounded-xl bg-gradient-to-r from-cyan-600 via-sky-600 to-teal-600 hover:from-cyan-500 hover:to-sky-500 text-white font-bold text-xs shadow-xl shadow-cyan-950/40 flex items-center justify-center gap-2 transition-all btn-press border border-cyan-400/30 disabled:opacity-50"
               >
-                <Play className={`w-3.5 h-3.5 ${isRunningTls ? 'animate-pulse' : ''}`} />
-                <span>{isRunningTls ? 'Negotiating Handshake…' : 'Execute Live TLS Handshake Test'}</span>
+                <Play className={`w-4 h-4 ${isRunningTls ? 'animate-spin text-cyan-200' : 'fill-current'}`} />
+                <span>{isRunningTls ? 'Negotiating Local TLS Handshake…' : 'Execute Local TLS 1.3 Test'}</span>
               </button>
 
-              {tlsLiveResults && (
-                <div className="p-4 rounded-lg code-block border-sky-500/30 border space-y-2 animate-fade-in">
-                  <div className="flex items-center gap-2 font-bold text-emerald-400 text-xs">
-                    <CheckCircle2 className="w-4 h-4" />
-                    TLS Connection Established Successfully
-                  </div>
-                  {[
-                    ['Protocol', tlsLiveResults.results.tls_version, 'text-sky-300'],
-                    ['Cipher Suite', tlsLiveResults.results.cipher_suite, 'text-teal-300'],
-                    ['Test Port', `127.0.0.1:${tlsLiveResults.test_port}`, 'text-slate-200'],
-                    ['Hostname Verification', 'PASSED (strict localhost)', 'text-emerald-400'],
-                  ].map(([k, v, c]) => (
-                    <div key={k} className="flex justify-between border-b border-[#1a2844] pb-1.5 text-xs font-mono-code">
-                      <span className="text-slate-500">{k}</span>
-                      <span className={`${c} font-bold`}>{v}</span>
-                    </div>
-                  ))}
-                  <div className="pt-1 text-[11px] text-slate-400">
-                    <strong className="text-slate-300">Decrypted TLS Payload:</strong>
-                    <div className="mt-1 p-2 rounded bg-[#030712] border border-[#1a2844] text-slate-200 font-mono-code">
-                      {JSON.stringify(tlsLiveResults.results.payload_exchanged)}
-                    </div>
-                  </div>
+              {tlsError && (
+                <div className="p-3 rounded-xl alert-critical text-rose-300 text-xs">
+                  <strong>Handshake Failed:</strong> {tlsError}
                 </div>
               )}
 
-              {tlsError && (
-                <div className="p-3 rounded-lg alert-critical text-rose-300 text-xs animate-fade-in">
-                  <div className="flex items-center gap-1.5 font-bold mb-1">
-                    <XCircle className="w-4 h-4 text-rose-400" />
-                    TLS Handshake Failed
+              {tlsLiveResults && (
+                <div className="p-4 rounded-xl bg-[#090d16] border border-cyan-500/30 space-y-3 text-xs animate-fade-in">
+                  <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+                    <span className="font-bold text-white flex items-center gap-1.5">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                      Handshake Successful
+                    </span>
+                    <span className="font-mono-code text-cyan-400 font-bold">{tlsLiveResults.protocol_version}</span>
                   </div>
-                  <p className="text-[11px] opacity-80">{tlsError}</p>
+
+                  <div className="space-y-1.5 text-xs font-mono-code">
+                    <div className="flex justify-between">
+                      <span className="text-slate-400">Cipher Suite:</span>
+                      <span className="text-cyan-300 font-semibold">{tlsLiveResults.cipher_suite}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-400">Hostname Checked:</span>
+                      <span className="text-emerald-400 font-semibold">{tlsLiveResults.hostname_validated ? 'YES (Strict)' : 'NO'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-400">Latency:</span>
+                      <span className="text-slate-200">{tlsLiveResults.handshake_latency_ms} ms</span>
+                    </div>
+                  </div>
+
+                  <div>
+                    <span className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider block mb-1">
+                      Encrypted Telemetry Echo:
+                    </span>
+                    <div className="p-2.5 rounded-lg bg-[#0e1320] border border-slate-800 text-slate-200 font-mono-code text-[11px]">
+                      {tlsLiveResults.echoed_payload}
+                    </div>
+                  </div>
                 </div>
               )}
             </Panel>
 
             <Panel>
-              <h3 className="text-sm font-semibold text-slate-200 flex items-center gap-2">
-                <Terminal className="w-4 h-4 text-teal-400" />
-                Standalone Terminal CLI Demo
+              <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                <div className="p-1.5 rounded-lg bg-sky-500/10 text-sky-400 border border-sky-500/20">
+                  <Terminal className="w-4 h-4" />
+                </div>
+                <span>Standalone Native TLS Client & Server</span>
               </h3>
-
-              <p className="text-xs text-slate-400 leading-relaxed">
-                Run the standalone Python client and server directly from your terminal on port 8443:
+              <p className="text-xs text-slate-300 leading-relaxed">
+                You can run the server and client as standalone Python terminal processes to inspect the raw socket exchange:
               </p>
 
-              <div>
-                <span className="text-xs font-semibold text-sky-400 block mb-1.5">Terminal 1 — Start TLS Server (port 8443)</span>
-                <CodeBlock code="python backend/tls_demo/server.py" language="powershell" />
-              </div>
+              <div className="space-y-3">
+                <div>
+                  <span className="text-[10px] font-bold text-cyan-400 uppercase tracking-wider block mb-1">
+                    1. Launch TLS Server (Port 8443)
+                  </span>
+                  <CodeBlock code="python backend/tls_demo/server.py" language="powershell" />
+                </div>
 
-              <div>
-                <span className="text-xs font-semibold text-teal-400 block mb-1.5">Terminal 2 — Run TLS Client (Strict Verification)</span>
-                <CodeBlock code="python backend/tls_demo/client.py" language="powershell" />
-              </div>
-
-              <div className="p-3 rounded-lg bg-[#080f1e] border border-[#1a2844] text-[11px] text-slate-400 leading-relaxed">
-                <strong className="text-slate-300">Technical Note:</strong> The standalone client uses <code className="text-sky-300">server_cert.pem</code> as its trusted CA (<code className="text-sky-300">cafile</code>) to authenticate the localhost certificate without disabling SSL verification.
+                <div>
+                  <span className="text-[10px] font-bold text-teal-400 uppercase tracking-wider block mb-1">
+                    2. Launch TLS Client
+                  </span>
+                  <CodeBlock code="python backend/tls_demo/client.py" language="powershell" />
+                </div>
               </div>
             </Panel>
           </div>
@@ -214,153 +250,114 @@ export const SecureCommunication = () => {
 
       {/* ── IPSEC SIMULATOR ── */}
       {activeTab === 'ipsec' && (
-        <div className="space-y-5 animate-fade-slide-up">
-          <InfoBanner icon={AlertTriangle} color="alert-warning text-amber-300">
-            <strong>Conceptual Educational Simulation — IPsec Network Layer Security.</strong>
-            <p className="mt-0.5 opacity-80">
-              IPsec operates at OSI Layer 3 (Network Layer). In production, it runs inside the OS kernel or edge firewall/VPN gateways. This section simulates the architecture, AH vs ESP differences, and packet structures.
-            </p>
+        <div className="space-y-6 animate-fade-slide-up">
+          <InfoBanner icon={Layers} color="alert-warning text-amber-300">
+            <div>
+              <strong>Disclosure — Pedagogical Network-Layer Protocol Modeling.</strong>
+              <p className="mt-0.5 text-slate-300 leading-relaxed">
+                Real IPsec operates inside the OS kernel network stack (ESP/AH protocol numbers 50/51). This interactive model illustrates packet encapsulation differences between Authentication Header (AH) and Encapsulating Security Payload (ESP) without modifying operating system routing tables.
+              </p>
+            </div>
           </InfoBanner>
 
-          {/* Mode Toggle */}
-          <div className="flex items-center gap-3">
-            <span className="text-xs font-semibold text-slate-400">IPsec Operational Mode:</span>
-            <div className="flex bg-[#080f1e] p-1 rounded-lg border border-[#1a2844] text-xs gap-1">
-              {['transport', 'tunnel'].map((mode) => (
-                <button
-                  key={mode}
-                  onClick={() => setIpsecMode(mode)}
-                  className={`px-3 py-1.5 rounded-md font-medium transition-all btn-press capitalize ${
-                    ipsecMode === mode
-                      ? 'bg-teal-600 text-white shadow-sm'
-                      : 'text-slate-400 hover:text-slate-200'
-                  }`}
-                >
-                  {mode} Mode {mode === 'transport' ? '(Host-to-Host)' : '(Gateway / VPN)'}
-                </button>
-              ))}
+          <Panel>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-sm font-bold text-white">
+                IPsec Security Associations: AH vs ESP Capability Matrix
+              </h3>
+              <span className="text-[10px] font-mono-code text-slate-400 bg-slate-900 px-2.5 py-1 rounded-full border border-slate-800">
+                RFC 4301 Architecture
+              </span>
             </div>
-          </div>
 
-          {/* AH vs ESP */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            {[
-              {
-                title: 'Authentication Header (AH)',
-                tag: 'IP Protocol 51',
-                tagColor: 'text-sky-400 bg-sky-950/40 border-sky-500/30',
-                layout: ipsecMode === 'transport' ? [
-                  ['IP Header', 'text-blue-300 bg-blue-950/40 border-blue-500/30'],
-                  ['AH Header (51)', 'text-sky-300 bg-sky-950/50 border-sky-500/40 font-bold'],
-                  ['TCP / Port 502 (Modbus)', 'text-slate-300 bg-slate-800/40 border-slate-700/40'],
-                  ['Industrial Telemetry', 'text-slate-300 bg-slate-800/40 border-slate-700/40'],
-                ] : [
-                  ['New IP Header (Tunnel)', 'text-purple-300 bg-purple-950/40 border-purple-500/30 font-bold'],
-                  ['AH Header (51)', 'text-sky-300 bg-sky-950/50 border-sky-500/40 font-bold'],
-                  ['Original IP Header', 'text-blue-300 bg-blue-950/40 border-blue-500/30'],
-                  ['TCP + Payload', 'text-slate-300 bg-slate-800/40 border-slate-700/40'],
-                ],
-              },
-              {
-                title: 'Encapsulating Security Payload (ESP)',
-                tag: 'IP Protocol 50',
-                tagColor: 'text-teal-400 bg-teal-950/40 border-teal-500/30',
-                layout: ipsecMode === 'transport' ? [
-                  ['IP Header', 'text-blue-300 bg-blue-950/40 border-blue-500/30'],
-                  ['ESP Header (50)', 'text-teal-300 bg-teal-950/50 border-teal-500/40 font-bold'],
-                  ['Encrypted [TCP + Payload]', 'text-emerald-300 bg-emerald-950/40 border-emerald-500/40 font-bold'],
-                  ['ESP Trailer & Auth', 'text-teal-300 bg-teal-950/40 border-teal-500/30'],
-                ] : [
-                  ['New IP Header (VPN)', 'text-purple-300 bg-purple-950/40 border-purple-500/30 font-bold'],
-                  ['ESP Header (50)', 'text-teal-300 bg-teal-950/50 border-teal-500/40 font-bold'],
-                  ['Encrypted [Original IP + TCP + Payload]', 'text-emerald-300 bg-emerald-950/40 border-emerald-500/40 font-bold'],
-                  ['ESP Trailer & Auth', 'text-teal-300 bg-teal-950/40 border-teal-500/30'],
-                ],
-              },
-            ].map((proto) => (
-              <Panel key={proto.title}>
-                <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-semibold text-slate-200">{proto.title}</h3>
-                  <span className={`text-[10px] font-mono-code px-2 py-0.5 rounded border ${proto.tagColor}`}>{proto.tag}</span>
-                </div>
-                <div className="space-y-1.5 text-xs">
-                  {ipsecRows.map(([label, ahVal, ahBad, espVal, espBad]) => {
-                    const isAh = proto.title.includes('AH');
-                    const val = isAh ? ahVal : espVal;
-                    const bad = isAh ? ahBad : espBad;
-                    return (
-                      <div key={label} className="flex justify-between border-b border-[#1a2844] pb-1.5">
-                        <span className="text-slate-500">{label}</span>
-                        <span className={`font-bold text-[11px] ${bad ? 'text-rose-400' : 'text-emerald-400'}`}>{val}</span>
-                      </div>
-                    );
-                  })}
-                </div>
-                <div>
-                  <span className="text-[10px] text-slate-500 uppercase tracking-wider block mb-2">
-                    Packet Layout ({ipsecMode.toUpperCase()} MODE)
-                  </span>
-                  <div className="flex flex-wrap gap-1 font-mono-code text-[10px]">
-                    {proto.layout.map(([label, cls], i) => (
-                      <span key={i} className={`p-1.5 rounded border ${cls}`}>{label}</span>
-                    ))}
-                  </div>
-                </div>
-              </Panel>
-            ))}
-          </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead>
+                  <tr className="border-b border-slate-800 text-slate-400 font-semibold uppercase text-[10px]">
+                    <th className="pb-3">Security Service</th>
+                    <th className="pb-3">Authentication Header (AH)</th>
+                    <th className="pb-3">Encapsulating Security Payload (ESP)</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-800/60 font-mono-code">
+                  {ipsecRows.map(([service, ah, ahAlert, esp, espAlert], idx) => (
+                    <tr key={idx} className="table-row-hover">
+                      <td className="py-3 font-semibold text-white font-sans">{service}</td>
+                      <td className="py-3">
+                        <span className={`px-2.5 py-1 rounded-lg text-[11px] border ${
+                          ahAlert ? 'bg-rose-950/40 text-rose-300 border-rose-500/30' : 'bg-emerald-950/40 text-emerald-300 border-emerald-500/30'
+                        }`}>
+                          {ah}
+                        </span>
+                      </td>
+                      <td className="py-3">
+                        <span className={`px-2.5 py-1 rounded-lg text-[11px] border ${
+                          espAlert ? 'bg-amber-950/40 text-amber-300 border-amber-500/30' : 'bg-emerald-950/40 text-emerald-300 border-emerald-500/30'
+                        }`}>
+                          {esp}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </Panel>
         </div>
       )}
 
       {/* ── WIRESHARK GUIDE ── */}
       {activeTab === 'wireshark' && (
-        <div className="space-y-5 animate-fade-slide-up">
-          <Panel>
+        <div className="space-y-6 animate-fade-slide-up">
+          <InfoBanner icon={Search} color="alert-info text-cyan-300">
             <div>
-              <h3 className="text-sm font-semibold text-slate-200 flex items-center gap-2">
-                <Search className="w-4 h-4 text-blue-400" />
-                Wireshark Local Packet Inspection Guide
-              </h3>
-              <p className="text-xs text-slate-500 mt-0.5">
-                Inspect local TLS 1.3 handshakes, X.509 certificates, and encrypted SCADA data frames on your machine.
+              <strong>Wireshark Telemetry & Packet Capture Filters.</strong>
+              <p className="mt-0.5 text-slate-300 leading-relaxed">
+                Wireshark allows real-time packet inspection of industrial networks. Use the capture and display filters below to isolate our encrypted TLS socket frames from background operating system noise.
               </p>
             </div>
+          </InfoBanner>
 
-            <div className="p-3 rounded-lg alert-info text-sky-300 text-xs">
-              <strong>Capture Scope:</strong> Performed locally using Wireshark / Npcap. Steps below guide you through inspecting localhost port 8443 traffic.
-            </div>
-
-            <div className="space-y-2">
-              {wiresharkGuide?.steps?.map((step) => (
-                <div key={step.step} className="p-3.5 rounded-lg bg-[#080f1e] border border-[#1a2844] text-xs space-y-1">
-                  <div className="flex items-center gap-2 text-sky-400 font-bold">
-                    <span className="w-5 h-5 rounded-full bg-sky-950/60 border border-sky-500/30 flex items-center justify-center text-[10px] font-mono-code shrink-0">
-                      {step.step}
-                    </span>
-                    <span>{step.title}</span>
-                  </div>
-                  <p className="text-slate-400 text-[11px] pl-7 leading-relaxed">{step.details}</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Panel>
+              <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                <Search className="w-4 h-4 text-cyan-400" />
+                <span>Recommended Capture Filters</span>
+              </h3>
+              <p className="text-xs text-slate-400">Apply before starting capture to only record our TLS test traffic:</p>
+              <div className="space-y-3">
+                <div>
+                  <span className="text-[10px] text-cyan-400 font-bold uppercase tracking-wider block mb-1">Capture Filter:</span>
+                  <CodeBlock code="tcp port 8443" language="wireshark" />
                 </div>
-              ))}
-            </div>
-
-            <div>
-              <span className="text-[10px] text-slate-500 uppercase tracking-wider block mb-2">Quick Display Filter Cheatsheet</span>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 font-mono-code text-[11px]">
-                {[
-                  ['tcp.port == 8443', 'All traffic to TLS SCADA port', 'text-sky-400'],
-                  ['tls.handshake.type == 1', 'Client Hello packets', 'text-teal-400'],
-                  ['tls.handshake.type == 2', 'Server Hello packets', 'text-violet-400'],
-                  ['tls.record.content_type == 23', 'Encrypted Application Data frames', 'text-emerald-400'],
-                ].map(([filter, desc, color]) => (
-                  <div key={filter} className="p-2.5 code-block rounded-lg">
-                    <span className={color}>{filter}</span>
-                    <p className="text-slate-500 text-[10px] font-sans mt-0.5">{desc}</p>
-                  </div>
-                ))}
+                <div>
+                  <span className="text-[10px] text-teal-400 font-bold uppercase tracking-wider block mb-1">Display Filter (TLS 1.3 Handshake):</span>
+                  <CodeBlock code="tls.handshake.type == 1" language="wireshark" />
+                </div>
               </div>
-            </div>
-          </Panel>
+            </Panel>
+
+            <Panel>
+              <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                <span>What to Verify in Captured Packets</span>
+              </h3>
+              <ul className="space-y-2 text-xs text-slate-300 leading-relaxed">
+                <li className="flex items-start gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 shrink-0 mt-1.5" />
+                  <span><strong>Client Hello:</strong> Inspect supported cipher suites including TLS_AES_256_GCM_SHA384.</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-teal-400 shrink-0 mt-1.5" />
+                  <span><strong>Server Certificate:</strong> Confirm public key and Common Name match "localhost".</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0 mt-1.5" />
+                  <span><strong>Application Data:</strong> Industrial telemetry is completely encrypted — raw payload is unreadable without session keys.</span>
+                </li>
+              </ul>
+            </Panel>
+          </div>
         </div>
       )}
     </div>
