@@ -6,31 +6,66 @@ import {
   Hash, 
   FileCheck, 
   ShieldAlert, 
-  Sparkles, 
   AlertTriangle, 
   CheckCircle2, 
   XCircle, 
   RefreshCw,
-  Sliders,
   Shield,
   Layers,
   FileCode,
-  Info
+  FlaskConical
 } from 'lucide-react';
 import { Badge } from '../components/Badge';
 import { CodeBlock } from '../components/CodeBlock';
 import { api } from '../services/api';
 
+/* Shared input styles */
+const inputCls = "w-full bg-[#080f1e] border border-[#1a2844] rounded-lg px-3 py-2 text-xs text-slate-200 input-field font-mono-code";
+const textareaCls = "w-full bg-[#080f1e] border border-[#1a2844] rounded-lg p-2.5 text-xs text-slate-200 input-field font-mono-code resize-none";
+
+const Panel = ({ children, className = '' }) => (
+  <div className={`bg-[#0c1428]/90 border border-[#1a2844] rounded-xl p-5 shadow-lg shadow-black/20 space-y-4 card-hover ${className}`}>
+    {children}
+  </div>
+);
+
+const ResultBlock = ({ success, title, children }) => (
+  <div className={`p-3.5 rounded-lg text-xs animate-fade-in ${success ? 'alert-success text-emerald-300' : 'alert-critical text-rose-300'}`}>
+    <div className="flex items-center gap-2 font-bold mb-1.5">
+      {success
+        ? <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+        : <XCircle className="w-4 h-4 text-rose-400" />
+      }
+      <span>{title}</span>
+    </div>
+    {children}
+  </div>
+);
+
+const InfoBanner = ({ icon: Icon, color, children }) => (
+  <div className={`p-4 rounded-xl text-xs leading-relaxed flex items-start gap-3 ${color}`}>
+    <Icon className="w-5 h-5 shrink-0 mt-0.5 opacity-70" />
+    <div>{children}</div>
+  </div>
+);
+
+const PrimaryBtn = ({ onClick, disabled, children, color = 'bg-sky-600 hover:bg-sky-500 shadow-sky-950/40' }) => (
+  <button
+    onClick={onClick}
+    disabled={disabled}
+    className={`w-full py-2 rounded-lg ${color} text-white text-xs font-semibold shadow-md flex items-center justify-center gap-2 transition-all btn-press disabled:opacity-50`}
+  >
+    {children}
+  </button>
+);
+
 export const CryptographyLab = () => {
   const [activeTab, setActiveTab] = useState('aes');
-
-  // --- Sub-module states ---
 
   // 1. Classical
   const [caesarInput, setCaesarInput] = useState('CRITICAL_TURBINE_VALVE_PRESSURE_ALERT');
   const [caesarShift, setCaesarShift] = useState(3);
   const [caesarResult, setCaesarResult] = useState(null);
-
   const [transInput, setTransInput] = useState('EMERGENCY_SHUTDOWN_LOOP_INITIATED');
   const [transKey, setTransKey] = useState('CIPHER');
   const [transResult, setTransResult] = useState(null);
@@ -52,86 +87,60 @@ export const CryptographyLab = () => {
   const [hybridDecResult, setHybridDecResult] = useState(null);
   const [isRsaLoading, setIsRsaLoading] = useState(false);
 
-  // 4. SHA-256 Hashing
+  // 4. SHA-256
   const [hashInput, setHashInput] = useState('TURBINE_BEARING_STATUS_NORMAL');
   const [hashResult, setHashResult] = useState(null);
   const [compareA, setCompareA] = useState('VALVE_OPEN_COMMAND_PORT_8080');
   const [compareB, setCompareB] = useState('VALVE_OPEN_COMMAND_PORT_8081');
   const [compareResult, setCompareResult] = useState(null);
 
-  // 5. RSA-PSS Signatures
+  // 5. RSA-PSS
   const [sigInput, setSigInput] = useState('AUTHORIZE_SCHEDULED_TURBINE_MAINTENANCE_WINDOW_OCTOBER');
   const [sigResult, setSigResult] = useState(null);
   const [verifyMsg, setVerifyMsg] = useState('');
   const [verifySig, setVerifySig] = useState('');
   const [verifyResult, setVerifyResult] = useState(null);
 
-  // 6. X.509 Certificates
+  // 6. X.509
   const [certData, setCertData] = useState(null);
   const [validateHost, setValidateHost] = useState('localhost');
   const [certValidation, setCertValidation] = useState(null);
   const [isCertLoading, setIsCertLoading] = useState(false);
 
-  // Initial load
   useEffect(() => {
-    // Preload RSA public key & X.509 cert
     api.getRsaPublicKey().then(r => r.ok && setRsaKeyData(r.data));
     api.inspectCertificate().then(r => r.ok && setCertData(r.data));
   }, []);
 
-  // --- Handlers ---
-
-  const handleCaesarEncrypt = async () => {
-    const res = await api.runCaesar(caesarInput, caesarShift, false);
-    if (res.ok) setCaesarResult(res.data);
-  };
-  const handleCaesarDecrypt = async () => {
-    const res = await api.runCaesar(caesarResult?.ciphertext || caesarInput, caesarShift, true);
-    if (res.ok) setCaesarResult(res.data);
-  };
-
-  const handleTransEncrypt = async () => {
-    const res = await api.runTransposition(transInput, transKey, false);
-    if (res.ok) setTransResult(res.data);
-  };
-  const handleTransDecrypt = async () => {
-    const res = await api.runTransposition(transResult?.ciphertext || transInput, transKey, true);
-    if (res.ok) setTransResult(res.data);
-  };
+  // Handlers
+  const handleCaesarEncrypt = async () => { const r = await api.runCaesar(caesarInput, caesarShift, false); if (r.ok) setCaesarResult(r.data); };
+  const handleCaesarDecrypt = async () => { const r = await api.runCaesar(caesarResult?.ciphertext || caesarInput, caesarShift, true); if (r.ok) setCaesarResult(r.data); };
+  const handleTransEncrypt = async () => { const r = await api.runTransposition(transInput, transKey, false); if (r.ok) setTransResult(r.data); };
+  const handleTransDecrypt = async () => { const r = await api.runTransposition(transResult?.ciphertext || transInput, transKey, true); if (r.ok) setTransResult(r.data); };
 
   const handleAesEncrypt = async () => {
-    setIsAesLoading(true);
-    setAesDecResult(null);
+    setIsAesLoading(true); setAesDecResult(null);
     try {
-      const res = await api.aesEncrypt(aesInput, aesAad);
-      if (res.ok) {
-        setAesEncResult(res.data);
-        setTamperCt(res.data.combined_ciphertext_b64);
-        setTamperNonce(res.data.nonce_b64);
-        setTamperAad(res.data.associated_data);
-      }
-    } finally {
-      setIsAesLoading(false);
-    }
+      const r = await api.aesEncrypt(aesInput, aesAad);
+      if (r.ok) { setAesEncResult(r.data); setTamperCt(r.data.combined_ciphertext_b64); setTamperNonce(r.data.nonce_b64); setTamperAad(r.data.associated_data); }
+    } finally { setIsAesLoading(false); }
   };
 
   const handleAesDecrypt = async (useTampered = false) => {
     if (!aesEncResult) return;
     setIsAesLoading(true);
     try {
-      const ct = useTampered ? tamperCt : aesEncResult.combined_ciphertext_b64;
-      const nonce = useTampered ? tamperNonce : aesEncResult.nonce_b64;
-      const aad = useTampered ? tamperAad : aesEncResult.associated_data;
-      const res = await api.aesDecrypt(ct, nonce, '', aad, aesEncResult.key_b64);
-      setAesDecResult(res.data);
-    } finally {
-      setIsAesLoading(false);
-    }
+      const r = await api.aesDecrypt(
+        useTampered ? tamperCt : aesEncResult.combined_ciphertext_b64,
+        useTampered ? tamperNonce : aesEncResult.nonce_b64,
+        '', useTampered ? tamperAad : aesEncResult.associated_data, aesEncResult.key_b64
+      );
+      setAesDecResult(r.data);
+    } finally { setIsAesLoading(false); }
   };
 
   const handleSimulateTamperBit = () => {
     if (!tamperCt) return;
-    // Flip 1 character in base64 string
     const chars = tamperCt.split('');
     chars[10] = chars[10] === 'A' ? 'B' : 'A';
     setTamperCt(chars.join(''));
@@ -139,92 +148,61 @@ export const CryptographyLab = () => {
 
   const handleRsaKeygen = async () => {
     setIsRsaLoading(true);
-    try {
-      const res = await api.generateRsaKeypair(2048);
-      if (res.ok) setRsaKeyData(res.data);
-    } finally {
-      setIsRsaLoading(false);
-    }
+    try { const r = await api.generateRsaKeypair(2048); if (r.ok) setRsaKeyData(r.data); }
+    finally { setIsRsaLoading(false); }
   };
 
   const handleHybridEncrypt = async () => {
-    const res = await api.hybridEncrypt(hybridInput);
-    if (res.ok) {
-      setHybridEncResult(res.data);
-      setHybridDecResult(null);
-    }
+    const r = await api.hybridEncrypt(hybridInput);
+    if (r.ok) { setHybridEncResult(r.data); setHybridDecResult(null); }
   };
-
   const handleHybridDecrypt = async () => {
     if (!hybridEncResult) return;
-    const res = await api.hybridDecrypt(hybridEncResult);
-    if (res.ok) setHybridDecResult(res.data);
+    const r = await api.hybridDecrypt(hybridEncResult);
+    if (r.ok) setHybridDecResult(r.data);
   };
 
-  const handleSha256Hash = async () => {
-    const res = await api.hashSha256(hashInput);
-    if (res.ok) setHashResult(res.data);
-  };
-
-  const handleCompareHashes = async () => {
-    const res = await api.compareSha256(compareA, compareB);
-    if (res.ok) setCompareResult(res.data);
-  };
+  const handleSha256Hash = async () => { const r = await api.hashSha256(hashInput); if (r.ok) setHashResult(r.data); };
+  const handleCompareHashes = async () => { const r = await api.compareSha256(compareA, compareB); if (r.ok) setCompareResult(r.data); };
 
   const handleSign = async () => {
-    const res = await api.signMessage(sigInput);
-    if (res.ok) {
-      setSigResult(res.data);
-      setVerifyMsg(res.data.message);
-      setVerifySig(res.data.signature_b64);
-      setVerifyResult(null);
-    }
+    const r = await api.signMessage(sigInput);
+    if (r.ok) { setSigResult(r.data); setVerifyMsg(r.data.message); setVerifySig(r.data.signature_b64); setVerifyResult(null); }
   };
-
-  const handleVerify = async () => {
-    const res = await api.verifySignature(verifyMsg, verifySig);
-    setVerifyResult(res.data);
-  };
+  const handleVerify = async () => { const r = await api.verifySignature(verifyMsg, verifySig); setVerifyResult(r.data); };
 
   const handleCertGenerate = async () => {
     setIsCertLoading(true);
-    try {
-      const res = await api.generateCertificate('localhost', 'Industrial SecureSim SCADA Lab');
-      if (res.ok) setCertData(res.data);
-    } finally {
-      setIsCertLoading(false);
-    }
+    try { const r = await api.generateCertificate('localhost', 'AegisGrid ICS SCADA Lab'); if (r.ok) setCertData(r.data); }
+    finally { setIsCertLoading(false); }
   };
-
-  const handleCertValidate = async () => {
-    const res = await api.validateCertificate(validateHost);
-    if (res.ok) setCertValidation(res.data);
-  };
+  const handleCertValidate = async () => { const r = await api.validateCertificate(validateHost); if (r.ok) setCertValidation(r.data); };
 
   const tabs = [
-    { id: 'classical', label: 'Classical Ciphers', icon: Layers, module: 'Module 1' },
-    { id: 'aes', label: 'AES-256-GCM AEAD', icon: Lock, module: 'Module 2' },
-    { id: 'rsa', label: 'RSA & Hybrid Envelope', icon: Key, module: 'Module 2' },
-    { id: 'hash', label: 'SHA-256 Hashing', icon: Hash, module: 'Module 2' },
-    { id: 'signatures', label: 'RSA-PSS Signatures', icon: FileCheck, module: 'Module 2' },
-    { id: 'certificates', label: 'X.509 Certificates', icon: FileCode, module: 'Module 2' },
-    { id: 'key-mgmt', label: 'Key Management', icon: Shield, module: 'Module 2' },
+    { id: 'classical',     label: 'Classical Ciphers',    icon: Layers,     tag: 'Historical' },
+    { id: 'aes',           label: 'AES-256-GCM',          icon: Lock,       tag: 'AEAD'       },
+    { id: 'rsa',           label: 'RSA & Hybrid',         icon: Key,        tag: 'Asymmetric' },
+    { id: 'hash',          label: 'SHA-256 Hashing',      icon: Hash,       tag: 'Digest'     },
+    { id: 'signatures',    label: 'RSA-PSS Signatures',   icon: FileCheck,  tag: 'Non-Repud.' },
+    { id: 'certificates',  label: 'X.509 / PKI',          icon: FileCode,   tag: 'PKI'        },
+    { id: 'key-mgmt',      label: 'Key Management',       icon: Shield,     tag: 'Principles' },
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       {/* Header */}
-      <div className="bg-[#0d1629]/70 border border-slate-800 p-5 rounded-xl">
+      <div className="relative overflow-hidden bg-[#0c1428]/90 border border-[#1a2844] rounded-xl p-5 flowing-border">
         <h2 className="text-xl font-bold tracking-tight text-white flex items-center gap-2">
-          Cryptography Laboratory (Modules 1 & 2)
+          <FlaskConical className="w-5 h-5 text-violet-400" />
+          Cryptography Laboratory
         </h2>
         <p className="text-xs text-slate-400 mt-1">
-          Interactive cryptographic implementations using Python's standard cryptography library and hashlib. Test encryption, digital signatures, key encapsulation, and tamper detection.
+          Interactive cryptographic implementations using Python's standard <code className="text-violet-400">cryptography</code> library and <code className="text-violet-400">hashlib</code>. All operations execute on the backend.
         </p>
       </div>
 
       {/* Tabs */}
-      <div className="flex flex-wrap gap-2 border-b border-slate-800 pb-2">
+      <div className="flex flex-wrap gap-1.5 p-1 bg-[#080f1e] rounded-xl border border-[#1a2844]">
         {tabs.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
@@ -232,787 +210,463 @@ export const CryptographyLab = () => {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-medium transition-all ${
+              className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200 flex-1 min-w-fit justify-center sm:justify-start btn-press ${
                 isActive
-                  ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 shadow-sm'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/40 border border-transparent'
+                  ? 'bg-[#0c1428] text-violet-300 border border-violet-500/40 shadow-sm'
+                  : 'text-slate-400 hover:text-slate-200 hover:bg-[#0c1428]/60'
               }`}
             >
-              <Icon className={`w-4 h-4 ${isActive ? 'text-cyan-400' : 'text-slate-500'}`} />
-              <span>{tab.label}</span>
-              <span className="text-[10px] font-mono-code text-slate-500 bg-slate-900 px-1 rounded">
-                {tab.module}
+              <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-violet-400' : 'text-slate-500'}`} />
+              <span className="hidden sm:block">{tab.label}</span>
+              <span className="font-mono-code text-[9px] px-1 rounded bg-[#080f1e] border border-[#1a2844] text-slate-600">
+                {tab.tag}
               </span>
             </button>
           );
         })}
       </div>
 
-      {/* TAB 1: CLASSICAL CRYPTOGRAPHY */}
+      {/* ── TAB: CLASSICAL ── */}
       {activeTab === 'classical' && (
-        <div className="space-y-6">
-          <div className="p-4 rounded-xl bg-amber-950/20 border border-amber-500/30 text-amber-300 text-xs flex items-start gap-3">
-            <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
-            <div>
-              <strong>Educational Demonstration (Module 1):</strong>
-              <p className="mt-0.5 text-amber-400/90 leading-relaxed">
-                Classical ciphers (Caesar and Columnar Transposition) provide historical and pedagogical foundation. They possess trivial key spaces (e.g. 25 keys for Caesar) and are vulnerable to frequency analysis. They must NEVER be used for actual industrial communications.
-              </p>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Caesar Cipher Box */}
-            <div className="bg-[#0d1629]/90 border border-slate-800 rounded-xl p-5 shadow-lg shadow-black/20 space-y-4">
+        <div className="space-y-5 animate-fade-slide-up">
+          <InfoBanner icon={AlertTriangle} color="alert-warning text-amber-300">
+            <strong>Historical Context — Educational Only.</strong>
+            <p className="mt-0.5 opacity-80">Classical ciphers (Caesar, Columnar Transposition) have trivial key spaces (≤25 for Caesar) and are completely broken by frequency analysis. They MUST NEVER be used for real industrial data.</p>
+          </InfoBanner>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <Panel>
               <div>
                 <h3 className="text-sm font-semibold text-slate-200">Caesar Shift Cipher</h3>
-                <p className="text-xs text-slate-400 mt-0.5">Monoalphabetic substitution with modular integer shift (1-25)</p>
+                <p className="text-xs text-slate-500 mt-0.5">Monoalphabetic substitution — shift each letter by k (mod 26)</p>
               </div>
-
               <div>
-                <label className="block text-xs text-slate-400 mb-1">Plaintext / Ciphertext:</label>
-                <input
-                  type="text"
-                  value={caesarInput}
-                  onChange={(e) => setCaesarInput(e.target.value)}
-                  className="w-full bg-slate-900 border border-slate-700 rounded px-3 py-1.5 text-xs text-slate-200 font-mono-code focus:outline-none focus:border-cyan-500"
-                />
+                <label className="block text-[11px] text-slate-500 mb-1.5 uppercase tracking-wider">Plaintext / Ciphertext</label>
+                <input type="text" value={caesarInput} onChange={e => setCaesarInput(e.target.value)} className={inputCls} />
               </div>
-
               <div>
-                <div className="flex justify-between text-xs text-slate-400 mb-1">
-                  <span>Shift Key:</span>
-                  <span className="font-mono-code text-cyan-400">k = {caesarShift}</span>
+                <div className="flex justify-between text-[11px] text-slate-500 mb-1.5">
+                  <span>Shift Key</span>
+                  <span className="font-mono-code text-sky-400">k = {caesarShift}</span>
                 </div>
-                <input
-                  type="range"
-                  min="1"
-                  max="25"
-                  value={caesarShift}
-                  onChange={(e) => setCaesarShift(parseInt(e.target.value))}
-                  className="w-full accent-cyan-500"
-                />
+                <input type="range" min="1" max="25" value={caesarShift} onChange={e => setCaesarShift(parseInt(e.target.value))} className="w-full accent-sky-500" />
               </div>
-
               <div className="flex gap-2">
-                <button
-                  onClick={handleCaesarEncrypt}
-                  className="flex-1 py-1.5 rounded bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-semibold"
-                >
-                  Encrypt (Shift +{caesarShift})
+                <button onClick={handleCaesarEncrypt} className="flex-1 py-2 rounded-lg bg-sky-600 hover:bg-sky-500 text-white text-xs font-semibold transition-colors btn-press">
+                  Encrypt (+{caesarShift})
                 </button>
-                <button
-                  onClick={handleCaesarDecrypt}
-                  className="flex-1 py-1.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold"
-                >
-                  Decrypt (Shift -{caesarShift})
+                <button onClick={handleCaesarDecrypt} className="flex-1 py-2 rounded-lg bg-[#080f1e] hover:bg-slate-800 border border-[#1a2844] text-slate-200 text-xs font-semibold transition-colors btn-press">
+                  Decrypt (-{caesarShift})
                 </button>
               </div>
-
               {caesarResult && (
-                <div className="p-3 rounded bg-[#070d19] border border-slate-800 text-xs font-mono-code space-y-1">
-                  <div className="text-slate-400">Ciphertext Result:</div>
-                  <div className="text-cyan-300 font-bold break-all">{caesarResult.ciphertext}</div>
+                <div className="p-3 rounded-lg code-block animate-fade-in">
+                  <div className="text-slate-500 text-[10px] mb-1 uppercase tracking-wider">Result</div>
+                  <div className="text-sky-300 font-bold break-all text-[11px]">{caesarResult.ciphertext}</div>
                   {caesarResult.plaintext && caesarResult.plaintext !== caesarInput && (
-                    <div className="text-slate-400 mt-1">Decrypted: <span className="text-emerald-400">{caesarResult.plaintext}</span></div>
+                    <div className="text-emerald-400 mt-1 text-[11px]">Decrypted: {caesarResult.plaintext}</div>
                   )}
                 </div>
               )}
-            </div>
+            </Panel>
 
-            {/* Columnar Transposition Box */}
-            <div className="bg-[#0d1629]/90 border border-slate-800 rounded-xl p-5 shadow-lg shadow-black/20 space-y-4">
+            <Panel>
               <div>
                 <h3 className="text-sm font-semibold text-slate-200">Columnar Transposition Cipher</h3>
-                <p className="text-xs text-slate-400 mt-0.5">Permutation cipher rearranging character positions via keyword grid</p>
+                <p className="text-xs text-slate-500 mt-0.5">Permutation cipher — rearranges characters via keyword-ordered grid</p>
               </div>
-
               <div>
-                <label className="block text-xs text-slate-400 mb-1">Message:</label>
-                <input
-                  type="text"
-                  value={transInput}
-                  onChange={(e) => setTransInput(e.target.value)}
-                  className="w-full bg-slate-900 border border-slate-700 rounded px-3 py-1.5 text-xs text-slate-200 font-mono-code focus:outline-none focus:border-cyan-500"
-                />
+                <label className="block text-[11px] text-slate-500 mb-1.5 uppercase tracking-wider">Message</label>
+                <input type="text" value={transInput} onChange={e => setTransInput(e.target.value)} className={inputCls} />
               </div>
-
               <div>
-                <label className="block text-xs text-slate-400 mb-1">Keyword:</label>
-                <input
-                  type="text"
-                  value={transKey}
-                  onChange={(e) => setTransKey(e.target.value.toUpperCase())}
-                  className="w-full bg-slate-900 border border-slate-700 rounded px-3 py-1.5 text-xs text-slate-200 font-mono-code focus:outline-none focus:border-cyan-500"
-                />
+                <label className="block text-[11px] text-slate-500 mb-1.5 uppercase tracking-wider">Keyword</label>
+                <input type="text" value={transKey} onChange={e => setTransKey(e.target.value.toUpperCase())} className={inputCls} />
               </div>
-
               <div className="flex gap-2">
-                <button
-                  onClick={handleTransEncrypt}
-                  className="flex-1 py-1.5 rounded bg-teal-600 hover:bg-teal-500 text-white text-xs font-semibold"
-                >
+                <button onClick={handleTransEncrypt} className="flex-1 py-2 rounded-lg bg-teal-600 hover:bg-teal-500 text-white text-xs font-semibold transition-colors btn-press">
                   Encrypt Columns
                 </button>
-                <button
-                  onClick={handleTransDecrypt}
-                  className="flex-1 py-1.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold"
-                >
+                <button onClick={handleTransDecrypt} className="flex-1 py-2 rounded-lg bg-[#080f1e] hover:bg-slate-800 border border-[#1a2844] text-slate-200 text-xs font-semibold transition-colors btn-press">
                   Decrypt Columns
                 </button>
               </div>
-
               {transResult && (
-                <div className="p-3 rounded bg-[#070d19] border border-slate-800 text-xs font-mono-code space-y-1">
-                  <div className="text-slate-400">Ciphertext Result:</div>
-                  <div className="text-teal-300 font-bold break-all">{transResult.ciphertext}</div>
+                <div className="p-3 rounded-lg code-block animate-fade-in">
+                  <div className="text-slate-500 text-[10px] mb-1 uppercase tracking-wider">Result</div>
+                  <div className="text-teal-300 font-bold break-all text-[11px]">{transResult.ciphertext}</div>
                   {transResult.plaintext && transResult.plaintext !== transInput && (
-                    <div className="text-slate-400 mt-1">Decrypted: <span className="text-emerald-400">{transResult.plaintext}</span></div>
+                    <div className="text-emerald-400 mt-1 text-[11px]">Decrypted: {transResult.plaintext}</div>
                   )}
                 </div>
               )}
-            </div>
+            </Panel>
           </div>
         </div>
       )}
 
-      {/* TAB 2: AES-GCM SYMMETRIC ENCRYPTION & TAMPERING */}
+      {/* ── TAB: AES-GCM ── */}
       {activeTab === 'aes' && (
-        <div className="space-y-6">
-          <div className="p-4 rounded-xl bg-cyan-950/20 border border-cyan-500/30 text-cyan-300 text-xs leading-relaxed flex items-start gap-3">
-            <Lock className="w-5 h-5 text-cyan-400 shrink-0 mt-0.5" />
-            <div>
-              <strong>Authenticated Encryption with Associated Data (AEAD) — Module 2:</strong>
-              <p className="mt-0.5 text-cyan-400/90">
-                AES-GCM combines Galois counter mode (AES-CTR) for confidentiality with GHASH polynomial evaluation for integrity/authenticity (128-bit MAC tag). Every encryption generates a unique, cryptographically random 96-bit nonce. Any bit flipped in the ciphertext or associated data causes decryption to immediately fail with <code className="text-rose-300">InvalidTag</code>.
-              </p>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Encryption Box */}
-            <div className="bg-[#0d1629]/90 border border-slate-800 rounded-xl p-5 shadow-lg shadow-black/20 space-y-4">
+        <div className="space-y-5 animate-fade-slide-up">
+          <InfoBanner icon={Lock} color="alert-info text-sky-300">
+            <strong>Authenticated Encryption with Associated Data (AEAD).</strong>
+            <p className="mt-0.5 opacity-80">AES-GCM combines GCM counter mode (AES-CTR) for confidentiality with GHASH polynomial evaluation for integrity (128-bit MAC tag). Every encryption uses a cryptographically random 96-bit nonce. Any bit flipped in the ciphertext or AAD causes decryption to fail with <code className="text-rose-300">InvalidTag</code>.</p>
+          </InfoBanner>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+            <Panel>
               <div className="flex items-center justify-between">
                 <h3 className="text-sm font-semibold text-slate-200">1. AES-256-GCM Encryption</h3>
-                <span className="text-[11px] font-mono-code text-cyan-400 bg-slate-900 px-2 py-0.5 rounded border border-slate-800">
-                  AESGCM (256-bit key)
-                </span>
+                <span className="text-[10px] font-mono-code text-sky-400 bg-sky-950/40 px-2 py-0.5 rounded border border-sky-500/30">256-bit key</span>
               </div>
-
               <div>
-                <label className="block text-xs text-slate-400 mb-1">Industrial Plaintext Payload:</label>
-                <textarea
-                  rows="3"
-                  value={aesInput}
-                  onChange={(e) => setAesInput(e.target.value)}
-                  className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-xs text-slate-200 font-mono-code focus:outline-none focus:border-cyan-500"
-                />
+                <label className="block text-[11px] text-slate-500 mb-1.5 uppercase tracking-wider">Industrial Plaintext Payload</label>
+                <textarea rows="3" value={aesInput} onChange={e => setAesInput(e.target.value)} className={textareaCls} />
               </div>
-
               <div>
-                <label className="block text-xs text-slate-400 mb-1">
-                  Authenticated Associated Data (AAD - Unencrypted Metadata):
-                </label>
-                <input
-                  type="text"
-                  value={aesAad}
-                  onChange={(e) => setAesAad(e.target.value)}
-                  className="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-xs text-slate-200 font-mono-code focus:outline-none focus:border-cyan-500"
-                />
+                <label className="block text-[11px] text-slate-500 mb-1.5 uppercase tracking-wider">Authenticated Associated Data (AAD)</label>
+                <input type="text" value={aesAad} onChange={e => setAesAad(e.target.value)} className={inputCls} />
               </div>
-
-              <button
-                onClick={handleAesEncrypt}
-                disabled={isAesLoading}
-                className="w-full py-2 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-semibold shadow-md shadow-cyan-950/40 flex items-center justify-center gap-2"
-              >
+              <PrimaryBtn onClick={handleAesEncrypt} disabled={isAesLoading}>
                 <Lock className="w-3.5 h-3.5" />
-                <span>Encrypt with Fresh 96-bit Nonce</span>
-              </button>
-
+                <span>{isAesLoading ? 'Encrypting...' : 'Encrypt with Fresh 96-bit Nonce'}</span>
+              </PrimaryBtn>
               {aesEncResult && (
-                <div className="space-y-2 pt-2 border-t border-slate-800 text-xs">
-                  <div className="flex justify-between text-slate-400">
-                    <span>Active Key Masked:</span>
+                <div className="space-y-2 pt-2 border-t border-[#1a2844] text-xs animate-fade-in">
+                  <div className="flex justify-between text-[11px]">
+                    <span className="text-slate-500">Active Key (masked)</span>
                     <span className="font-mono-code text-slate-300">{aesEncResult.key_masked}</span>
                   </div>
                   <div>
-                    <span className="text-slate-400 block mb-1">Nonce (Base64 - 12 bytes):</span>
-                    <div className="p-2 bg-[#070d19] rounded border border-slate-800 font-mono-code text-[11px] text-cyan-300 break-all">
-                      {aesEncResult.nonce_b64}
-                    </div>
+                    <span className="text-slate-500 block mb-1 text-[10px] uppercase tracking-wider">Nonce (96-bit, Base64)</span>
+                    <div className="p-2 code-block font-mono-code text-[11px] text-sky-300 break-all">{aesEncResult.nonce_b64}</div>
                   </div>
                   <div>
-                    <span className="text-slate-400 block mb-1">Authentication Tag (GHASH - 16 bytes):</span>
-                    <div className="p-2 bg-[#070d19] rounded border border-slate-800 font-mono-code text-[11px] text-teal-300 break-all">
-                      {aesEncResult.tag_b64}
-                    </div>
+                    <span className="text-slate-500 block mb-1 text-[10px] uppercase tracking-wider">Auth Tag / GHASH (128-bit)</span>
+                    <div className="p-2 code-block font-mono-code text-[11px] text-teal-300 break-all">{aesEncResult.tag_b64}</div>
                   </div>
                   <div>
-                    <span className="text-slate-400 block mb-1">Combined Ciphertext + Tag (Base64):</span>
-                    <CodeBlock code={aesEncResult.combined_ciphertext_b64} maxHeight="max-h-24" />
+                    <span className="text-slate-500 block mb-1 text-[10px] uppercase tracking-wider">Combined Ciphertext + Tag (Base64)</span>
+                    <CodeBlock code={aesEncResult.combined_ciphertext_b64} maxHeight="max-h-20" />
                   </div>
                 </div>
               )}
-            </div>
+            </Panel>
 
-            {/* Controlled Tampering & Decryption Box */}
-            <div className="bg-[#0d1629]/90 border border-slate-800 rounded-xl p-5 shadow-lg shadow-black/20 space-y-4">
+            <Panel>
               <div className="flex items-center justify-between">
                 <h3 className="text-sm font-semibold text-slate-200">2. Decryption & Tamper Verification</h3>
-                <span className="text-[11px] font-mono-code text-amber-400 bg-slate-900 px-2 py-0.5 rounded border border-slate-800">
-                  Integrity Demonstration
-                </span>
+                <span className="text-[10px] font-mono-code text-amber-400 bg-amber-950/40 px-2 py-0.5 rounded border border-amber-500/30">Integrity Demo</span>
               </div>
-
               <div>
-                <label className="block text-xs text-slate-400 mb-1">
-                  Ciphertext to Decrypt (Base64):
-                </label>
-                <textarea
-                  rows="3"
-                  value={tamperCt}
-                  onChange={(e) => setTamperCt(e.target.value)}
-                  placeholder="Encrypt payload first..."
-                  className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-xs text-slate-200 font-mono-code focus:outline-none focus:border-cyan-500"
-                />
+                <label className="block text-[11px] text-slate-500 mb-1.5 uppercase tracking-wider">Ciphertext (Base64)</label>
+                <textarea rows="3" value={tamperCt} onChange={e => setTamperCt(e.target.value)} placeholder="Encrypt payload first…" className={textareaCls} />
               </div>
-
               <div className="flex items-center gap-2">
-                <button
-                  onClick={handleSimulateTamperBit}
-                  className="px-3 py-1.5 rounded bg-rose-950/60 hover:bg-rose-900 border border-rose-600/40 text-rose-300 text-xs font-semibold flex items-center gap-1.5"
-                >
+                <button onClick={handleSimulateTamperBit} className="px-3 py-1.5 rounded-lg alert-critical hover:bg-rose-900/40 text-rose-300 text-xs font-semibold flex items-center gap-1.5 transition-colors btn-press border-0">
                   <ShieldAlert className="w-3.5 h-3.5 text-rose-400" />
-                  <span>Simulate Wire Tampering (Flip 1 Byte)</span>
+                  Flip 1 Byte (Tamper)
                 </button>
-                <button
-                  onClick={() => aesEncResult && setTamperCt(aesEncResult.combined_ciphertext_b64)}
-                  className="px-2.5 py-1.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs"
-                >
-                  Reset Original
+                <button onClick={() => aesEncResult && setTamperCt(aesEncResult.combined_ciphertext_b64)} className="px-2.5 py-1.5 rounded-lg bg-[#080f1e] hover:bg-slate-800 text-slate-300 text-xs border border-[#1a2844] transition-colors btn-press">
+                  Reset
                 </button>
               </div>
-
               <div className="flex gap-2">
-                <button
-                  onClick={() => handleAesDecrypt(false)}
-                  disabled={!aesEncResult || isAesLoading}
-                  className="flex-1 py-2 rounded-lg bg-teal-600 hover:bg-teal-500 text-white text-xs font-semibold flex items-center justify-center gap-1.5 disabled:opacity-50"
-                >
-                  <Unlock className="w-3.5 h-3.5" />
-                  <span>Decrypt Untampered</span>
+                <button onClick={() => handleAesDecrypt(false)} disabled={!aesEncResult || isAesLoading} className="flex-1 py-2 rounded-lg bg-teal-600 hover:bg-teal-500 text-white text-xs font-semibold flex items-center justify-center gap-1.5 disabled:opacity-50 transition-colors btn-press">
+                  <Unlock className="w-3.5 h-3.5" />Decrypt Untampered
                 </button>
-                <button
-                  onClick={() => handleAesDecrypt(true)}
-                  disabled={!tamperCt || isAesLoading}
-                  className="flex-1 py-2 rounded-lg bg-amber-600 hover:bg-amber-500 text-white text-xs font-semibold flex items-center justify-center gap-1.5 disabled:opacity-50"
-                >
-                  <ShieldAlert className="w-3.5 h-3.5" />
-                  <span>Verify & Decrypt Active Buffer</span>
+                <button onClick={() => handleAesDecrypt(true)} disabled={!tamperCt || isAesLoading} className="flex-1 py-2 rounded-lg bg-amber-600 hover:bg-amber-500 text-white text-xs font-semibold flex items-center justify-center gap-1.5 disabled:opacity-50 transition-colors btn-press">
+                  <ShieldAlert className="w-3.5 h-3.5" />Verify Buffer
                 </button>
               </div>
-
               {aesDecResult && (
-                <div className={`p-4 rounded-lg border text-xs ${
-                  aesDecResult.success 
-                    ? 'bg-emerald-950/30 border-emerald-500/40 text-emerald-300'
-                    : 'bg-rose-950/30 border-rose-500/40 text-rose-300'
-                }`}>
-                  <div className="flex items-center gap-2 font-bold mb-1">
-                    {aesDecResult.success ? (
-                      <>
-                        <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                        <span>INTEGRITY VERIFIED: Valid Authentication Tag</span>
-                      </>
-                    ) : (
-                      <>
-                        <XCircle className="w-4 h-4 text-rose-400" />
-                        <span>INTEGRITY FAILURE: {aesDecResult.error_type}</span>
-                      </>
-                    )}
-                  </div>
-                  <p className="text-[11px] mt-1 leading-relaxed">{aesDecResult.message}</p>
+                <ResultBlock success={aesDecResult.success} title={aesDecResult.success ? 'INTEGRITY VERIFIED — Valid Auth Tag' : `INTEGRITY FAILURE: ${aesDecResult.error_type}`}>
+                  <p className="text-[11px] mt-1 leading-relaxed opacity-80">{aesDecResult.message}</p>
                   {aesDecResult.plaintext && (
-                    <div className="mt-2 p-2 rounded bg-[#070d19] border border-slate-800 font-mono-code text-[11px] text-white">
-                      Decrypted Plaintext: "{aesDecResult.plaintext}"
+                    <div className="mt-2 p-2 rounded code-block font-mono-code text-[11px] text-white">
+                      Decrypted: "{aesDecResult.plaintext}"
                     </div>
                   )}
-                </div>
+                </ResultBlock>
               )}
-            </div>
+            </Panel>
           </div>
         </div>
       )}
 
-      {/* TAB 3: RSA & HYBRID ENVELOPE */}
+      {/* ── TAB: RSA & HYBRID ── */}
       {activeTab === 'rsa' && (
-        <div className="space-y-6">
-          <div className="p-4 rounded-xl bg-indigo-950/20 border border-indigo-500/30 text-indigo-300 text-xs leading-relaxed flex items-start gap-3">
-            <Key className="w-5 h-5 text-indigo-400 shrink-0 mt-0.5" />
-            <div>
-              <strong>Asymmetric Cryptography & Hybrid Encryption (Module 2):</strong>
-              <p className="mt-0.5 text-indigo-400/90">
-                In real industrial systems, asymmetric algorithms (RSA-2048) are not used to encrypt bulk telemetry directly because RSA is computationally intensive and limited in message size. Instead, <strong>Hybrid Cryptography</strong> is used: an ephemeral symmetric AES-256 session key is generated, the industrial telemetry is encrypted with AES-GCM, and only the 32-byte AES key is encapsulated with RSA-OAEP.
-              </p>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* RSA Key Management */}
-            <div className="bg-[#0d1629]/90 border border-slate-800 rounded-xl p-5 shadow-lg shadow-black/20 space-y-4">
+        <div className="space-y-5 animate-fade-slide-up">
+          <InfoBanner icon={Key} color="bg-violet-950/20 border border-violet-500/30 text-violet-300">
+            <strong>Hybrid Cryptography — RSA-OAEP + AES-256-GCM.</strong>
+            <p className="mt-0.5 opacity-80">RSA-2048 is computationally intensive and has message size limits. In practice, an ephemeral AES-256 session key is generated, industrial telemetry is encrypted with AES-GCM, and only the 32-byte key is encapsulated via RSA-OAEP. This combines asymmetric key exchange with symmetric bulk encryption.</p>
+          </InfoBanner>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+            <Panel>
               <div className="flex items-center justify-between">
                 <h3 className="text-sm font-semibold text-slate-200">RSA-2048 Key Pair</h3>
-                <button
-                  onClick={handleRsaKeygen}
-                  disabled={isRsaLoading}
-                  className="px-2.5 py-1 rounded bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium flex items-center gap-1.5"
-                >
+                <button onClick={handleRsaKeygen} disabled={isRsaLoading} className="px-2.5 py-1 rounded-lg bg-violet-600 hover:bg-violet-500 text-white text-xs font-medium flex items-center gap-1.5 transition-colors btn-press">
                   <RefreshCw className={`w-3 h-3 ${isRsaLoading ? 'animate-spin' : ''}`} />
-                  <span>Generate New Key Pair</span>
+                  Generate Pair
                 </button>
               </div>
-
               <div className="text-xs text-slate-400 space-y-2">
-                <div className="flex justify-between">
-                  <span>Algorithm:</span>
-                  <span className="font-mono-code text-indigo-300">RSA (Exponent e=65537)</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Modulus Size:</span>
-                  <span className="font-mono-code text-cyan-300">2048 bits</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Private Key Protection:</span>
-                  <span className="font-mono-code text-emerald-400">Server-Side Protected Memory</span>
-                </div>
+                {[
+                  ['Algorithm', 'RSA (e = 65537)', 'text-violet-300'],
+                  ['Modulus Size', '2048 bits', 'text-sky-300'],
+                  ['Private Key', 'Server-Side Protected Memory', 'text-emerald-400'],
+                ].map(([k, v, c]) => (
+                  <div key={k} className="flex justify-between border-b border-[#1a2844] pb-1.5">
+                    <span className="text-slate-500">{k}</span>
+                    <span className={`font-mono-code text-[11px] ${c}`}>{v}</span>
+                  </div>
+                ))}
               </div>
-
               <div>
-                <span className="text-xs text-slate-400 block mb-1">
-                  Exported Public Key (PEM - SubjectPublicKeyInfo):
-                </span>
-                <CodeBlock 
-                  code={rsaKeyData?.public_key_pem || 'Loading public key...'} 
-                  language="pem"
-                  maxHeight="max-h-48"
-                />
+                <span className="text-[10px] text-slate-500 block mb-1.5 uppercase tracking-wider">Public Key PEM (SubjectPublicKeyInfo)</span>
+                <CodeBlock code={rsaKeyData?.public_key_pem || 'Loading public key…'} language="pem" maxHeight="max-h-44" />
               </div>
-            </div>
+            </Panel>
 
-            {/* Hybrid Envelope Demo */}
-            <div className="bg-[#0d1629]/90 border border-slate-800 rounded-xl p-5 shadow-lg shadow-black/20 space-y-4">
+            <Panel>
               <h3 className="text-sm font-semibold text-slate-200">Key Encapsulation (Hybrid Envelope)</h3>
-
               <div>
-                <label className="block text-xs text-slate-400 mb-1">Industrial Message to Wrap:</label>
-                <textarea
-                  rows="2"
-                  value={hybridInput}
-                  onChange={(e) => setHybridInput(e.target.value)}
-                  className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs text-slate-200 font-mono-code focus:outline-none focus:border-cyan-500"
-                />
+                <label className="block text-[11px] text-slate-500 mb-1.5 uppercase tracking-wider">Industrial Message</label>
+                <textarea rows="2" value={hybridInput} onChange={e => setHybridInput(e.target.value)} className={textareaCls} />
               </div>
-
               <div className="flex gap-2">
-                <button
-                  onClick={handleHybridEncrypt}
-                  className="flex-1 py-1.5 rounded bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold"
-                >
+                <button onClick={handleHybridEncrypt} className="flex-1 py-2 rounded-lg bg-violet-600 hover:bg-violet-500 text-white text-xs font-semibold transition-colors btn-press">
                   Wrap (RSA-OAEP + AES-GCM)
                 </button>
-                <button
-                  onClick={handleHybridDecrypt}
-                  disabled={!hybridEncResult}
-                  className="flex-1 py-1.5 rounded bg-teal-600 hover:bg-teal-500 text-white text-xs font-semibold disabled:opacity-50"
-                >
+                <button onClick={handleHybridDecrypt} disabled={!hybridEncResult} className="flex-1 py-2 rounded-lg bg-teal-600 hover:bg-teal-500 text-white text-xs font-semibold disabled:opacity-50 transition-colors btn-press">
                   Unwrap & Decrypt
                 </button>
               </div>
-
               {hybridEncResult && (
-                <div className="p-3 rounded bg-[#070d19] border border-slate-800 text-xs font-mono-code space-y-2">
-                  <div className="text-indigo-400 font-semibold">1. RSA-OAEP Encrypted Session Key (Base64):</div>
-                  <div className="text-[11px] text-slate-300 break-all truncate">
-                    {hybridEncResult.encrypted_session_key_b64}
-                  </div>
-                  <div className="text-teal-400 font-semibold">2. AES-GCM Encrypted Payload (Base64):</div>
-                  <div className="text-[11px] text-slate-300 break-all truncate">
-                    {hybridEncResult.encrypted_payload_b64}
-                  </div>
+                <div className="p-3 rounded-lg code-block text-xs font-mono-code space-y-2 animate-fade-in">
+                  <div className="text-violet-400 text-[10px] uppercase tracking-wider">RSA-OAEP Encrypted Session Key</div>
+                  <div className="text-[10px] text-slate-400 break-all truncate">{hybridEncResult.encrypted_session_key_b64}</div>
+                  <div className="text-teal-400 text-[10px] uppercase tracking-wider">AES-GCM Encrypted Payload</div>
+                  <div className="text-[10px] text-slate-400 break-all truncate">{hybridEncResult.encrypted_payload_b64}</div>
                 </div>
               )}
-
               {hybridDecResult && (
-                <div className="p-3 rounded bg-emerald-950/30 border border-emerald-500/30 text-emerald-300 text-xs">
-                  <div className="font-bold flex items-center gap-1.5 mb-1">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                    <span>Envelope Unwrapped Successfully</span>
-                  </div>
-                  <p className="text-[11px] font-mono-code mt-1 text-white">
-                    "{hybridDecResult.decrypted_plaintext}"
-                  </p>
-                </div>
+                <ResultBlock success title="Envelope Unwrapped Successfully">
+                  <p className="text-[11px] font-mono-code mt-1 text-white">"{hybridDecResult.decrypted_plaintext}"</p>
+                </ResultBlock>
               )}
-            </div>
+            </Panel>
           </div>
         </div>
       )}
 
-      {/* TAB 4: SHA-256 HASHING & AVALANCHE EFFECT */}
+      {/* ── TAB: SHA-256 ── */}
       {activeTab === 'hash' && (
-        <div className="space-y-6">
-          <div className="p-4 rounded-xl bg-teal-950/20 border border-teal-500/30 text-teal-300 text-xs leading-relaxed flex items-start gap-3">
-            <Hash className="w-5 h-5 text-teal-400 shrink-0 mt-0.5" />
-            <div>
-              <strong>Cryptographic Hash Functions & The Avalanche Effect (Module 2):</strong>
-              <p className="mt-0.5 text-teal-400/90">
-                Hashing is a one-way mathematical compression function (pre-image and collision resistant). Hashes cannot be 'decrypted'. In a secure hash algorithm like SHA-256, changing even a single input bit flips approximately 50% of the 256 output bits.
-              </p>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* SHA-256 Single Hash Generator */}
-            <div className="bg-[#0d1629]/90 border border-slate-800 rounded-xl p-5 shadow-lg shadow-black/20 space-y-4">
+        <div className="space-y-5 animate-fade-slide-up">
+          <InfoBanner icon={Hash} color="bg-teal-950/20 border border-teal-500/30 text-teal-300">
+            <strong>Cryptographic Hash Functions & The Avalanche Effect.</strong>
+            <p className="mt-0.5 opacity-80">SHA-256 is a one-way compression function (pre-image and collision resistant). Hashes cannot be decrypted. Changing a single input bit flips ~50% of the 256 output bits — the avalanche effect.</p>
+          </InfoBanner>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+            <Panel>
               <h3 className="text-sm font-semibold text-slate-200">SHA-256 Digest Generator</h3>
-
               <div>
-                <label className="block text-xs text-slate-400 mb-1">Input String:</label>
-                <textarea
-                  rows="3"
-                  value={hashInput}
-                  onChange={(e) => setHashInput(e.target.value)}
-                  className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-xs text-slate-200 font-mono-code focus:outline-none focus:border-cyan-500"
-                />
+                <label className="block text-[11px] text-slate-500 mb-1.5 uppercase tracking-wider">Input String</label>
+                <textarea rows="3" value={hashInput} onChange={e => setHashInput(e.target.value)} className={textareaCls} />
               </div>
-
-              <button
-                onClick={handleSha256Hash}
-                className="w-full py-2 rounded-lg bg-teal-600 hover:bg-teal-500 text-white text-xs font-semibold"
-              >
-                Compute SHA-256 Hash
-              </button>
-
+              <PrimaryBtn onClick={handleSha256Hash} color="bg-teal-600 hover:bg-teal-500 shadow-teal-950/40">
+                <Hash className="w-3.5 h-3.5" />Compute SHA-256 Digest
+              </PrimaryBtn>
               {hashResult && (
-                <div className="space-y-2 pt-2 border-t border-slate-800 text-xs">
-                  <span className="text-slate-400 block">Hexadecimal Digest (256 bits = 64 characters):</span>
-                  <div className="p-3 bg-[#070d19] rounded border border-slate-800 font-mono-code text-xs text-teal-300 break-all">
-                    {hashResult.hash_hex}
-                  </div>
+                <div className="animate-fade-in">
+                  <span className="text-[10px] text-slate-500 block mb-1.5 uppercase tracking-wider">Hexadecimal Digest (256 bits = 64 hex chars)</span>
+                  <div className="p-3 code-block font-mono-code text-xs text-teal-300 break-all">{hashResult.hash_hex}</div>
                 </div>
               )}
-            </div>
+            </Panel>
 
-            {/* Avalanche Effect Comparator */}
-            <div className="bg-[#0d1629]/90 border border-slate-800 rounded-xl p-5 shadow-lg shadow-black/20 space-y-4">
-              <h3 className="text-sm font-semibold text-slate-200">Interactive Avalanche Effect Demonstration</h3>
-
+            <Panel>
+              <h3 className="text-sm font-semibold text-slate-200">Avalanche Effect Analyzer</h3>
               <div>
-                <label className="block text-xs text-slate-400 mb-1">Message A:</label>
-                <input
-                  type="text"
-                  value={compareA}
-                  onChange={(e) => setCompareA(e.target.value)}
-                  className="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-xs text-slate-200 font-mono-code focus:outline-none focus:border-cyan-500"
-                />
+                <label className="block text-[11px] text-slate-500 mb-1.5 uppercase tracking-wider">Message A</label>
+                <input type="text" value={compareA} onChange={e => setCompareA(e.target.value)} className={inputCls} />
               </div>
-
               <div>
-                <label className="block text-xs text-slate-400 mb-1">Message B (Modify 1 Character):</label>
-                <input
-                  type="text"
-                  value={compareB}
-                  onChange={(e) => setCompareB(e.target.value)}
-                  className="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-xs text-slate-200 font-mono-code focus:outline-none focus:border-cyan-500"
-                />
+                <label className="block text-[11px] text-slate-500 mb-1.5 uppercase tracking-wider">Message B (modify 1 char)</label>
+                <input type="text" value={compareB} onChange={e => setCompareB(e.target.value)} className={inputCls} />
               </div>
-
-              <button
-                onClick={handleCompareHashes}
-                className="w-full py-2 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-semibold"
-              >
-                Compare Bit Hamming Distance
-              </button>
-
+              <PrimaryBtn onClick={handleCompareHashes}>
+                <Hash className="w-3.5 h-3.5" />Compare Bit Hamming Distance
+              </PrimaryBtn>
               {compareResult && (
-                <div className="p-3 rounded bg-[#070d19] border border-slate-800 text-xs font-mono-code space-y-2">
+                <div className="p-3 rounded-lg code-block text-xs font-mono-code space-y-2 animate-fade-in">
                   <div className="flex justify-between">
-                    <span className="text-slate-400">Differing Bits:</span>
-                    <span className="text-cyan-400 font-bold">{compareResult.differing_bits} / 256 bits</span>
+                    <span className="text-slate-500">Differing Bits</span>
+                    <span className="text-sky-400 font-bold">{compareResult.differing_bits} / 256</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-slate-400">Avalanche Percentage:</span>
+                    <span className="text-slate-500">Avalanche Effect</span>
                     <span className="text-teal-400 font-bold">{compareResult.avalanche_percentage}%</span>
                   </div>
                   <div className="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
-                    <div 
-                      className="bg-cyan-400 h-full transition-all"
-                      style={{ width: `${compareResult.avalanche_percentage}%` }}
-                    />
+                    <div className="bg-gradient-to-r from-sky-500 to-teal-400 h-full transition-all duration-700 ease-out rounded-full" style={{ width: `${compareResult.avalanche_percentage}%` }} />
                   </div>
-                  <p className="text-[11px] text-slate-400 font-sans mt-1">
-                    {compareResult.avalanche_analysis}
-                  </p>
+                  <p className="text-[10px] text-slate-500 font-sans">{compareResult.avalanche_analysis}</p>
                 </div>
               )}
-            </div>
+            </Panel>
           </div>
         </div>
       )}
 
-      {/* TAB 5: RSA-PSS DIGITAL SIGNATURES */}
+      {/* ── TAB: RSA-PSS SIGNATURES ── */}
       {activeTab === 'signatures' && (
-        <div className="space-y-6">
-          <div className="p-4 rounded-xl bg-purple-950/20 border border-purple-500/30 text-purple-300 text-xs leading-relaxed flex items-start gap-3">
-            <FileCheck className="w-5 h-5 text-purple-400 shrink-0 mt-0.5" />
-            <div>
-              <strong>RSA-PSS Digital Signatures (Module 2):</strong>
-              <p className="mt-0.5 text-purple-400/90">
-                Probabilistic Signature Scheme (PSS) with SHA-256 and MGF1 provides mathematical proof of message origin (Authentication), proof of uncorrupted content (Integrity), and prevents the sender from claiming they did not issue the command (Non-Repudiation).
-              </p>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Signature Creation */}
-            <div className="bg-[#0d1629]/90 border border-slate-800 rounded-xl p-5 shadow-lg shadow-black/20 space-y-4">
-              <h3 className="text-sm font-semibold text-slate-200">1. Sign Industrial Command (Private Key)</h3>
-
+        <div className="space-y-5 animate-fade-slide-up">
+          <InfoBanner icon={FileCheck} color="bg-purple-950/20 border border-purple-500/30 text-purple-300">
+            <strong>RSA-PSS Digital Signatures — Non-Repudiation.</strong>
+            <p className="mt-0.5 opacity-80">Probabilistic Signature Scheme (PSS) with SHA-256 and MGF1 provides Authentication (proof of origin), Integrity (proof of unmodified content), and Non-Repudiation (sender cannot deny issuing the command).</p>
+          </InfoBanner>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+            <Panel>
+              <h3 className="text-sm font-semibold text-slate-200">1. Sign Command (Private Key)</h3>
               <div>
-                <label className="block text-xs text-slate-400 mb-1">Critical Command to Sign:</label>
-                <textarea
-                  rows="3"
-                  value={sigInput}
-                  onChange={(e) => setSigInput(e.target.value)}
-                  className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-xs text-slate-200 font-mono-code focus:outline-none focus:border-cyan-500"
-                />
+                <label className="block text-[11px] text-slate-500 mb-1.5 uppercase tracking-wider">Critical Command to Sign</label>
+                <textarea rows="3" value={sigInput} onChange={e => setSigInput(e.target.value)} className={textareaCls} />
               </div>
-
-              <button
-                onClick={handleSign}
-                className="w-full py-2 rounded-lg bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold"
-              >
-                Sign with RSA Private Key (RSA-PSS-SHA256)
-              </button>
-
+              <PrimaryBtn onClick={handleSign} color="bg-purple-600 hover:bg-purple-500 shadow-purple-950/40">
+                <FileCheck className="w-3.5 h-3.5" />Sign via RSA-PSS-SHA256
+              </PrimaryBtn>
               {sigResult && (
-                <div className="space-y-2 pt-2 border-t border-slate-800 text-xs font-mono-code">
-                  <span className="text-slate-400 block">Generated Digital Signature (Base64):</span>
-                  <CodeBlock code={sigResult.signature_b64} maxHeight="max-h-24" />
+                <div className="animate-fade-in">
+                  <span className="text-[10px] text-slate-500 block mb-1.5 uppercase tracking-wider">Generated Digital Signature (Base64)</span>
+                  <CodeBlock code={sigResult.signature_b64} maxHeight="max-h-20" />
                 </div>
               )}
-            </div>
+            </Panel>
 
-            {/* Signature Verification & Tampering */}
-            <div className="bg-[#0d1629]/90 border border-slate-800 rounded-xl p-5 shadow-lg shadow-black/20 space-y-4">
+            <Panel>
               <h3 className="text-sm font-semibold text-slate-200">2. Verify Signature (Public Key)</h3>
-
               <div>
-                <label className="block text-xs text-slate-400 mb-1">Message to Verify:</label>
-                <textarea
-                  rows="2"
-                  value={verifyMsg}
-                  onChange={(e) => setVerifyMsg(e.target.value)}
-                  className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs text-slate-200 font-mono-code focus:outline-none focus:border-cyan-500"
-                />
+                <label className="block text-[11px] text-slate-500 mb-1.5 uppercase tracking-wider">Message to Verify</label>
+                <textarea rows="2" value={verifyMsg} onChange={e => setVerifyMsg(e.target.value)} className={textareaCls} />
               </div>
-
               <div>
-                <label className="block text-xs text-slate-400 mb-1">Digital Signature (Base64):</label>
-                <textarea
-                  rows="2"
-                  value={verifySig}
-                  onChange={(e) => setVerifySig(e.target.value)}
-                  className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs text-slate-200 font-mono-code focus:outline-none focus:border-cyan-500"
-                />
+                <label className="block text-[11px] text-slate-500 mb-1.5 uppercase tracking-wider">Digital Signature (Base64)</label>
+                <textarea rows="2" value={verifySig} onChange={e => setVerifySig(e.target.value)} className={textareaCls} />
               </div>
-
               <div className="flex gap-2">
-                <button
-                  onClick={() => setVerifyMsg(verifyMsg + '_TAMPERED')}
-                  className="px-2.5 py-1.5 rounded bg-rose-950/60 hover:bg-rose-900 border border-rose-600/40 text-rose-300 text-xs font-semibold"
-                >
+                <button onClick={() => setVerifyMsg(verifyMsg + '_TAMPERED')} className="px-3 py-2 rounded-lg alert-critical text-rose-300 text-xs font-semibold flex items-center gap-1 btn-press border-0">
                   Tamper Message
                 </button>
-                <button
-                  onClick={handleVerify}
-                  className="flex-1 py-1.5 rounded bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-semibold"
-                >
-                  Verify Signature Against Public Key
+                <button onClick={handleVerify} className="flex-1 py-2 rounded-lg bg-sky-600 hover:bg-sky-500 text-white text-xs font-semibold transition-colors btn-press">
+                  Verify Against Public Key
                 </button>
               </div>
-
               {verifyResult && (
-                <div className={`p-3 rounded-lg border text-xs ${
-                  verifyResult.valid 
-                    ? 'bg-emerald-950/30 border-emerald-500/40 text-emerald-300'
-                    : 'bg-rose-950/30 border-rose-500/40 text-rose-300'
-                }`}>
-                  <div className="flex items-center gap-1.5 font-bold mb-1">
-                    {verifyResult.valid ? <CheckCircle2 className="w-4 h-4 text-emerald-400" /> : <XCircle className="w-4 h-4 text-rose-400" />}
-                    <span>{verifyResult.status}</span>
-                  </div>
-                  <p className="text-[11px] leading-relaxed">{verifyResult.message}</p>
-                </div>
+                <ResultBlock success={verifyResult.valid} title={verifyResult.status}>
+                  <p className="text-[11px] leading-relaxed mt-1 opacity-80">{verifyResult.message}</p>
+                </ResultBlock>
               )}
-            </div>
+            </Panel>
           </div>
         </div>
       )}
 
-      {/* TAB 6: X.509 DIGITAL CERTIFICATES */}
+      {/* ── TAB: X.509 CERTIFICATES ── */}
       {activeTab === 'certificates' && (
-        <div className="space-y-6">
-          <div className="p-4 rounded-xl bg-blue-950/20 border border-blue-500/30 text-blue-300 text-xs leading-relaxed flex items-start gap-3">
-            <FileCode className="w-5 h-5 text-blue-400 shrink-0 mt-0.5" />
-            <div>
-              <strong>X.509 Digital Certificates & PKI Trust (Module 2):</strong>
-              <p className="mt-0.5 text-blue-400/90">
-                Binds a cryptographic public key to an industrial node identity (Common Name, Organization, Subject Alternative Names). 
-                <strong> Important:</strong> The local certificate generated below is self-signed for educational and localhost TLS demonstration. It is not signed by a public Certificate Authority (CA) and requires explicit local trust configuration.
-              </p>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Certificate Metadata Inspection */}
-            <div className="bg-[#0d1629]/90 border border-slate-800 rounded-xl p-5 shadow-lg shadow-black/20 space-y-4">
+        <div className="space-y-5 animate-fade-slide-up">
+          <InfoBanner icon={FileCode} color="bg-blue-950/20 border border-blue-500/30 text-blue-300">
+            <strong>X.509 Digital Certificates & PKI Trust Chain.</strong>
+            <p className="mt-0.5 opacity-80">Binds a cryptographic public key to an industrial node identity (Common Name, SANs). The certificate below is self-signed for local TLS demo — not signed by a public CA. Explicit local trust configuration is required.</p>
+          </InfoBanner>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+            <Panel>
               <div className="flex items-center justify-between">
                 <h3 className="text-sm font-semibold text-slate-200">Active Server X.509 Certificate</h3>
-                <button
-                  onClick={handleCertGenerate}
-                  disabled={isCertLoading}
-                  className="px-2.5 py-1 rounded bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium flex items-center gap-1.5"
-                >
+                <button onClick={handleCertGenerate} disabled={isCertLoading} className="px-2.5 py-1 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium flex items-center gap-1.5 transition-colors btn-press">
                   <RefreshCw className={`w-3 h-3 ${isCertLoading ? 'animate-spin' : ''}`} />
-                  <span>Regenerate Local Cert</span>
+                  Regenerate
                 </button>
               </div>
-
               {certData ? (
                 <div className="space-y-2 text-xs font-mono-code">
-                  <div className="flex justify-between border-b border-slate-800 pb-1">
-                    <span className="text-slate-400">Subject CN:</span>
-                    <span className="text-cyan-300">{certData.subject_common_name || certData.common_name}</span>
-                  </div>
-                  <div className="flex justify-between border-b border-slate-800 pb-1">
-                    <span className="text-slate-400">Organization:</span>
-                    <span className="text-slate-200">{certData.subject_organization || certData.organization}</span>
-                  </div>
-                  <div className="flex justify-between border-b border-slate-800 pb-1">
-                    <span className="text-slate-400">Serial Number:</span>
-                    <span className="text-slate-300 truncate max-w-[200px]">{certData.serial_number}</span>
-                  </div>
-                  <div className="flex justify-between border-b border-slate-800 pb-1">
-                    <span className="text-slate-400">SHA-256 Fingerprint:</span>
-                    <span className="text-teal-300 truncate max-w-[220px]">{certData.sha256_fingerprint}</span>
-                  </div>
-                  <div className="flex justify-between border-b border-slate-800 pb-1">
-                    <span className="text-slate-400">SANs (DNS & IP):</span>
-                    <span className="text-cyan-400">localhost, 127.0.0.1</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-400">Trust Model:</span>
-                    <span className="text-amber-400">Self-Signed (Local SCADA Lab)</span>
-                  </div>
+                  {[
+                    ['Subject CN', certData.subject_common_name || certData.common_name, 'text-sky-300'],
+                    ['Organization', certData.subject_organization || certData.organization, 'text-slate-200'],
+                    ['Serial No.', certData.serial_number, 'text-slate-300'],
+                    ['SHA-256 Fingerprint', certData.sha256_fingerprint, 'text-teal-300'],
+                    ['SANs', 'localhost, 127.0.0.1', 'text-sky-400'],
+                    ['Trust Model', 'Self-Signed (Local SCADA Lab)', 'text-amber-400'],
+                  ].map(([k, v, c]) => (
+                    <div key={k} className="flex justify-between border-b border-[#1a2844] pb-1.5">
+                      <span className="text-slate-500 shrink-0 mr-2">{k}</span>
+                      <span className={`${c} truncate max-w-[220px] text-right text-[10px]`}>{v}</span>
+                    </div>
+                  ))}
                 </div>
               ) : (
-                <p className="text-xs text-slate-500">Loading certificate metadata...</p>
+                <div className="skeleton h-24 rounded-lg" />
               )}
-
               <div>
-                <span className="text-xs text-slate-400 block mb-1">Certificate PEM:</span>
-                <CodeBlock code={certData?.cert_pem || ''} language="x509" maxHeight="max-h-36" />
+                <span className="text-[10px] text-slate-500 block mb-1.5 uppercase tracking-wider">Certificate PEM</span>
+                <CodeBlock code={certData?.cert_pem || ''} language="x509" maxHeight="max-h-32" />
               </div>
-            </div>
+            </Panel>
 
-            {/* Certificate Hostname Validation */}
-            <div className="bg-[#0d1629]/90 border border-slate-800 rounded-xl p-5 shadow-lg shadow-black/20 space-y-4">
-              <h3 className="text-sm font-semibold text-slate-200">Local Certificate Identity Validation</h3>
-              <p className="text-xs text-slate-400">
-                Tests hostname matching and certificate validity periods against local TLS rules.
-              </p>
-
+            <Panel>
+              <h3 className="text-sm font-semibold text-slate-200">Certificate Identity Validation</h3>
+              <p className="text-xs text-slate-500">Tests hostname matching and certificate validity against local TLS rules.</p>
               <div>
-                <label className="block text-xs text-slate-400 mb-1">Expected Hostname:</label>
-                <input
-                  type="text"
-                  value={validateHost}
-                  onChange={(e) => setValidateHost(e.target.value)}
-                  className="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-xs text-slate-200 font-mono-code focus:outline-none focus:border-cyan-500"
-                />
+                <label className="block text-[11px] text-slate-500 mb-1.5 uppercase tracking-wider">Expected Hostname</label>
+                <input type="text" value={validateHost} onChange={e => setValidateHost(e.target.value)} className={inputCls} />
               </div>
-
-              <button
-                onClick={handleCertValidate}
-                className="w-full py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold"
-              >
-                Validate Identity & Dates
-              </button>
-
+              <PrimaryBtn onClick={handleCertValidate} color="bg-blue-600 hover:bg-blue-500 shadow-blue-950/40">
+                <FileCode className="w-3.5 h-3.5" />Validate Identity & Dates
+              </PrimaryBtn>
               {certValidation && (
-                <div className={`p-4 rounded-lg border text-xs ${
-                  certValidation.overall_status === 'VALID_FOR_LOCAL_TLS'
-                    ? 'bg-emerald-950/30 border-emerald-500/40 text-emerald-300'
-                    : 'bg-rose-950/30 border-rose-500/40 text-rose-300'
-                }`}>
-                  <div className="flex items-center gap-2 font-bold mb-1">
-                    {certValidation.overall_status === 'VALID_FOR_LOCAL_TLS' ? (
-                      <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                    ) : (
-                      <XCircle className="w-4 h-4 text-rose-400" />
-                    )}
-                    <span>{certValidation.overall_status}</span>
-                  </div>
-                  <p className="text-[11px] leading-relaxed">{certValidation.pki_explanation}</p>
-                </div>
+                <ResultBlock
+                  success={certValidation.overall_status === 'VALID_FOR_LOCAL_TLS'}
+                  title={certValidation.overall_status}
+                >
+                  <p className="text-[11px] leading-relaxed mt-1 opacity-80">{certValidation.pki_explanation}</p>
+                </ResultBlock>
               )}
-            </div>
+            </Panel>
           </div>
         </div>
       )}
 
-      {/* TAB 7: KEY MANAGEMENT */}
+      {/* ── TAB: KEY MANAGEMENT ── */}
       {activeTab === 'key-mgmt' && (
-        <div className="space-y-6">
-          <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 text-xs leading-relaxed space-y-3">
-            <h3 className="text-sm font-bold text-slate-200 flex items-center gap-2">
-              <Shield className="w-4 h-4 text-cyan-400" />
-              <span>Cryptographic Key Management Principles (Module 2)</span>
+        <div className="space-y-5 animate-fade-slide-up">
+          <div className="bg-[#0c1428]/90 border border-[#1a2844] rounded-xl p-5">
+            <h3 className="text-sm font-bold text-slate-200 flex items-center gap-2 mb-2">
+              <Shield className="w-4 h-4 text-sky-400" />
+              Cryptographic Key Management Principles
             </h3>
-            <p className="text-slate-400 leading-relaxed">
-              Cryptographic strength relies strictly on key secrecy, not algorithmic obscurity (Kerckhoffs's Principle). In modern industrial networks, private keys and symmetric pre-shared keys must adhere to strict handling guidelines.
+            <p className="text-xs text-slate-400 leading-relaxed">
+              Cryptographic strength relies entirely on key secrecy, not algorithmic obscurity (Kerckhoffs's Principle). Private keys and symmetric pre-shared keys in industrial networks must follow strict lifecycle governance.
             </p>
           </div>
-
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="p-4 rounded-xl bg-[#0d1629]/90 border border-slate-800 space-y-2 text-xs">
-              <span className="text-cyan-400 font-semibold uppercase tracking-wider text-[11px] block">
-                1. Safe Generation & Entropy
-              </span>
-              <p className="text-slate-400 leading-relaxed">
-                Keys must be generated using cryptographically secure pseudorandom number generators (CSPRNG, such as <code className="text-cyan-300">os.urandom()</code>), drawing entropy from the OS kernel.
-              </p>
-            </div>
-
-            <div className="p-4 rounded-xl bg-[#0d1629]/90 border border-slate-800 space-y-2 text-xs">
-              <span className="text-teal-400 font-semibold uppercase tracking-wider text-[11px] block">
-                2. Separation of Keys
-              </span>
-              <p className="text-slate-400 leading-relaxed">
-                Public keys are safely distributed via certificates. Private keys reside exclusively in secure hardware (HSMs, TPM chips) or encrypted keystores, never in frontend source code.
-              </p>
-            </div>
-
-            <div className="p-4 rounded-xl bg-[#0d1629]/90 border border-slate-800 space-y-2 text-xs">
-              <span className="text-indigo-400 font-semibold uppercase tracking-wider text-[11px] block">
-                3. Nonce Uniqueness
-              </span>
-              <p className="text-slate-400 leading-relaxed">
-                For AES-GCM, reusing a 96-bit nonce with the same 256-bit key destroys authenticity and allows polynomial MAC forgery. Nonces are never repeated.
-              </p>
-            </div>
+            {[
+              {
+                num: '01', title: 'Safe Generation & Entropy', color: 'text-sky-400 border-sky-500/30 bg-sky-950/20',
+                body: 'Keys must use CSPRNGs (e.g. os.urandom()) drawing entropy from the OS kernel. Never seed from system time, predictable values, or low-entropy sources.',
+              },
+              {
+                num: '02', title: 'Key Separation & Storage', color: 'text-teal-400 border-teal-500/30 bg-teal-950/20',
+                body: 'Public keys are distributed via X.509 certificates. Private keys reside exclusively in HSMs, TPM chips, or encrypted keystores — never in frontend source code or unencrypted files.',
+              },
+              {
+                num: '03', title: 'Nonce Uniqueness (AES-GCM)', color: 'text-violet-400 border-violet-500/30 bg-violet-950/20',
+                body: 'Reusing a 96-bit nonce with the same 256-bit AES key destroys both confidentiality and authenticity, allowing polynomial MAC forgery. AegisGrid generates a fresh nonce for every encryption.',
+              },
+            ].map((p) => (
+              <div key={p.num} className={`p-4 rounded-xl border ${p.color} space-y-2 text-xs card-hover`}>
+                <span className={`font-mono-code font-bold text-lg ${p.color.split(' ')[0]} opacity-30`}>{p.num}</span>
+                <span className={`font-semibold uppercase tracking-wider text-[11px] block ${p.color.split(' ')[0]}`}>{p.title}</span>
+                <p className="text-slate-400 leading-relaxed">{p.body}</p>
+              </div>
+            ))}
           </div>
         </div>
       )}

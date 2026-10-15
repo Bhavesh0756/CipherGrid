@@ -1,65 +1,42 @@
 import React from 'react';
 
-export const StatCard = ({ title, value, subtitle, icon: Icon, badge, color = 'cyan' }) => {
-  const accentColors = {
-    cyan: {
-      border: 'border-cyan-500/20 hover:border-cyan-500/40',
-      iconBg: 'bg-cyan-500/10 text-cyan-400',
-      valueColor: 'text-cyan-400',
-    },
-    teal: {
-      border: 'border-teal-500/20 hover:border-teal-500/40',
-      iconBg: 'bg-teal-500/10 text-teal-400',
-      valueColor: 'text-teal-400',
-    },
-    blue: {
-      border: 'border-blue-500/20 hover:border-blue-500/40',
-      iconBg: 'bg-blue-500/10 text-blue-400',
-      valueColor: 'text-blue-400',
-    },
-    amber: {
-      border: 'border-amber-500/20 hover:border-amber-500/40',
-      iconBg: 'bg-amber-500/10 text-amber-400',
-      valueColor: 'text-amber-400',
-    },
-    rose: {
-      border: 'border-rose-500/20 hover:border-rose-500/40',
-      iconBg: 'bg-rose-500/10 text-rose-400',
-      valueColor: 'text-rose-400',
-    },
-    emerald: {
-      border: 'border-emerald-500/20 hover:border-emerald-500/40',
-      iconBg: 'bg-emerald-500/10 text-emerald-400',
-      valueColor: 'text-emerald-400',
-    },
-  }[color] || {
-    border: 'border-slate-800 hover:border-slate-700',
-    iconBg: 'bg-slate-800 text-slate-300',
-    valueColor: 'text-slate-100',
-  };
+const colorConfig = {
+  blue:    { icon: 'text-blue-400',    bg: 'bg-blue-500/10',    border: 'border-blue-500/30',    val: 'text-blue-200',  glow: 'shadow-blue-900/20'   },
+  cyan:    { icon: 'text-cyan-400',    bg: 'bg-cyan-500/10',    border: 'border-cyan-500/30',    val: 'text-cyan-200',  glow: 'shadow-cyan-900/20'   },
+  teal:    { icon: 'text-teal-400',    bg: 'bg-teal-500/10',    border: 'border-teal-500/30',    val: 'text-teal-200',  glow: 'shadow-teal-900/20'   },
+  emerald: { icon: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/30', val: 'text-emerald-200', glow: 'shadow-emerald-900/20' },
+  amber:   { icon: 'text-amber-400',   bg: 'bg-amber-500/10',   border: 'border-amber-500/30',   val: 'text-amber-200', glow: 'shadow-amber-900/20'  },
+  rose:    { icon: 'text-rose-400',    bg: 'bg-rose-500/10',    border: 'border-rose-500/30',    val: 'text-rose-200',  glow: 'shadow-rose-900/20'   },
+  violet:  { icon: 'text-violet-400',  bg: 'bg-violet-500/10',  border: 'border-violet-500/30',  val: 'text-violet-200', glow: 'shadow-violet-900/20' },
+  sky:     { icon: 'text-sky-400',     bg: 'bg-sky-500/10',     border: 'border-sky-500/30',     val: 'text-sky-200',   glow: 'shadow-sky-900/20'    },
+};
+
+export const StatCard = ({ title, value, subtitle, icon: Icon, color = 'cyan', className = '' }) => {
+  const cfg = colorConfig[color] || colorConfig.cyan;
 
   return (
-    <div className={`bg-[#0d1629]/90 border ${accentColors.border} rounded-xl p-5 shadow-lg shadow-black/20 backdrop-blur-sm transition-all duration-200 flex flex-col justify-between`}>
-      <div className="flex items-start justify-between">
-        <span className="text-xs font-medium uppercase tracking-wider text-slate-400">{title}</span>
-        {Icon && (
-          <div className={`p-2 rounded-lg ${accentColors.iconBg}`}>
-            <Icon className="w-5 h-5" />
+    <div className={`relative bg-[#0c1428]/90 border ${cfg.border} rounded-xl p-4 flex flex-col gap-3 card-hover shadow-lg ${cfg.glow} overflow-hidden ${className}`}>
+      {/* Subtle corner glow */}
+      <div className={`absolute top-0 right-0 w-20 h-20 ${cfg.bg} blur-2xl rounded-full -mr-6 -mt-6 pointer-events-none`} />
+
+      <div className="flex items-start justify-between relative z-10">
+        <div className={`p-2 rounded-lg ${cfg.bg} border ${cfg.border}`}>
+          <Icon className={`w-4 h-4 ${cfg.icon}`} />
+        </div>
+      </div>
+
+      <div className="relative z-10">
+        <div className={`text-2xl font-bold tracking-tight leading-none stat-value ${cfg.val}`}>
+          {value}
+        </div>
+        <div className="text-xs font-medium text-slate-300 mt-1 leading-snug">
+          {title}
+        </div>
+        {subtitle && (
+          <div className="text-[10px] text-slate-500 mt-0.5 font-mono-code truncate">
+            {subtitle}
           </div>
         )}
-      </div>
-      <div className="mt-3">
-        <div className="flex items-baseline gap-2">
-          <span className={`text-3xl font-bold tracking-tight font-mono-code ${accentColors.valueColor}`}>
-            {value}
-          </span>
-          {badge && (
-            <span className="text-xs px-2 py-0.5 rounded-full bg-slate-800/80 text-slate-300 border border-slate-700/50">
-              {badge}
-            </span>
-          )}
-        </div>
-        {subtitle && <p className="text-xs text-slate-400 mt-1">{subtitle}</p>}
       </div>
     </div>
   );

@@ -1,41 +1,33 @@
 import React from 'react';
 
-export const Badge = ({ children, variant = 'default', size = 'sm', className = '' }) => {
-  const baseClasses = 'inline-flex items-center font-medium font-mono-code rounded-md border';
+const variantMap = {
+  // Status variants
+  Authorized:    'bg-emerald-950/50 text-emerald-300 border-emerald-500/40',
+  Suspended:     'bg-amber-950/50  text-amber-300  border-amber-500/40',
+  Unauthorized:  'bg-rose-950/50   text-rose-300   border-rose-500/40',
+  Revoked:       'bg-rose-950/70   text-rose-200   border-rose-600/50',
+  // Severity
+  INFO:          'bg-sky-950/50    text-sky-300    border-sky-500/40',
+  WARNING:       'bg-amber-950/50  text-amber-300  border-amber-500/40',
+  CRITICAL:      'bg-rose-950/50   text-rose-300   border-rose-500/40',
+  // Outcome
+  success:       'bg-emerald-950/50 text-emerald-300 border-emerald-500/40',
+  failure:       'bg-rose-950/50    text-rose-300    border-rose-500/40',
+  // Misc
+  default:       'bg-slate-800/80  text-slate-300  border-slate-600/40',
+};
 
-  const sizeClasses = {
-    xs: 'px-1.5 py-0.5 text-[11px]',
-    sm: 'px-2 py-0.5 text-xs',
-    md: 'px-2.5 py-1 text-xs',
-  }[size] || 'px-2 py-0.5 text-xs';
+const sizeMap = {
+  xs:  'px-1.5 py-0.5 text-[10px]',
+  sm:  'px-2 py-0.5 text-[11px]',
+  md:  'px-2.5 py-1 text-xs',
+};
 
-  const variantClasses = {
-    // Status
-    authorized: 'bg-emerald-950/40 text-emerald-300 border-emerald-500/30',
-    unauthorized: 'bg-rose-950/40 text-rose-300 border-rose-500/30',
-    suspended: 'bg-amber-950/40 text-amber-300 border-amber-500/30',
-    revoked: 'bg-red-950/50 text-red-400 border-red-500/40',
-    
-    // Severity
-    info: 'bg-blue-950/40 text-blue-300 border-blue-500/30',
-    warning: 'bg-amber-950/40 text-amber-300 border-amber-500/30',
-    critical: 'bg-rose-950/50 text-rose-300 border-rose-500/40',
-
-    // Results
-    success: 'bg-emerald-950/40 text-emerald-300 border-emerald-500/30',
-    failure: 'bg-rose-950/40 text-rose-300 border-rose-500/30',
-    allow: 'bg-emerald-950/40 text-emerald-300 border-emerald-500/30',
-    deny: 'bg-rose-950/40 text-rose-300 border-rose-500/30',
-
-    // Protocol / Tech
-    cyan: 'bg-cyan-950/40 text-cyan-300 border-cyan-500/30',
-    teal: 'bg-teal-950/40 text-teal-300 border-teal-500/30',
-    indigo: 'bg-indigo-950/40 text-indigo-300 border-indigo-500/30',
-    default: 'bg-slate-800/60 text-slate-300 border-slate-700/50',
-  }[variant.toLowerCase()] || 'bg-slate-800/60 text-slate-300 border-slate-700/50';
-
+export const Badge = ({ variant = 'default', size = 'xs', children, className = '' }) => {
+  const cls = variantMap[variant] || variantMap.default;
+  const sz  = sizeMap[size] || sizeMap.xs;
   return (
-    <span className={`${baseClasses} ${sizeClasses} ${variantClasses} ${className}`}>
+    <span className={`inline-flex items-center gap-1 rounded-full border font-mono-code font-semibold uppercase tracking-wider leading-none ${cls} ${sz} ${className}`}>
       {children}
     </span>
   );

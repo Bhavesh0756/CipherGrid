@@ -15,8 +15,9 @@ import os
 import json
 import base64
 
-# Set test database path before imports
-os.environ["DATABASE_PATH"] = "backend/app/database/test_securesim.db"
+import sys
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+os.environ["DATABASE_PATH"] = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "app", "database", "test_securesim.db"))
 
 from app import create_app
 from app.database.db import init_db, execute_db

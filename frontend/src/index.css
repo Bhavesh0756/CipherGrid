@@ -1,42 +1,327 @@
 @import "tailwindcss";
 
+/* =====================================================
+   AegisGrid ICS — Global Design System
+   Premium Industrial Cybersecurity Platform
+   ===================================================== */
+
 @layer base {
   :root {
-    --bg-primary: #070d19;
-    --bg-surface: #0d1629;
-    --bg-card: #111e38;
-    --border-color: #1e2e4f;
-    --accent-cyan: #06b6d4;
-    --accent-teal: #14b8a6;
-    --accent-blue: #3b82f6;
+    /* Core Background Hierarchy */
+    --bg-void:    #050a14;
+    --bg-base:    #080f1e;
+    --bg-surface: #0c1428;
+    --bg-card:    #101c35;
+    --bg-panel:   #0f1a30;
+    --bg-raised:  #152040;
+
+    /* Border Colors */
+    --border-subtle:  #1a2844;
+    --border-default: #1e3158;
+    --border-bright:  #243a6e;
+    --border-accent:  #0ea5e9;
+
+    /* Brand Accent Colors */
+    --accent-electric: #0ea5e9;   /* sky-500 — primary CTA */
+    --accent-neon:     #06b6d4;   /* cyan-500 — highlights */
+    --accent-teal:     #14b8a6;   /* teal-500 — secondary */
+    --accent-cobalt:   #3b82f6;   /* blue-500 — charts/info */
+    --accent-violet:   #8b5cf6;   /* violet-500 — crypto/PKI */
+    --accent-emerald:  #10b981;   /* emerald-500 — success */
+    --accent-amber:    #f59e0b;   /* amber-500 — warning */
+    --accent-rose:     #f43f5e;   /* rose-500 — danger */
+
+    /* Glow Effects */
+    --glow-electric: 0 0 20px rgba(14, 165, 233, 0.25);
+    --glow-emerald:  0 0 20px rgba(16, 185, 129, 0.25);
+    --glow-rose:     0 0 20px rgba(244, 63, 94, 0.25);
+  }
+
+  html {
+    scroll-behavior: smooth;
   }
 
   body {
-    background-color: var(--bg-primary);
+    background-color: var(--bg-void);
     color: #e2e8f0;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
     min-height: 100vh;
     overflow-x: hidden;
   }
 
-  /* Custom subtle scrollbar */
+  /* ── Premium Scrollbar ── */
   ::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
+    width: 5px;
+    height: 5px;
   }
   ::-webkit-scrollbar-track {
-    background: #070d19;
+    background: var(--bg-void);
   }
   ::-webkit-scrollbar-thumb {
-    background: #1e2e4f;
-    border-radius: 3px;
+    background: var(--border-bright);
+    border-radius: 10px;
   }
   ::-webkit-scrollbar-thumb:hover {
-    background: #2d4373;
+    background: #2d4a80;
   }
 
-  /* Monospace helpers */
+  /* ── Typography Classes ── */
   .font-mono-code {
-    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Consolas, monospace;
+  }
+
+  /* ── Gradient Text ── */
+  .text-gradient {
+    background: linear-gradient(135deg, #0ea5e9 0%, #06b6d4 50%, #14b8a6 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .text-gradient-violet {
+    background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* ── Gradient Borders (via pseudo + clip trick) ── */
+  .border-gradient {
+    position: relative;
+    background: var(--bg-card);
+    border: 1px solid transparent;
+    background-clip: padding-box;
+  }
+  .border-gradient::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(135deg, rgba(14,165,233,0.4), rgba(6,182,212,0.1), rgba(20,184,166,0.4));
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+  }
+
+  /* ── Grid Background Pattern ── */
+  .bg-grid-pattern {
+    background-image:
+      linear-gradient(rgba(14, 165, 233, 0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(14, 165, 233, 0.04) 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
+
+  /* ── Glass Card Effect ── */
+  .glass-card {
+    background: rgba(12, 20, 40, 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+
+  /* ── Glow Effects ── */
+  .glow-electric {
+    box-shadow: var(--glow-electric);
+  }
+  .glow-emerald {
+    box-shadow: var(--glow-emerald);
+  }
+  .glow-rose {
+    box-shadow: var(--glow-rose);
+  }
+
+  /* ── Page Entrance Animation ── */
+  @keyframes fadeSlideUp {
+    from {
+      opacity: 0;
+      transform: translateY(14px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+  @keyframes scanline {
+    0%   { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+  }
+  @keyframes pulseRing {
+    0%   { transform: scale(1); opacity: 0.8; }
+    100% { transform: scale(2.2); opacity: 0; }
+  }
+  @keyframes shimmer {
+    0%   { background-position: -400px 0; }
+    100% { background-position: 400px 0; }
+  }
+  @keyframes dotPulse {
+    0%, 80%, 100% { transform: scale(1); opacity: 1; }
+    40%            { transform: scale(1.4); opacity: 0.7; }
+  }
+  @keyframes borderFlow {
+    0%   { background-position: 0% 50%; }
+    50%  { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+
+  .animate-fade-slide-up {
+    animation: fadeSlideUp 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  .animate-fade-in {
+    animation: fadeIn 0.35s ease both;
+  }
+  .animate-delay-100 { animation-delay: 100ms; }
+  .animate-delay-150 { animation-delay: 150ms; }
+  .animate-delay-200 { animation-delay: 200ms; }
+  .animate-delay-250 { animation-delay: 250ms; }
+  .animate-delay-300 { animation-delay: 300ms; }
+  .animate-delay-400 { animation-delay: 400ms; }
+
+  /* ── Pulse Ring for Live Status ── */
+  .live-indicator {
+    position: relative;
+    display: inline-flex;
+  }
+  .live-indicator::after {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    border-radius: 50%;
+    background: currentColor;
+    animation: pulseRing 1.8s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+    opacity: 0;
+  }
+
+  /* ── Skeleton Shimmer ── */
+  .skeleton {
+    background: linear-gradient(90deg, var(--bg-raised) 25%, #1e3158 50%, var(--bg-raised) 75%);
+    background-size: 400px 100%;
+    animation: shimmer 1.4s ease-in-out infinite;
+  }
+
+  /* ── Stat Number Transition ── */
+  .stat-value {
+    transition: transform 0.3s ease, color 0.3s ease;
+  }
+  .stat-value:hover {
+    transform: scale(1.05);
+  }
+
+  /* ── Sidebar Nav Active Glow ── */
+  .nav-item-active {
+    background: linear-gradient(90deg, rgba(14,165,233,0.18) 0%, rgba(14,165,233,0.05) 100%);
+    border-left: 2px solid #0ea5e9;
+    box-shadow: inset 0 0 20px rgba(14,165,233,0.05);
+  }
+
+  /* ── Interactive Card Hover ── */
+  .card-hover {
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  }
+  .card-hover:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4), 0 0 0 1px rgba(14,165,233,0.15);
+    border-color: rgba(14,165,233,0.3);
+  }
+
+  /* ── Button Press Effect ── */
+  .btn-press {
+    transition: transform 0.12s ease, box-shadow 0.12s ease;
+  }
+  .btn-press:active {
+    transform: scale(0.97);
+  }
+
+  /* ── Input Focus Ring ── */
+  .input-field {
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+  .input-field:focus {
+    border-color: #0ea5e9;
+    box-shadow: 0 0 0 2px rgba(14, 165, 233, 0.15);
+    outline: none;
+  }
+
+  /* ── Tooltip ── */
+  [data-tooltip]:hover::before {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: calc(100% + 6px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: #0c1428;
+    color: #cbd5e1;
+    border: 1px solid #1e3158;
+    border-radius: 6px;
+    padding: 4px 8px;
+    font-size: 11px;
+    white-space: nowrap;
+    pointer-events: none;
+    z-index: 100;
+  }
+
+  /* ── Sidebar Brand Hex Icon ── */
+  .brand-hex {
+    clip-path: polygon(50% 0%, 93% 25%, 93% 75%, 50% 100%, 7% 75%, 7% 25%);
+  }
+
+  /* ── Security Alert Banner ── */
+  .alert-critical {
+    background: linear-gradient(135deg, rgba(244,63,94,0.12), rgba(244,63,94,0.05));
+    border: 1px solid rgba(244,63,94,0.35);
+  }
+  .alert-success {
+    background: linear-gradient(135deg, rgba(16,185,129,0.12), rgba(16,185,129,0.05));
+    border: 1px solid rgba(16,185,129,0.35);
+  }
+  .alert-warning {
+    background: linear-gradient(135deg, rgba(245,158,11,0.12), rgba(245,158,11,0.05));
+    border: 1px solid rgba(245,158,11,0.35);
+  }
+  .alert-info {
+    background: linear-gradient(135deg, rgba(14,165,233,0.12), rgba(14,165,233,0.05));
+    border: 1px solid rgba(14,165,233,0.35);
+  }
+
+  /* ── Code Block ── */
+  .code-block {
+    background: #030712;
+    border: 1px solid #1a2844;
+    border-radius: 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    line-height: 1.6;
+  }
+
+  /* ── Table Row Hover ── */
+  .table-row-hover {
+    transition: background-color 0.15s ease;
+  }
+  .table-row-hover:hover {
+    background-color: rgba(14, 165, 233, 0.05);
+  }
+
+  /* ── Flowing border animation on accent cards ── */
+  .flowing-border {
+    position: relative;
+    overflow: hidden;
+  }
+  .flowing-border::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    padding: 1px;
+    border-radius: inherit;
+    background: linear-gradient(90deg, #0ea5e9, #8b5cf6, #06b6d4, #0ea5e9);
+    background-size: 200% 100%;
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    animation: borderFlow 3s linear infinite;
+    pointer-events: none;
   }
 }

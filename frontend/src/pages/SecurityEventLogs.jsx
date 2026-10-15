@@ -12,7 +12,14 @@ import {
   Info,
   ChevronLeft,
   ChevronRight,
-  Eye
+  Eye,
+  ShieldAlert,
+  ShieldCheck,
+  Activity,
+  Layers,
+  Terminal,
+  Clock,
+  Sparkles
 } from 'lucide-react';
 import { Badge } from '../components/Badge';
 import { CodeBlock } from '../components/CodeBlock';
@@ -65,7 +72,7 @@ export const SecurityEventLogs = () => {
   };
 
   const handleClearLogs = async () => {
-    if (confirm('Are you sure you want to clear the security audit event logs in SQLite?')) {
+    if (window.confirm('Are you sure you want to purge the security audit event logs from the SQLite database?')) {
       await api.clearLogs();
       fetchLogs();
     }
@@ -75,7 +82,7 @@ export const SecurityEventLogs = () => {
     const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(logs, null, 2));
     const downloadAnchor = document.createElement('a');
     downloadAnchor.setAttribute("href", dataStr);
-    downloadAnchor.setAttribute("download", `securesim_audit_logs_${new Date().toISOString().slice(0, 10)}.json`);
+    downloadAnchor.setAttribute("download", `aegisgrid_audit_logs_${new Date().toISOString().slice(0, 10)}.json`);
     document.body.appendChild(downloadAnchor);
     downloadAnchor.click();
     downloadAnchor.remove();
@@ -97,54 +104,111 @@ export const SecurityEventLogs = () => {
     'TLS_CONNECTION_FAILED',
   ];
 
+  // Quick stat counts
+  const criticalCount = logs.filter(l => l.severity === 'CRITICAL').length;
+  const warningCount = logs.filter(l => l.severity === 'WARNING').length;
+  const allowCount = logs.filter(l => l.result === 'ALLOW' || l.result === 'SUCCESS').length;
+
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-[#0d1629]/70 border border-slate-800 p-5 rounded-xl">
-        <div>
-          <h2 className="text-xl font-bold tracking-tight text-white flex items-center gap-2">
-            Security Event & Audit Logs
-          </h2>
-          <p className="text-xs text-slate-400 mt-1">
-            Searchable, tamper-evident event records persisted in SQLite database. Secrets and private keys are strictly excluded.
-          </p>
+      {/* Page Header */}
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 p-6 rounded-2xl bg-[#091325]/90 border border-[#1a2c4e] backdrop-blur-xl relative overflow-hidden shadow-xl shadow-black/30">
+        <div className="absolute top-0 right-0 w-80 h-32 bg-sky-500/5 rounded-full blur-3xl pointer-events-none" />
+        <div className="relative z-10">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 rounded-xl bg-sky-500/10 border border-sky-500/30 text-sky-400 shadow-inner">
+              <ScrollText className="w-6 h-6" />
+            </div>
+            <div>
+              <h1 className="text-xl font-bold tracking-tight text-white flex items-center gap-2">
+                Security Audit & Telemetry Ledger
+              </h1>
+              <p className="text-xs text-slate-400 mt-0.5">
+                Tamper-evident, zero-leak event journal persisted in SQLite. Cryptographic secrets and private keys are never logged.
+              </p>
+            </div>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
+
+        <div className="relative z-10 flex flex-wrap items-center gap-2.5">
           <button
             onClick={handleExportJson}
-            className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium border border-slate-700 flex items-center gap-1.5 transition-colors"
+            className="px-3.5 py-2 rounded-xl bg-slate-800/80 hover:bg-slate-700/80 text-slate-200 text-xs font-medium border border-slate-700/80 hover:border-slate-600 flex items-center gap-2 transition-all shadow-sm active:scale-95"
           >
-            <Download className="w-3.5 h-3.5" />
-            <span>Export JSON</span>
+            <Download className="w-3.5 h-3.5 text-sky-400" />
+            <span>Export JSON Ledger</span>
           </button>
           <button
             onClick={handleClearLogs}
-            className="px-3 py-1.5 rounded-lg bg-rose-950/60 hover:bg-rose-900 text-rose-300 text-xs font-medium border border-rose-600/40 flex items-center gap-1.5 transition-colors"
+            className="px-3.5 py-2 rounded-xl bg-rose-950/40 hover:bg-rose-900/60 text-rose-300 text-xs font-medium border border-rose-700/40 hover:border-rose-600/60 flex items-center gap-2 transition-all shadow-sm active:scale-95"
           >
-            <Trash2 className="w-3.5 h-3.5" />
-            <span>Purge Logs</span>
+            <Trash2 className="w-3.5 h-3.5 text-rose-400" />
+            <span>Purge Ledger</span>
           </button>
         </div>
       </div>
 
+      {/* Metrics Row */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
+        <div className="p-4 rounded-xl bg-[#091325]/70 border border-[#162746] flex items-center gap-3">
+          <div className="p-2 rounded-lg bg-sky-500/10 border border-sky-500/20 text-sky-400">
+            <Activity className="w-4 h-4" />
+          </div>
+          <div>
+            <div className="text-[11px] text-slate-400">Total Registered</div>
+            <div className="text-lg font-bold text-white font-mono-code">{total}</div>
+          </div>
+        </div>
+
+        <div className="p-4 rounded-xl bg-[#091325]/70 border border-[#162746] flex items-center gap-3">
+          <div className="p-2 rounded-lg bg-rose-500/10 border border-rose-500/20 text-rose-400">
+            <ShieldAlert className="w-4 h-4" />
+          </div>
+          <div>
+            <div className="text-[11px] text-slate-400">Critical Alerts (Page)</div>
+            <div className="text-lg font-bold text-rose-400 font-mono-code">{criticalCount}</div>
+          </div>
+        </div>
+
+        <div className="p-4 rounded-xl bg-[#091325]/70 border border-[#162746] flex items-center gap-3">
+          <div className="p-2 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-400">
+            <AlertTriangle className="w-4 h-4" />
+          </div>
+          <div>
+            <div className="text-[11px] text-slate-400">Warnings (Page)</div>
+            <div className="text-lg font-bold text-amber-400 font-mono-code">{warningCount}</div>
+          </div>
+        </div>
+
+        <div className="p-4 rounded-xl bg-[#091325]/70 border border-[#162746] flex items-center gap-3">
+          <div className="p-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
+            <ShieldCheck className="w-4 h-4" />
+          </div>
+          <div>
+            <div className="text-[11px] text-slate-400">Allowed / Verified</div>
+            <div className="text-lg font-bold text-emerald-400 font-mono-code">{allowCount}</div>
+          </div>
+        </div>
+      </div>
+
       {/* Filter and Search Bar */}
-      <div className="bg-[#0d1629]/90 border border-slate-800 rounded-xl p-4 shadow-lg shadow-black/20 flex flex-col md:flex-row gap-3 items-center justify-between">
+      <div className="bg-[#091325]/90 border border-[#1a2c4e] rounded-2xl p-4 shadow-xl shadow-black/20 flex flex-col md:flex-row gap-3 items-center justify-between">
         <form onSubmit={handleSearchSubmit} className="flex-1 w-full flex items-center gap-2">
           <div className="relative flex-1">
-            <Search className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
+            <Search className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
             <input
               type="text"
-              placeholder="Search by Device ID, Action, Event Type, or Message..."
+              placeholder="Search by Device ID, action, message, or cryptographic event..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full bg-slate-900 border border-slate-700 rounded-lg pl-9 pr-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-cyan-500"
+              className="w-full bg-[#050c18] border border-slate-700/80 rounded-xl pl-10 pr-3.5 py-2 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 transition-colors"
             />
           </div>
           <button
             type="submit"
-            className="px-3 py-1.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-semibold"
+            className="px-4 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-xs font-semibold shadow-md shadow-sky-900/30 transition-all active:scale-95"
           >
-            Search
+            Filter
           </button>
         </form>
 
@@ -153,19 +217,19 @@ export const SecurityEventLogs = () => {
           <select
             value={severity}
             onChange={(e) => { setSeverity(e.target.value); setPage(0); }}
-            className="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-cyan-500"
+            className="bg-[#050c18] border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-sky-500 cursor-pointer"
           >
             <option value="ALL">All Severities</option>
-            <option value="INFO">INFO</option>
-            <option value="WARNING">WARNING</option>
-            <option value="CRITICAL">CRITICAL</option>
+            <option value="INFO">INFO Only</option>
+            <option value="WARNING">WARNING Only</option>
+            <option value="CRITICAL">CRITICAL Only</option>
           </select>
 
           {/* Event Type Select */}
           <select
             value={eventType}
             onChange={(e) => { setEventType(e.target.value); setPage(0); }}
-            className="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-cyan-500"
+            className="bg-[#050c18] border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-sky-500 cursor-pointer max-w-xs"
           >
             {eventTypesList.map(t => (
               <option key={t} value={t}>{t === 'ALL' ? 'All Event Types' : t}</option>
@@ -174,74 +238,88 @@ export const SecurityEventLogs = () => {
 
           <button
             onClick={fetchLogs}
-            className="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700"
-            title="Refresh"
+            className="p-2.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-300 border border-slate-700/80 hover:border-slate-600 transition-all active:scale-95"
+            title="Refresh Ledger"
           >
-            <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin text-cyan-400' : ''}`} />
+            <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin text-sky-400' : ''}`} />
           </button>
         </div>
       </div>
 
       {/* Logs Table */}
-      <div className="bg-[#0d1629]/90 border border-slate-800 rounded-xl overflow-hidden shadow-lg shadow-black/20">
+      <div className="bg-[#091325]/90 border border-[#1a2c4e] rounded-2xl overflow-hidden shadow-xl shadow-black/30">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="bg-slate-900/80 border-b border-slate-800 text-slate-400 font-medium">
+            <thead className="bg-[#050c18]/90 border-b border-[#1a2c4e] text-slate-400 font-semibold tracking-wider uppercase text-[10px]">
               <tr>
-                <th className="py-3 px-4">Timestamp</th>
-                <th className="py-3 px-3">Severity</th>
-                <th className="py-3 px-3">Event Type</th>
-                <th className="py-3 px-3">Device ID</th>
-                <th className="py-3 px-3">Result</th>
-                <th className="py-3 px-4">Message Summary</th>
-                <th className="py-3 px-3 text-right">Inspect</th>
+                <th className="py-3.5 px-4">Timestamp</th>
+                <th className="py-3.5 px-3">Severity</th>
+                <th className="py-3.5 px-3">Event Signature</th>
+                <th className="py-3.5 px-3">Source Node</th>
+                <th className="py-3.5 px-3">Verdict</th>
+                <th className="py-3.5 px-4">Telemetry Summary</th>
+                <th className="py-3.5 px-4 text-right">Details</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/60 font-mono-code">
+            <tbody className="divide-y divide-slate-800/50 font-mono-code">
               {logs.length > 0 ? (
                 logs.map((evt) => (
-                  <tr key={evt.id} className="hover:bg-slate-900/50 transition-colors">
-                    <td className="py-2.5 px-4 text-slate-400 text-[11px] whitespace-nowrap">
-                      {new Date(evt.timestamp).toLocaleString()}
+                  <tr key={evt.id} className="hover:bg-slate-800/30 transition-colors group">
+                    <td className="py-3 px-4 text-slate-400 text-[11px] whitespace-nowrap">
+                      <span className="flex items-center gap-1.5 font-mono">
+                        <Clock className="w-3 h-3 text-slate-500" />
+                        {new Date(evt.timestamp).toLocaleString()}
+                      </span>
                     </td>
-                    <td className="py-2.5 px-3">
+                    <td className="py-3 px-3">
                       <Badge variant={evt.severity} size="xs">
                         {evt.severity}
                       </Badge>
                     </td>
-                    <td className="py-2.5 px-3 font-semibold text-cyan-300 text-[11px] whitespace-nowrap">
+                    <td className="py-3 px-3 font-semibold text-sky-300 text-[11px] whitespace-nowrap">
                       {evt.event_type}
                     </td>
-                    <td className="py-2.5 px-3 text-slate-300">
-                      {evt.device_id || 'SYSTEM'}
+                    <td className="py-3 px-3">
+                      <span className="px-2 py-0.5 rounded-md bg-slate-800/80 border border-slate-700/60 text-slate-300 text-[10px] font-mono">
+                        {evt.device_id || 'AEGIS_CORE'}
+                      </span>
                     </td>
-                    <td className="py-2.5 px-3">
-                      <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${
+                    <td className="py-3 px-3">
+                      <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wider inline-flex items-center gap-1 ${
                         evt.result === 'ALLOW' || evt.result === 'SUCCESS'
-                          ? 'bg-emerald-950/40 text-emerald-300 border border-emerald-500/30'
-                          : 'bg-rose-950/40 text-rose-300 border border-rose-500/30'
+                          ? 'bg-emerald-950/50 text-emerald-300 border border-emerald-500/30'
+                          : 'bg-rose-950/50 text-rose-300 border border-rose-500/30'
                       }`}>
+                        {evt.result === 'ALLOW' || evt.result === 'SUCCESS' ? (
+                          <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+                        ) : (
+                          <XCircle className="w-3 h-3 text-rose-400" />
+                        )}
                         {evt.result}
                       </span>
                     </td>
-                    <td className="py-2.5 px-4 text-slate-300 font-sans text-xs max-w-md truncate">
+                    <td className="py-3 px-4 text-slate-300 font-sans text-xs max-w-md truncate">
                       {evt.message}
                     </td>
-                    <td className="py-2.5 px-3 text-right">
+                    <td className="py-3 px-4 text-right">
                       <button
                         onClick={() => setInspectedEvent(evt)}
-                        className="p-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white"
-                        title="View Detailed Context"
+                        className="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-sky-600/20 text-slate-400 hover:text-sky-300 border border-slate-700/60 hover:border-sky-500/40 text-[11px] font-sans inline-flex items-center gap-1.5 transition-all shadow-sm"
+                        title="View Sanitized Cryptographic Frame"
                       >
                         <Eye className="w-3.5 h-3.5" />
+                        <span>Inspect</span>
                       </button>
                     </td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan="7" className="py-10 text-center text-slate-500 font-sans text-xs">
-                    {loading ? 'Querying security logs...' : 'No security events match the current filter criteria.'}
+                  <td colSpan="7" className="py-12 text-center text-slate-500 font-sans text-xs">
+                    <div className="flex flex-col items-center justify-center gap-2">
+                      <ScrollText className="w-8 h-8 text-slate-600 animate-pulse" />
+                      <span>{loading ? 'Querying encrypted SQLite journal...' : 'No security events match the current filter criteria.'}</span>
+                    </div>
                   </td>
                 </tr>
               )}
@@ -250,27 +328,29 @@ export const SecurityEventLogs = () => {
         </div>
 
         {/* Pagination Bar */}
-        <div className="p-3 bg-slate-900/60 border-t border-slate-800 flex items-center justify-between text-xs text-slate-400">
+        <div className="p-3.5 bg-[#050c18]/90 border-t border-[#1a2c4e] flex items-center justify-between text-xs text-slate-400">
           <span>
-            Showing {logs.length} of {total} records
+            Displaying <strong className="text-slate-200">{logs.length}</strong> of <strong className="text-slate-200">{total}</strong> recorded telemetry events
           </span>
           <div className="flex items-center gap-2">
             <button
               onClick={() => setPage(Math.max(0, page - 1))}
               disabled={page === 0}
-              className="p-1 rounded bg-slate-800 hover:bg-slate-700 disabled:opacity-40 text-slate-300"
+              className="px-2.5 py-1 rounded-lg bg-slate-800/80 hover:bg-slate-700 disabled:opacity-40 text-slate-300 border border-slate-700/60 transition-colors flex items-center gap-1"
             >
-              <ChevronLeft className="w-4 h-4" />
+              <ChevronLeft className="w-3.5 h-3.5" />
+              <span>Prev</span>
             </button>
-            <span className="font-mono-code text-slate-300">
-              Page {page + 1} of {totalPages}
+            <span className="font-mono-code text-slate-300 px-2 py-0.5 rounded bg-slate-900 border border-slate-800 text-[11px]">
+              Page {page + 1} / {totalPages}
             </span>
             <button
               onClick={() => setPage(Math.min(totalPages - 1, page + 1))}
               disabled={page >= totalPages - 1}
-              className="p-1 rounded bg-slate-800 hover:bg-slate-700 disabled:opacity-40 text-slate-300"
+              className="px-2.5 py-1 rounded-lg bg-slate-800/80 hover:bg-slate-700 disabled:opacity-40 text-slate-300 border border-slate-700/60 transition-colors flex items-center gap-1"
             >
-              <ChevronRight className="w-4 h-4" />
+              <span>Next</span>
+              <ChevronRight className="w-3.5 h-3.5" />
             </button>
           </div>
         </div>
@@ -278,10 +358,10 @@ export const SecurityEventLogs = () => {
 
       {/* Inspect Modal */}
       {inspectedEvent && (
-        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-[#0d1629] border border-slate-700 rounded-xl p-6 max-w-lg w-full shadow-2xl space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-              <div className="flex items-center gap-2">
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 animate-fade-in">
+          <div className="bg-[#091325] border border-[#1a2c4e] rounded-2xl p-6 max-w-xl w-full shadow-2xl space-y-4 relative">
+            <div className="flex items-center justify-between border-b border-slate-800/80 pb-3.5">
+              <div className="flex items-center gap-2.5">
                 <Badge variant={inspectedEvent.severity} size="sm">
                   {inspectedEvent.severity}
                 </Badge>
@@ -291,36 +371,37 @@ export const SecurityEventLogs = () => {
               </div>
               <button
                 onClick={() => setInspectedEvent(null)}
-                className="text-slate-500 hover:text-slate-300 text-xs"
+                className="text-slate-400 hover:text-white px-2 py-1 rounded-lg hover:bg-slate-800 text-xs transition-colors"
               >
-                Close
+                ✕ Close
               </button>
             </div>
 
-            <div className="space-y-2 text-xs font-mono-code">
-              <div><span className="text-slate-400">Timestamp:</span> {inspectedEvent.timestamp}</div>
-              <div><span className="text-slate-400">Device ID:</span> {inspectedEvent.device_id || 'SYSTEM'}</div>
-              <div><span className="text-slate-400">Action:</span> {inspectedEvent.action || 'N/A'}</div>
-              <div><span className="text-slate-400">Result:</span> {inspectedEvent.result}</div>
-              <div className="font-sans pt-1">
-                <span className="text-slate-400 block mb-0.5">Explanation:</span>
-                <p className="text-slate-200 bg-slate-900 p-2.5 rounded border border-slate-800 leading-relaxed">
-                  {inspectedEvent.message}
-                </p>
-              </div>
+            <div className="grid grid-cols-2 gap-2 text-xs font-mono-code bg-[#050c18] p-3.5 rounded-xl border border-slate-800/80">
+              <div><span className="text-slate-500">Timestamp:</span> <span className="text-slate-300">{inspectedEvent.timestamp}</span></div>
+              <div><span className="text-slate-500">Node ID:</span> <span className="text-sky-300">{inspectedEvent.device_id || 'AEGIS_CORE'}</span></div>
+              <div><span className="text-slate-500">Action:</span> <span className="text-slate-300">{inspectedEvent.action || 'N/A'}</span></div>
+              <div><span className="text-slate-500">Verdict:</span> <span className={inspectedEvent.result === 'ALLOW' || inspectedEvent.result === 'SUCCESS' ? 'text-emerald-400 font-bold' : 'text-rose-400 font-bold'}>{inspectedEvent.result}</span></div>
+            </div>
+
+            <div className="space-y-1.5 font-sans">
+              <span className="text-xs text-slate-400 font-medium">Security Analyst Narrative</span>
+              <p className="text-xs text-slate-200 bg-[#050c18] p-3 rounded-xl border border-slate-800/80 leading-relaxed">
+                {inspectedEvent.message}
+              </p>
             </div>
 
             {inspectedEvent.details && (
-              <div>
-                <span className="text-xs text-slate-400 block mb-1">Sanitized Event Details:</span>
-                <CodeBlock code={inspectedEvent.details} maxHeight="max-h-40" />
+              <div className="space-y-1.5">
+                <span className="text-xs text-slate-400 font-medium">Sanitized Context & Cryptographic Hashes (JSON)</span>
+                <CodeBlock code={inspectedEvent.details} maxHeight="max-h-48" />
               </div>
             )}
 
             <div className="flex justify-end pt-2">
               <button
                 onClick={() => setInspectedEvent(null)}
-                className="px-4 py-1.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold"
+                className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold border border-slate-700 transition-colors"
               >
                 Dismiss
               </button>
