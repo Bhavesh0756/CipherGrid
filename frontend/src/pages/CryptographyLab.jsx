@@ -20,25 +20,25 @@ import { CodeBlock } from '../components/CodeBlock';
 import { api } from '../services/api';
 
 /* Shared input styles */
-const inputCls = "w-full bg-[#070b16] border border-[#1a263d] rounded-xl px-3.5 py-2.5 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500/40 transition-all font-mono-code";
-const textareaCls = "w-full bg-[#070b16] border border-[#1a263d] rounded-xl p-3 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500/40 transition-all font-mono-code resize-none";
+const inputCls = "w-full bg-[#08101c] border border-[#14243b] rounded-xl px-3.5 py-2.5 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-500/30 transition-all font-mono-code";
+const textareaCls = "w-full bg-[#08101c] border border-[#14243b] rounded-xl p-3 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-500/30 transition-all font-mono-code resize-none";
 
-const Panel = ({ children, className = '', accentColor = 'from-violet-500/50 via-cyan-500/30 to-transparent' }) => (
-  <div className={`bg-[#0a0f1d]/85 backdrop-blur-md border border-[#18253e] rounded-2xl p-6 shadow-xl shadow-black/40 space-y-4 relative overflow-hidden transition-all duration-300 hover:border-[#243556] ${className}`}>
+const Panel = ({ children, className = '', accentColor = 'from-cyan-500/40 via-teal-500/20 to-transparent' }) => (
+  <div className={`bg-[#0b1524] border border-[#14243b] rounded-2xl p-6 shadow-xl space-y-4 relative overflow-hidden transition-all duration-300 hover:border-cyan-500/40 ${className}`}>
     <div className={`absolute inset-x-0 top-0 h-[1.5px] bg-gradient-to-r ${accentColor}`} />
     {children}
   </div>
 );
 
 const ResultBlock = ({ success, title, children }) => (
-  <div className={`p-4 rounded-xl text-xs backdrop-blur-md border animate-fade-in transition-all ${
+  <div className={`p-4 rounded-xl text-xs border animate-fade-in transition-all ${
     success 
-      ? 'bg-emerald-950/20 border-emerald-500/30 text-emerald-300 shadow-lg shadow-emerald-950/20' 
-      : 'bg-rose-950/20 border-rose-500/30 text-rose-300 shadow-lg shadow-rose-950/20'
+      ? 'bg-[#092224] border-teal-500/40 text-teal-300 shadow-lg' 
+      : 'bg-[#2a1018] border-rose-500/40 text-rose-300 shadow-lg'
   }`}>
     <div className="flex items-center gap-2 font-bold mb-2">
       {success
-        ? <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+        ? <CheckCircle2 className="w-4 h-4 text-teal-400 shrink-0" />
         : <XCircle className="w-4 h-4 text-rose-400 shrink-0" />
       }
       <span className="tracking-wide">{title}</span>
@@ -48,13 +48,13 @@ const ResultBlock = ({ success, title, children }) => (
 );
 
 const InfoBanner = ({ icon: Icon, color, children }) => (
-  <div className={`p-4 rounded-xl text-xs leading-relaxed flex items-start gap-3 backdrop-blur-md border ${color}`}>
+  <div className={`p-4 rounded-xl text-xs leading-relaxed flex items-start gap-3 border ${color}`}>
     <Icon className="w-5 h-5 shrink-0 mt-0.5 opacity-80" />
     <div className="flex-1">{children}</div>
   </div>
 );
 
-const PrimaryBtn = ({ onClick, disabled, children, color = 'bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white shadow-lg shadow-violet-950/40' }) => (
+const PrimaryBtn = ({ onClick, disabled, children, color = 'bg-[#0e2a38]/85 hover:bg-[#13384a] text-cyan-300 border border-cyan-500/50 shadow-[0_0_15px_rgba(6,182,212,0.15)]' }) => (
   <button
     onClick={onClick}
     disabled={disabled}
@@ -195,12 +195,11 @@ export const CryptographyLab = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="relative overflow-hidden bg-[#0a0f1d]/90 backdrop-blur-md border border-[#17253e] rounded-2xl p-6 shadow-xl shadow-black/40">
-        <div className="absolute inset-x-0 top-0 h-[1.5px] bg-gradient-to-r from-violet-500/0 via-violet-500/60 to-cyan-500/0" />
+      {/* Header matching Reference */}
+      <div className="relative overflow-hidden bg-[#0a1220] border border-[#14243b] rounded-2xl p-6 shadow-xl">
         <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3.5">
-            <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-violet-500/20 to-indigo-500/10 border border-violet-500/30 flex items-center justify-center text-violet-400 shadow-lg shadow-violet-950/40">
+            <div className="w-11 h-11 rounded-xl bg-cyan-500/10 border border-cyan-500/25 flex items-center justify-center text-cyan-400 shadow-lg shadow-cyan-950/40">
               <FlaskConical className="w-5 h-5" />
             </div>
             <div>
@@ -208,26 +207,26 @@ export const CryptographyLab = () => {
                 <h2 className="text-xl font-bold tracking-tight text-white">
                   Cryptography Laboratory
                 </h2>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-mono-code font-semibold bg-violet-500/10 text-violet-300 border border-violet-500/20">
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-mono-code font-semibold bg-cyan-950/60 text-cyan-300 border border-cyan-500/30">
                   FIPS & NIST Standards
                 </span>
               </div>
               <p className="text-xs text-slate-400 mt-1">
-                Real cryptographic operations executing in Python's standard <code className="text-violet-300 font-mono-code">cryptography.hazmat</code> and <code className="text-cyan-300 font-mono-code">hashlib</code> backends.
+                Real cryptographic operations executing in Python's standard <code className="text-cyan-300 font-mono-code">cryptography.hazmat</code> and <code className="text-teal-300 font-mono-code">hashlib</code> backends.
               </p>
             </div>
           </div>
           <div className="flex items-center gap-2 self-start sm:self-auto">
-            <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#070b16] border border-[#1a263d] text-[11px] font-mono-code text-slate-300">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+            <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#08101c] border border-[#14243b] text-[11px] font-mono-code text-slate-300">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_#10b981]" />
               <span>Hazmat Engine: Active</span>
             </span>
           </div>
         </div>
       </div>
 
-      {/* Tabs */}
-      <div className="flex flex-wrap gap-1.5 p-1.5 bg-[#070b16]/90 backdrop-blur-md rounded-2xl border border-[#162238] shadow-inner shadow-black/40">
+      {/* Tabs matching Reference */}
+      <div className="flex flex-wrap gap-1.5 p-1.5 bg-[#08101c] rounded-2xl border border-[#14243b] shadow-inner">
         {tabs.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
@@ -237,16 +236,16 @@ export const CryptographyLab = () => {
               onClick={() => setActiveTab(tab.id)}
               className={`flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-xs font-medium transition-all duration-200 flex-1 min-w-fit justify-center sm:justify-start cursor-pointer active:scale-[0.98] ${
                 isActive
-                  ? 'bg-gradient-to-r from-violet-600/25 via-indigo-600/25 to-violet-600/15 text-violet-200 border border-violet-500/50 shadow-md shadow-violet-950/40'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-[#0f172a]/60 border border-transparent'
+                  ? 'bg-[#0d2235] text-cyan-200 border border-cyan-500/50 shadow-[0_0_15px_rgba(6,182,212,0.15)]'
+                  : 'text-slate-400 hover:text-slate-200 hover:bg-[#0c1626] border border-transparent'
               }`}
             >
-              <Icon className={`w-3.5 h-3.5 transition-colors ${isActive ? 'text-violet-400' : 'text-slate-500'}`} />
+              <Icon className={`w-3.5 h-3.5 transition-colors ${isActive ? 'text-cyan-400' : 'text-slate-500'}`} />
               <span className="hidden sm:block font-medium">{tab.label}</span>
               <span className={`font-mono-code text-[9px] px-1.5 py-0.5 rounded-md border transition-colors ${
                 isActive 
-                  ? 'bg-violet-950/60 border-violet-500/30 text-violet-300' 
-                  : 'bg-[#0a0f1d] border-[#18253e] text-slate-500'
+                  ? 'bg-[#0d2a38] border-cyan-500/40 text-cyan-300' 
+                  : 'bg-[#08101c] border-[#14243b] text-slate-500'
               }`}>
                 {tab.tag}
               </span>

@@ -14,8 +14,8 @@ import {
 import { Badge } from '../components/Badge';
 import { api } from '../services/api';
 
-const Panel = ({ children, className = '', accent = 'from-teal-500/50 via-cyan-500/20 to-transparent' }) => (
-  <div className={`bg-[#0a0f1d]/85 backdrop-blur-md border border-[#17253e] rounded-2xl p-6 shadow-xl shadow-black/40 relative overflow-hidden transition-all duration-300 hover:border-[#223556] ${className}`}>
+const Panel = ({ children, className = '', accent = 'from-teal-500/40 via-cyan-500/20 to-transparent' }) => (
+  <div className={`bg-[#0b1524] border border-[#14243b] rounded-2xl p-6 shadow-xl relative overflow-hidden transition-all duration-300 hover:border-cyan-500/40 ${className}`}>
     <div className={`absolute inset-x-0 top-0 h-[1.5px] bg-gradient-to-r ${accent}`} />
     {children}
   </div>
@@ -80,12 +80,11 @@ export const AccessControl = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="relative overflow-hidden bg-[#0a0f1d]/90 backdrop-blur-md border border-[#17253e] rounded-2xl p-6 shadow-xl shadow-black/40">
-        <div className="absolute inset-x-0 top-0 h-[1.5px] bg-gradient-to-r from-teal-500/0 via-teal-500/60 to-emerald-500/0" />
+      {/* Header matching Reference */}
+      <div className="relative overflow-hidden bg-[#0a1220] border border-[#14243b] rounded-2xl p-6 shadow-xl">
         <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3.5">
-            <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-teal-500/20 to-emerald-500/10 border border-teal-500/30 flex items-center justify-center text-teal-400 shadow-lg shadow-teal-950/40">
+            <div className="w-11 h-11 rounded-xl bg-teal-500/10 border border-teal-500/25 flex items-center justify-center text-teal-400 shadow-lg shadow-teal-950/40">
               <ShieldCheck className="w-5 h-5" />
             </div>
             <div>
@@ -93,7 +92,7 @@ export const AccessControl = () => {
                 <h2 className="text-xl font-bold tracking-tight text-white">
                   Access Control & Authorization
                 </h2>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-mono-code font-semibold bg-teal-500/10 text-teal-300 border border-teal-500/20">
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-mono-code font-semibold bg-teal-950/60 text-teal-300 border border-teal-500/30">
                   Zero-Trust Policy
                 </span>
               </div>
@@ -103,8 +102,8 @@ export const AccessControl = () => {
             </div>
           </div>
           <div className="flex items-center gap-2 self-start sm:self-auto">
-            <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#070b16] border border-[#1a263d] text-[11px] font-mono-code text-slate-300">
-              <span className="w-2 h-2 rounded-full bg-teal-400 animate-pulse" />
+            <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#08101c] border border-[#14243b] text-[11px] font-mono-code text-slate-300">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_#10b981]" />
               <span>RBAC Engine: Enforcing</span>
             </span>
           </div>
@@ -114,7 +113,7 @@ export const AccessControl = () => {
       {/* RBAC Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Policy Evaluator */}
-        <Panel className="lg:col-span-5 flex flex-col justify-between" accent="from-teal-500/50 via-cyan-500/30 to-transparent">
+        <Panel className="lg:col-span-5 flex flex-col justify-between" accent="from-teal-500/40 via-cyan-500/20 to-transparent">
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-semibold text-slate-100 flex items-center gap-2">
@@ -131,7 +130,7 @@ export const AccessControl = () => {
               <select
                 value={selectedDeviceId}
                 onChange={(e) => setSelectedDeviceId(e.target.value)}
-                className="w-full bg-[#070b16] border border-[#1a263d] rounded-xl px-3.5 py-2.5 text-xs text-slate-200 font-mono-code focus:outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500/40 transition-all cursor-pointer"
+                className="w-full bg-[#08101c] border border-[#14243b] rounded-xl px-3.5 py-2.5 text-xs text-slate-200 font-mono-code focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-500/30 transition-all cursor-pointer"
               >
                 {devices.map((d) => (
                   <option key={d.id} value={d.id}>
@@ -263,12 +262,12 @@ export const AccessControl = () => {
       </div>
 
       {/* IEEE 802.1X Conceptual Flow */}
-      <div className="bg-[#0a0f1d]/85 backdrop-blur-md border border-[#17253e] rounded-2xl p-6 shadow-xl shadow-black/40 space-y-6 relative overflow-hidden">
-        <div className="absolute inset-x-0 top-0 h-[1.5px] bg-gradient-to-r from-violet-500/0 via-violet-500/50 to-indigo-500/0" />
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#18253e] pb-4">
+      <div className="bg-[#0b1524] border border-[#14243b] rounded-2xl p-6 shadow-xl shadow-black/40 space-y-6 relative overflow-hidden">
+        <div className="absolute inset-x-0 top-0 h-[1.5px] bg-gradient-to-r from-cyan-500/0 via-cyan-500/50 to-teal-500/0" />
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#14243b] pb-4">
           <div>
             <h3 className="text-sm font-semibold text-slate-100 flex items-center gap-2">
-              <Network className="w-4 h-4 text-violet-400" />
+              <Network className="w-4 h-4 text-cyan-400" />
               IEEE 802.1X / EAP-TLS Port-Based Network Admission
             </h3>
             <p className="text-xs text-slate-400 mt-0.5">
@@ -287,13 +286,13 @@ export const AccessControl = () => {
         {/* 3 Entities */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {[
-            { icon: Cpu,     color: 'border-blue-500/30 bg-blue-950/20 text-blue-400',   title: 'Supplicant',    sub: 'Virtual Industrial Device',   desc: 'Initiates link via EAPOL frames; holds local X.509 certificate and responds to identity requests.' },
-            { icon: Network, color: 'border-cyan-500/30 bg-cyan-950/20 text-cyan-400',   title: 'Authenticator', sub: 'ICS Managed Switch',          desc: 'Maintains port in "Unauthorized" state until RADIUS approves; encapsulates EAP in RADIUS.' },
-            { icon: Server,  color: 'border-violet-500/30 bg-violet-950/20 text-violet-400', title: 'Auth Server', sub: 'RADIUS / EAP-TLS',        desc: 'Verifies device certificate against revocation lists and issues Access-Accept or Access-Reject.' },
+            { icon: Cpu,     color: 'border-cyan-500/30 bg-[#0e2238] text-cyan-400',   title: 'Supplicant',    sub: 'Virtual Industrial Device',   desc: 'Initiates link via EAPOL frames; holds local X.509 certificate and responds to identity requests.' },
+            { icon: Network, color: 'border-teal-500/30 bg-[#0d2a2c] text-teal-400',   title: 'Authenticator', sub: 'ICS Managed Switch',          desc: 'Maintains port in "Unauthorized" state until RADIUS approves; encapsulates EAP in RADIUS.' },
+            { icon: Server,  color: 'border-sky-500/30 bg-[#0c1e34] text-sky-400',   title: 'Auth Server', sub: 'RADIUS / EAP-TLS',        desc: 'Verifies device certificate against revocation lists and issues Access-Accept or Access-Reject.' },
           ].map((e) => {
             const Icon = e.icon;
             return (
-              <div key={e.title} className={`p-4 rounded-xl border ${e.color} text-xs space-y-1.5 transition-all hover:scale-[1.01]`}>
+              <div key={e.title} className={`p-4 rounded-xl border ${e.color} text-xs space-y-1.5 transition-all hover:border-cyan-500/50`}>
                 <div className={`flex items-center gap-2 font-bold ${e.color.split(' ')[2]}`}>
                   <Icon className="w-4 h-4" />
                   <span>{e.title}</span>
@@ -317,8 +316,8 @@ export const AccessControl = () => {
                   onClick={() => setEapActiveStep(idx)}
                   className={`p-3 rounded-xl border text-left transition-all cursor-pointer active:scale-[0.98] ${
                     isSelected
-                      ? 'bg-gradient-to-br from-cyan-950/50 to-blue-950/40 border-cyan-500/60 text-cyan-200 shadow-lg shadow-cyan-950/30'
-                      : 'bg-[#070b16] border-[#17253e] text-slate-400 hover:border-slate-700 hover:text-slate-300'
+                      ? 'bg-[#0d2033] border-cyan-500/70 text-cyan-200 shadow-lg shadow-cyan-950/30'
+                      : 'bg-[#08101c] border-[#14243b] text-slate-400 hover:border-cyan-500/30 hover:text-slate-300'
                   }`}
                 >
                   <div className="text-[9px] font-mono-code font-bold opacity-70">Step 0{step.step}</div>
@@ -328,13 +327,13 @@ export const AccessControl = () => {
             })}
           </div>
 
-          <div className="p-4 rounded-xl bg-[#070b16] border border-[#17253e] text-xs animate-fade-in" key={eapActiveStep}>
+          <div className="p-4 rounded-xl bg-[#08101c] border border-[#14243b] text-xs animate-fade-in" key={eapActiveStep}>
             <div className="flex items-center gap-2 font-bold text-cyan-300 font-mono-code mb-1.5">
               <span>Step {eapSteps[eapActiveStep]?.step}: {eapSteps[eapActiveStep]?.name}</span>
             </div>
             <p className="text-slate-300 text-[11px]">
               <span className="text-slate-400 font-medium">Protocol Traffic:</span>{' '}
-              <span className="font-mono-code text-cyan-400">{eapSteps[eapActiveStep]?.from}</span> <ArrowRight className="w-3 h-3 inline mx-1.5 text-slate-500" /> <span className="font-mono-code text-emerald-400">{eapSteps[eapActiveStep]?.to}</span>
+              <span className="font-mono-code text-cyan-400">{eapSteps[eapActiveStep]?.from}</span> <ArrowRight className="w-3 h-3 inline mx-1.5 text-slate-500" /> <span className="font-mono-code text-teal-400">{eapSteps[eapActiveStep]?.to}</span>
             </p>
             <p className="text-slate-400 text-[11px] mt-1.5 leading-relaxed">{eapSteps[eapActiveStep]?.description}</p>
           </div>

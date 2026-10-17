@@ -10,16 +10,20 @@ import {
   Activity, 
   RefreshCw,
   Lock,
-  Wifi,
   WifiOff,
   ChevronRight,
   Zap,
-  ShieldAlert,
   Terminal
 } from 'lucide-react';
 import { api, BASE_URL } from '../services/api';
 
-export const DashboardLayout = ({ activeTab, onTabChange, children }) => {
+export const DashboardLayout = ({ 
+  activeTab, 
+  onTabChange, 
+  onReplayBoot,
+  isBooted = true,
+  children 
+}) => {
   const [serverOnline, setServerOnline] = useState(false);
   const [tlsReady, setTlsReady] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -72,48 +76,65 @@ export const DashboardLayout = ({ activeTab, onTabChange, children }) => {
   const activeNav = navItems.find(i => i.id === activeTab);
 
   return (
-    <div className="min-h-screen bg-[#07090e] text-slate-100 flex flex-col md:flex-row antialiased bg-grid-pattern selection:bg-cyan-500/30 selection:text-cyan-200">
-      {/* ── Sidebar ── */}
+    <div className="min-h-screen bg-[#080e18] text-slate-100 flex flex-col md:flex-row antialiased bg-grid-pattern selection:bg-cyan-500/30 selection:text-cyan-200">
+      {/* ── Sidebar matching Reference ── */}
       <aside
-        className={`${sidebarCollapsed ? 'md:w-16' : 'md:w-64'} w-full bg-[#0a0d15]/95 border-r border-[#161f30] flex flex-col shrink-0 transition-all duration-300 backdrop-blur-2xl relative z-40`}
+        className={`${sidebarCollapsed ? 'md:w-16' : 'md:w-64'} w-full bg-[#080e18] border-r border-[#111f33] flex flex-col shrink-0 transition-all duration-300 backdrop-blur-2xl relative z-40 ${isBooted ? 'aegis-reveal-sidebar' : ''}`}
         style={{ willChange: 'width' }}
       >
         {/* Brand Header */}
-        <div className="p-4 border-b border-[#161f30] shrink-0">
-          <div className="flex items-center gap-3">
-            {/* Hexagonal Cyber Logo Mark */}
-            <div className="relative shrink-0">
-              <div className="w-9 h-9 brand-hex bg-gradient-to-br from-cyan-400 via-sky-500 to-teal-500 flex items-center justify-center shadow-lg shadow-cyan-900/40">
-                <Zap className="w-4 h-4 text-slate-950 font-extrabold" strokeWidth={2.8} />
+        <div className="p-4 border-b border-[#111f33] shrink-0">
+          <div className="flex items-center justify-between">
+            <button 
+              type="button"
+              onClick={onReplayBoot}
+              title={onReplayBoot ? "Click to replay AegisGrid boot sequence" : undefined}
+              className="flex items-center gap-2.5 text-left cursor-pointer group"
+            >
+              {/* Reference Logo Mark: Rounded Cyber Square */}
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-400 via-sky-500 to-teal-500 flex items-center justify-center shadow-lg shadow-cyan-900/40 group-hover:shadow-cyan-400/40 transition-shadow">
+                <Zap className="w-4 h-4 text-slate-950 font-extrabold group-hover:scale-110 transition-transform" strokeWidth={2.8} />
               </div>
-              <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-400 border-2 border-[#0a0d15]" />
-            </div>
+
+              {!sidebarCollapsed && (
+                <div className="flex items-center gap-1.5">
+                  <span className="font-extrabold text-base tracking-tight text-white leading-none group-hover:text-cyan-300 transition-colors">
+                    AegisGrid
+                  </span>
+                  <span className="text-cyan-400 font-mono-code text-[10px] font-bold px-1.5 py-0.5 rounded bg-cyan-950/60 border border-cyan-500/40">
+                    ICS
+                  </span>
+                </div>
+              )}
+            </button>
 
             {!sidebarCollapsed && (
-              <div className="min-w-0 animate-fade-in">
-                <div className="font-extrabold text-sm tracking-tight text-white leading-none flex items-center gap-1">
-                  AegisGrid
-                  <span className="text-cyan-400 font-mono-code text-xs px-1 py-0.2 rounded bg-cyan-950/60 border border-cyan-500/30">ICS</span>
-                </div>
-                <div className="text-[10px] font-mono-code text-slate-400 uppercase tracking-[0.14em] mt-1">
-                  Defense Platform
-                </div>
-              </div>
+              <button 
+                type="button"
+                onClick={onReplayBoot}
+                title="System Settings / Diagnostics"
+                className="text-slate-500 hover:text-slate-300 p-1 rounded-lg hover:bg-[#0c1626] transition-colors"
+              >
+                <Terminal className="w-4 h-4 text-slate-400 hover:text-cyan-400" />
+              </button>
             )}
           </div>
 
           {!sidebarCollapsed && (
-            <div className="mt-3 px-2.5 py-1.5 rounded-lg bg-[#0e1422] border border-[#1a253a] text-[10px] text-slate-300 flex items-center gap-2 animate-fade-in">
-              <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
-              <span>SCADA Telemetry Simulator</span>
+            <div className="mt-3 px-3 py-1.5 rounded-lg bg-[#0c1626] border border-[#162942] text-[11px] text-slate-300 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
+                <span className="font-medium">SCADA Telemetry Simulator</span>
+              </div>
+              <ChevronRight className="w-3 h-3 text-slate-500 rotate-90" />
             </div>
           )}
         </div>
 
         {/* Navigation */}
-        <nav className="p-3 space-y-1 flex-1 overflow-y-auto">
+        <nav className="p-3 space-y-1.5 flex-1 overflow-y-auto">
           {!sidebarCollapsed && (
-            <div className="px-2 pt-1.5 pb-2 text-[10px] font-bold uppercase tracking-[0.15em] text-slate-500">
+            <div className="px-2 pt-2 pb-1 text-[10px] font-bold uppercase tracking-[0.16em] text-slate-500">
               Operations Center
             </div>
           )}
@@ -124,136 +145,107 @@ export const DashboardLayout = ({ activeTab, onTabChange, children }) => {
               <button
                 key={item.id}
                 onClick={() => onTabChange(item.id)}
-                style={{ animationDelay: `${idx * 30}ms` }}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all duration-200 group relative overflow-hidden animate-fade-in ${
+                style={{ animationDelay: `${idx * 25}ms` }}
+                className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl text-left transition-all duration-200 group relative overflow-hidden ${
                   isActive
-                    ? 'bg-cyan-500/10 text-white border border-cyan-500/30 shadow-lg shadow-cyan-950/30'
-                    : 'text-slate-400 hover:text-white hover:bg-white/[0.04] border border-transparent'
+                    ? 'bg-[#0d2033]/90 text-white border border-cyan-500/60 shadow-[0_0_15px_rgba(6,182,212,0.15)]'
+                    : 'text-slate-400 hover:text-white hover:bg-[#0c1626] border border-transparent hover:border-[#162942]'
                 }`}
                 title={sidebarCollapsed ? item.label : undefined}
               >
-                {/* Active Indicator Bar */}
-                {isActive && (
-                  <span className="absolute left-0 top-2 bottom-2 w-1 rounded-r-full bg-cyan-400 shadow-[0_0_8px_rgba(6,182,212,0.8)]" />
-                )}
-
-                <Icon className={`w-4 h-4 shrink-0 transition-colors duration-200 ${isActive ? item.color : 'text-slate-500 group-hover:text-slate-300'}`} />
+                <Icon className={`w-4 h-4 shrink-0 transition-colors duration-200 ${isActive ? 'text-cyan-400' : 'text-slate-500 group-hover:text-slate-300'}`} />
                 {!sidebarCollapsed && (
                   <div className="flex-1 min-w-0">
                     <div className={`text-xs font-semibold leading-none ${isActive ? 'text-white' : ''}`}>
                       {item.label}
                     </div>
-                    <div className="text-[10px] text-slate-500 mt-1 group-hover:text-slate-400 truncate">
+                    <div className={`text-[10px] mt-1 truncate ${isActive ? 'text-cyan-300/80 font-mono-code' : 'text-slate-500 group-hover:text-slate-400'}`}>
                       {item.sublabel}
                     </div>
                   </div>
                 )}
                 {isActive && !sidebarCollapsed && (
-                  <ChevronRight className="w-3.5 h-3.5 text-cyan-400/80 shrink-0" />
+                  <ChevronRight className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
                 )}
               </button>
             );
           })}
         </nav>
 
-        {/* Status Footer */}
-        <div className="p-3 border-t border-[#161f30] space-y-2 shrink-0 bg-[#07090e]/60" title={`Active API Target: ${BASE_URL}`}>
-          <div className={`flex items-center ${sidebarCollapsed ? 'justify-center' : 'justify-between'} text-[11px] px-1`}>
-            {!sidebarCollapsed && <span className="text-slate-400 font-medium">Backend API</span>}
+        {/* Reference Sidebar Footer */}
+        <div className="p-3 border-t border-[#111f33] space-y-2 shrink-0 bg-[#070d17]/80">
+          <div className="flex items-center justify-between text-[10px] text-slate-400 font-mono-code px-1">
             <span className="flex items-center gap-1.5">
-              {connState === 'ONLINE' ? (
-                <>
-                  <span className="live-indicator w-2 h-2 rounded-full bg-emerald-400 text-emerald-400" />
-                  {!sidebarCollapsed && <span className="text-emerald-400 font-mono-code text-[10px] font-bold">ONLINE</span>}
-                </>
-              ) : connState === 'WAKING_UP' ? (
-                <>
-                  <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
-                  {!sidebarCollapsed && <span className="text-amber-400 font-mono-code text-[10px] font-bold">WAKING UP (~30s)</span>}
-                </>
-              ) : (
-                <>
-                  <WifiOff className="w-3.5 h-3.5 text-rose-400" />
-                  {!sidebarCollapsed && <span className="text-rose-400 font-mono-code text-[10px] font-bold">OFFLINE</span>}
-                </>
-              )}
+              <span>⏱</span>
+              <span>System 125:18:35</span>
             </span>
-          </div>
-
-          <div className={`flex items-center ${sidebarCollapsed ? 'justify-center' : 'justify-between'} text-[11px] px-1`}>
-            {!sidebarCollapsed && <span className="text-slate-400 font-medium">Transport Security</span>}
-            <span className="flex items-center gap-1.5">
-              <Lock className={`w-3 h-3 ${tlsReady ? 'text-cyan-400' : 'text-amber-400'}`} />
-              {!sidebarCollapsed && (
-                <span className={`font-mono-code text-[10px] font-bold ${tlsReady ? 'text-cyan-400' : 'text-amber-400'}`}>
-                  {tlsReady ? 'TLS 1.3 SECURE' : 'PENDING'}
-                </span>
-              )}
-            </span>
+            <span className="text-slate-400 font-semibold">Version 3.0</span>
           </div>
         </div>
       </aside>
 
       {/* ── Main Content Shell ── */}
       <div className="flex-1 flex flex-col min-w-0">
-        {/* Top Header */}
-        <header className="h-14 bg-[#0a0d15]/90 border-b border-[#161f30] px-6 flex items-center justify-between shrink-0 backdrop-blur-2xl sticky top-0 z-30">
+        {/* Reference Top Header */}
+        <header className={`h-14 bg-[#080e18]/90 border-b border-[#111f33] px-6 flex items-center justify-between shrink-0 backdrop-blur-2xl sticky top-0 z-30 ${isBooted ? 'aegis-reveal-header' : ''}`}>
           <div className="flex items-center gap-2 min-w-0">
-            {/* Breadcrumbs */}
+            {/* Breadcrumbs matching reference: AegisGrid > [icon] Overview */}
             <div className="flex items-center gap-2 text-xs">
-              <span className="text-slate-400 font-medium hidden sm:block">AegisGrid</span>
-              <ChevronRight className="w-3.5 h-3.5 text-slate-600 hidden sm:block" />
+              <span className="text-slate-400 font-medium">AegisGrid</span>
+              <ChevronRight className="w-3.5 h-3.5 text-slate-600" />
               <span className="flex items-center gap-1.5 font-bold text-white">
-                {activeNav && React.createElement(activeNav.icon, { className: `w-3.5 h-3.5 ${activeNav.color}` })}
+                {activeNav && React.createElement(activeNav.icon, { className: 'w-3.5 h-3.5 text-cyan-400' })}
                 <span>{activeNav?.label}</span>
               </span>
             </div>
           </div>
 
           <div className="flex items-center gap-2.5">
-            {/* Refresh Status Button */}
+            {/* Boot Diagnostics / Quick Replay */}
+            {onReplayBoot && (
+              <button
+                type="button"
+                onClick={onReplayBoot}
+                title="Replay System Boot Diagnostics"
+                className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#0c1626] hover:bg-[#112036] border border-[#162942] hover:border-cyan-500/40 text-slate-300 hover:text-cyan-300 text-xs font-semibold transition-all cursor-pointer shadow-sm"
+              >
+                <Terminal className="w-3.5 h-3.5 text-cyan-400" />
+                <span>Diagnostics</span>
+              </button>
+            )}
+
+            {/* Refresh Button matching reference */}
             <button
               onClick={checkStatus}
               disabled={isRefreshing}
               title="Refresh System Status"
-              className="p-1.5 px-3 rounded-xl bg-[#0f1422] hover:bg-[#161d30] text-slate-300 hover:text-white border border-[#1f2b42] transition-all btn-press flex items-center gap-1.5 text-xs shadow-sm font-semibold cursor-pointer"
+              className="px-3 py-1.5 rounded-xl bg-[#0c1626] hover:bg-[#112036] text-slate-300 hover:text-white border border-[#162942] transition-all flex items-center gap-1.5 text-xs font-semibold cursor-pointer shadow-sm"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin text-cyan-400' : 'text-slate-400'}`} />
-              <span className="hidden sm:inline">Refresh</span>
+              <span>Refresh</span>
             </button>
 
-            {/* Subsystem Health Pill */}
-            <div className={`hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-xl border text-[11px] font-mono-code ${
+            {/* Backend Status Badge matching reference: "Backend: ACTIVE" with green indicator dot */}
+            <div className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border text-xs font-mono-code font-bold shadow-sm ${
               connState === 'ONLINE'
-                ? 'bg-[#0f1422] border-[#1f2b42] text-teal-400'
+                ? 'bg-[#0a1824] border-[#13303d] text-teal-300'
                 : connState === 'WAKING_UP'
                 ? 'bg-amber-950/30 border-amber-500/30 text-amber-300'
                 : 'bg-rose-950/30 border-rose-500/30 text-rose-300'
             }`}>
-              <Activity className="w-3.5 h-3.5" />
-              <span className="text-slate-400">Backend:</span>
-              <span className="font-bold">
-                {connState === 'ONLINE' ? 'ACTIVE' : connState === 'WAKING_UP' ? 'WAKING UP (Render)' : 'OFFLINE'}
+              <Activity className="w-3.5 h-3.5 text-teal-400" />
+              <span>Backend:</span>
+              <span className="text-white">
+                {connState === 'ONLINE' ? 'ACTIVE' : connState === 'WAKING_UP' ? 'WAKING UP' : 'OFFLINE'}
               </span>
-            </div>
-
-            {/* Live Indicator */}
-            <div
-              title={
+              <span className={`w-2.5 h-2.5 rounded-full ml-0.5 ${
                 connState === 'ONLINE' 
-                  ? `Backend Connected (${BASE_URL})` 
-                  : connState === 'WAKING_UP'
-                  ? 'Render Free Tier: Instance waking up (~30-50s)'
-                  : 'Backend Disconnected: Check VITE_API_URL or Render status'
-              }
-              className={`w-2.5 h-2.5 rounded-full ${
-                connState === 'ONLINE'
-                  ? 'bg-emerald-400 live-indicator text-emerald-400'
+                  ? 'bg-emerald-400 shadow-[0_0_8px_#10b981]' 
                   : connState === 'WAKING_UP'
                   ? 'bg-amber-400 animate-pulse'
                   : 'bg-rose-500'
-              }`}
-            />
+              }`} />
+            </div>
           </div>
         </header>
 

@@ -22,7 +22,7 @@ import { CodeBlock } from '../components/CodeBlock';
 import { api } from '../services/api';
 
 const Panel = ({ children, className = '' }) => (
-  <div className={`bg-[#0e1320]/85 border border-[#1c263c] rounded-2xl p-6 shadow-xl shadow-black/40 backdrop-blur-md card-hover space-y-4 ${className}`}>
+  <div className={`bg-[#0b1524] border border-[#14243b] rounded-2xl p-6 shadow-xl card-hover space-y-4 ${className}`}>
     {children}
   </div>
 );
@@ -89,11 +89,11 @@ export const SecureCommunication = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="relative overflow-hidden bg-gradient-to-r from-[#0c101b] via-[#0f1524] to-[#0c111d] border border-cyan-500/20 rounded-2xl p-6 shadow-xl shadow-black/40 backdrop-blur-xl">
+      {/* Header matching Reference */}
+      <div className="relative overflow-hidden bg-[#0a1220] border border-[#14243b] rounded-2xl p-6 shadow-xl">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
-            <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
+            <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
             <span className="text-[10px] font-mono-code uppercase tracking-wider text-cyan-400 font-semibold">
               OSI Layer 4 & Layer 3 Security
             </span>
@@ -108,8 +108,8 @@ export const SecureCommunication = () => {
         </div>
       </div>
 
-      {/* Tabs */}
-      <div className="flex flex-wrap gap-2 p-1.5 bg-[#0a0e18] rounded-2xl border border-slate-800">
+      {/* Tabs matching Reference */}
+      <div className="flex flex-wrap gap-1.5 p-1.5 bg-[#08101c] rounded-2xl border border-[#14243b] shadow-inner">
         {tabs.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
@@ -117,16 +117,16 @@ export const SecureCommunication = () => {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2.5 px-4 py-2.5 rounded-xl text-xs font-semibold transition-all flex-1 min-w-fit justify-center sm:justify-start btn-press ${
+              className={`flex items-center gap-2.5 px-4 py-2.5 rounded-xl text-xs font-semibold transition-all flex-1 min-w-fit justify-center sm:justify-start btn-press cursor-pointer ${
                 isActive
-                  ? 'bg-cyan-500/10 text-white border border-cyan-500/40 shadow-lg shadow-cyan-950/30'
-                  : 'text-slate-400 hover:text-white hover:bg-white/[0.04] border border-transparent'
+                  ? 'bg-[#0d2235] text-cyan-200 border border-cyan-500/50 shadow-[0_0_15px_rgba(6,182,212,0.15)]'
+                  : 'text-slate-400 hover:text-white hover:bg-[#0c1626] border border-transparent'
               }`}
             >
-              <Icon className={`w-4 h-4 ${isActive ? tab.color : 'text-slate-500'}`} />
+              <Icon className={`w-4 h-4 ${isActive ? 'text-cyan-400' : 'text-slate-500'}`} />
               <span>{tab.label}</span>
               <span className={`font-mono-code text-[9px] px-2 py-0.5 rounded-full border ${
-                isActive ? 'bg-cyan-950/60 border-cyan-500/40 text-cyan-300' : 'bg-slate-900 border-slate-800 text-slate-500'
+                isActive ? 'bg-[#0d2a38] border-cyan-500/40 text-cyan-300' : 'bg-[#08101c] border-[#14243b] text-slate-500'
               }`}>
                 {tab.tag}
               </span>

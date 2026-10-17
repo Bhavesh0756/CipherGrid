@@ -4,66 +4,68 @@ const colorConfig = {
   cyan: {
     icon: 'text-cyan-400',
     iconBg: 'bg-cyan-500/10 border-cyan-500/30 text-cyan-400',
-    bar: 'from-cyan-400 to-sky-500',
-    val: 'text-white drop-shadow-[0_0_12px_rgba(6,182,212,0.3)]',
-    glow: 'shadow-cyan-950/20 hover:border-cyan-500/40',
-    topGlow: 'bg-cyan-500/10',
+    card: 'border-cyan-500/40 bg-[#0a1524]/95 hover:border-cyan-400/60 shadow-[0_4px_20px_rgba(6,182,212,0.1)]',
+    val: 'text-white drop-shadow-[0_0_10px_rgba(6,182,212,0.3)]',
+    sparkline: (
+      <svg className="w-16 h-7 overflow-visible" viewBox="0 0 64 24" fill="none">
+        <path d="M2 14 C12 8, 20 18, 32 10 C44 4, 52 14, 62 10" stroke="#06b6d4" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    ),
   },
   emerald: {
-    icon: 'text-emerald-400',
-    iconBg: 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400',
-    bar: 'from-emerald-400 to-teal-500',
-    val: 'text-white drop-shadow-[0_0_12px_rgba(16,185,129,0.3)]',
-    glow: 'shadow-emerald-950/20 hover:border-emerald-500/40',
-    topGlow: 'bg-emerald-500/10',
+    icon: 'text-teal-400',
+    iconBg: 'bg-teal-500/10 border-teal-500/30 text-teal-400',
+    card: 'border-teal-500/40 bg-[#091822]/95 hover:border-teal-400/60 shadow-[0_4px_20px_rgba(20,184,166,0.1)]',
+    val: 'text-white drop-shadow-[0_0_10px_rgba(20,184,166,0.3)]',
+    sparkline: (
+      <svg className="w-16 h-7 overflow-visible" viewBox="0 0 64 24" fill="none">
+        <path d="M2 16 C14 12, 22 6, 32 14 C42 20, 50 8, 62 10" stroke="#14b8a6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    ),
   },
   sky: {
     icon: 'text-sky-400',
     iconBg: 'bg-sky-500/10 border-sky-500/30 text-sky-400',
-    bar: 'from-sky-400 to-blue-500',
-    val: 'text-white drop-shadow-[0_0_12px_rgba(14,165,233,0.3)]',
-    glow: 'shadow-sky-950/20 hover:border-sky-500/40',
-    topGlow: 'bg-sky-500/10',
+    card: 'border-sky-500/40 bg-[#0a1728]/95 hover:border-sky-400/60 shadow-[0_4px_20px_rgba(14,165,233,0.1)]',
+    val: 'text-white drop-shadow-[0_0_10px_rgba(14,165,233,0.3)]',
+    sparkline: (
+      <svg className="w-16 h-7 overflow-visible" viewBox="0 0 64 24" fill="none">
+        <path d="M2 12 L10 16 L18 8 L26 18 L34 6 L42 16 L50 10 L58 14 L62 11" stroke="#0ea5e9" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    ),
   },
   rose: {
     icon: 'text-rose-400',
     iconBg: 'bg-rose-500/10 border-rose-500/30 text-rose-400',
-    bar: 'from-rose-400 to-red-500',
-    val: 'text-rose-200 drop-shadow-[0_0_12px_rgba(244,63,94,0.3)]',
-    glow: 'shadow-rose-950/20 hover:border-rose-500/40',
-    topGlow: 'bg-rose-500/10',
+    card: 'border-rose-500/50 bg-[#180d16]/95 hover:border-rose-400/70 shadow-[0_4px_20px_rgba(244,63,94,0.12)]',
+    val: 'text-white drop-shadow-[0_0_10px_rgba(244,63,94,0.3)]',
+    sparkline: (
+      <svg className="w-16 h-7 overflow-visible" viewBox="0 0 64 24" fill="none">
+        <path d="M2 15 C14 15, 20 6, 28 6 C36 6, 42 16, 52 13 L62 13" stroke="#f43f5e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    ),
   },
   amber: {
-    icon: 'text-amber-400',
-    iconBg: 'bg-amber-500/10 border-amber-500/30 text-amber-400',
-    bar: 'from-amber-400 to-orange-500',
-    val: 'text-amber-200 drop-shadow-[0_0_12px_rgba(245,158,11,0.3)]',
-    glow: 'shadow-amber-950/20 hover:border-amber-500/40',
-    topGlow: 'bg-amber-500/10',
+    icon: 'text-rose-400',
+    iconBg: 'bg-rose-500/10 border-rose-500/30 text-rose-400',
+    card: 'border-rose-500/50 bg-[#180d16]/95 hover:border-rose-400/70 shadow-[0_4px_20px_rgba(244,63,94,0.12)]',
+    val: 'text-white drop-shadow-[0_0_10px_rgba(244,63,94,0.3)]',
+    sparkline: (
+      <svg className="w-16 h-7 overflow-visible" viewBox="0 0 64 24" fill="none">
+        <path d="M2 16 L38 16 L44 6 L48 18 L54 12 L62 12" stroke="#f43f5e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    ),
   },
   teal: {
     icon: 'text-teal-400',
     iconBg: 'bg-teal-500/10 border-teal-500/30 text-teal-400',
-    bar: 'from-teal-400 to-emerald-500',
-    val: 'text-white drop-shadow-[0_0_12px_rgba(20,184,166,0.3)]',
-    glow: 'shadow-teal-950/20 hover:border-teal-500/40',
-    topGlow: 'bg-teal-500/10',
-  },
-  blue: {
-    icon: 'text-blue-400',
-    iconBg: 'bg-blue-500/10 border-blue-500/30 text-blue-400',
-    bar: 'from-blue-400 to-indigo-500',
-    val: 'text-white drop-shadow-[0_0_12px_rgba(59,130,246,0.3)]',
-    glow: 'shadow-blue-950/20 hover:border-blue-500/40',
-    topGlow: 'bg-blue-500/10',
-  },
-  violet: {
-    icon: 'text-violet-400',
-    iconBg: 'bg-violet-500/10 border-violet-500/30 text-violet-400',
-    bar: 'from-violet-400 to-purple-500',
-    val: 'text-white drop-shadow-[0_0_12px_rgba(139,92,246,0.3)]',
-    glow: 'shadow-violet-950/20 hover:border-violet-500/40',
-    topGlow: 'bg-violet-500/10',
+    card: 'border-teal-500/40 bg-[#091822]/95 hover:border-teal-400/60 shadow-[0_4px_20px_rgba(20,184,166,0.1)]',
+    val: 'text-white drop-shadow-[0_0_10px_rgba(20,184,166,0.3)]',
+    sparkline: (
+      <div className="flex items-center gap-1.5 pt-1">
+        <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-[0_0_12px_#10b981] animate-pulse" />
+      </div>
+    ),
   },
 };
 
@@ -71,25 +73,23 @@ export const StatCard = ({ title, value, subtitle, icon: Icon, color = 'cyan', c
   const cfg = colorConfig[color] || colorConfig.cyan;
 
   return (
-    <div className={`relative bg-[#0e1320]/85 border border-[#1c263c] rounded-xl p-4 flex flex-col justify-between gap-3 card-hover shadow-lg backdrop-blur-md overflow-hidden ${cfg.glow} ${className}`}>
-      {/* Top Precision Accent Micro-Bar */}
-      <div className={`absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r ${cfg.bar} opacity-75`} />
-
-      {/* Ambient Radial Corner Glow */}
-      <div className={`absolute top-0 right-0 w-24 h-24 ${cfg.topGlow} blur-2xl rounded-full -mr-8 -mt-8 pointer-events-none`} />
-
+    <div className={`relative border rounded-2xl p-4 flex flex-col justify-between gap-3 shadow-xl backdrop-blur-md transition-all duration-200 card-hover ${cfg.card} ${className}`}>
+      {/* Top row: Icon on left, sparkline or indicator on right */}
       <div className="flex items-center justify-between relative z-10">
-        <div className={`p-2 rounded-lg border ${cfg.iconBg}`}>
+        <div className={`p-2 rounded-xl border ${cfg.iconBg}`}>
           <Icon className="w-4 h-4" />
         </div>
-        <span className="w-1.5 h-1.5 rounded-full bg-slate-600/60" />
+        <div className="shrink-0 opacity-90">
+          {cfg.sparkline}
+        </div>
       </div>
 
-      <div className="relative z-10">
-        <div className={`text-2xl font-bold font-mono-code tracking-tight leading-none stat-value ${cfg.val}`}>
+      {/* Bottom row: Value, Title, Subtitle */}
+      <div className="relative z-10 pt-1">
+        <div className={`text-2xl font-extrabold font-mono-code tracking-tight leading-none ${cfg.val}`}>
           {value}
         </div>
-        <div className="text-xs font-semibold text-slate-200 mt-1.5 leading-snug">
+        <div className="text-xs font-semibold text-white mt-1.5 leading-snug">
           {title}
         </div>
         {subtitle && (

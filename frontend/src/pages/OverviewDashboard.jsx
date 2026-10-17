@@ -153,18 +153,35 @@ export const OverviewDashboard = ({ onNavigate }) => {
 
   return (
     <div className="space-y-6">
-      {/* ── Elevated Hero Banner ── */}
-      <div className="relative overflow-hidden bg-gradient-to-r from-[#0c101b] via-[#0f1524] to-[#0c111d] border border-cyan-500/20 rounded-2xl p-6 shadow-2xl shadow-black/50 backdrop-blur-xl">
-        {/* Subtle decorative glow & grid */}
-        <div className="absolute top-0 right-0 w-96 h-full bg-gradient-to-l from-cyan-500/10 via-sky-500/5 to-transparent blur-2xl pointer-events-none" />
-        <div className="absolute inset-0 bg-grid-pattern opacity-30 pointer-events-none" />
+      {/* ── Elevated Hero Banner matching Reference ── */}
+      <div className="relative overflow-hidden bg-[#0a1220] border border-[#14243b] rounded-2xl p-6 shadow-2xl aegis-stagger-1">
+        {/* Abstract Cyber Mesh Constellation Graphic */}
+        <svg 
+          className="absolute top-0 right-0 w-[480px] h-full opacity-25 pointer-events-none" 
+          viewBox="0 0 480 220" 
+          fill="none"
+        >
+          <path d="M40 180 L130 90 L210 130 L290 50 L380 100 L460 30" stroke="#06b6d4" strokeWidth="1" />
+          <path d="M130 90 L200 40 L290 50 L360 20" stroke="#14b8a6" strokeWidth="1" strokeDasharray="3 3" />
+          <path d="M210 130 L280 180 L380 100 L440 160" stroke="#0ea5e9" strokeWidth="1" strokeDasharray="2 2" />
+          <path d="M200 40 L210 130 L350 170 L380 100" stroke="#06b6d4" strokeWidth="0.8" />
+          <circle cx="40" cy="180" r="3" fill="#06b6d4" />
+          <circle cx="130" cy="90" r="3" fill="#14b8a6" />
+          <circle cx="200" cy="40" r="2.5" fill="#38bdf8" />
+          <circle cx="210" cy="130" r="3.5" fill="#06b6d4" />
+          <circle cx="290" cy="50" r="3" fill="#2dd4bf" />
+          <circle cx="280" cy="180" r="2.5" fill="#0ea5e9" />
+          <circle cx="350" cy="170" r="2.5" fill="#14b8a6" />
+          <circle cx="380" cy="100" r="3.5" fill="#06b6d4" />
+          <circle cx="460" cy="30" r="3" fill="#38bdf8" />
+        </svg>
 
         <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
-          <div className="space-y-1.5 max-w-2xl">
+          <div className="space-y-2 max-w-2xl">
             <div className="flex items-center gap-2.5">
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-cyan-500/15 border border-cyan-500/30 text-[10px] font-mono-code text-cyan-300 uppercase tracking-wider font-semibold">
-                <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
-                Live SCADA Ingress
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-teal-950/60 border border-teal-500/40 text-[10px] font-mono-code text-teal-300 uppercase tracking-wider font-semibold shadow-sm">
+                <span className="w-1.5 h-1.5 rounded-full bg-teal-400" />
+                LIVE SCADA INGRESS
               </span>
               <span className="text-[10px] text-slate-400 font-mono-code">
                 Purdue Model Tier 1-3 Active
@@ -182,15 +199,15 @@ export const OverviewDashboard = ({ onNavigate }) => {
             <button
               onClick={handleQuickSimulate}
               disabled={!!simulating}
-              className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-cyan-600 to-sky-600 hover:from-cyan-500 hover:to-sky-500 disabled:opacity-60 text-white text-xs font-bold shadow-lg shadow-cyan-950/50 flex items-center gap-2 transition-all btn-press border border-cyan-400/30"
+              className="px-4 py-2.5 rounded-xl bg-[#0e2a38]/85 hover:bg-[#13384a] text-cyan-300 text-xs font-bold border border-cyan-500/50 flex items-center gap-2 transition-all btn-press shadow-[0_0_15px_rgba(6,182,212,0.15)] disabled:opacity-60 cursor-pointer"
             >
-              <Radio className={`w-4 h-4 ${simulating === 'auth' ? 'animate-pulse text-cyan-200' : ''}`} />
+              <Radio className={`w-4 h-4 text-cyan-400 ${simulating === 'auth' ? 'animate-pulse text-cyan-200' : ''}`} />
               <span>{simulating === 'auth' ? 'Processing Payload…' : 'Simulate Auth Message'}</span>
             </button>
             <button
               onClick={handleSimulateAttack}
               disabled={!!simulating}
-              className="px-4 py-2.5 rounded-xl bg-rose-950/60 hover:bg-rose-900/80 disabled:opacity-60 text-rose-200 text-xs font-bold shadow-lg shadow-rose-950/40 flex items-center gap-2 transition-all btn-press border border-rose-500/40"
+              className="px-4 py-2.5 rounded-xl bg-[#2a1218]/85 hover:bg-[#381820] text-rose-300 text-xs font-bold border border-rose-500/50 flex items-center gap-2 transition-all btn-press shadow-[0_0_15px_rgba(244,63,94,0.15)] disabled:opacity-60 cursor-pointer"
             >
               <ShieldAlert className={`w-4 h-4 text-rose-400 ${simulating === 'attack' ? 'animate-pulse' : ''}`} />
               <span>{simulating === 'attack' ? 'Injecting Threat…' : 'Simulate Attack'}</span>
@@ -200,7 +217,7 @@ export const OverviewDashboard = ({ onNavigate }) => {
       </div>
 
       {/* ── 6 Stat Cards Grid ── */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5 aegis-stagger-2">
         {[
           { title: 'Enrolled Devices',  value: stats?.total_devices ?? 0,         subtitle: 'Active virtual nodes',       icon: Cpu,             color: 'cyan'    },
           { title: 'Authorized Nodes',  value: stats?.authorized_devices ?? 0,    subtitle: 'Permitted SCADA links',      icon: ShieldCheck,     color: 'emerald' },
@@ -211,21 +228,21 @@ export const OverviewDashboard = ({ onNavigate }) => {
                                          subtitle: stats?.secure_connection_status?.active_protocol || 'TLS 1.3 Strict',
                                          icon: Lock, color: 'teal' },
         ].map((card, i) => (
-          <div key={i} className="animate-fade-slide-up" style={{ animationDelay: `${i * 50}ms` }}>
+          <div key={i} className="animate-fade-slide-up" style={{ animationDelay: `${i * 45}ms` }}>
             <StatCard {...card} />
           </div>
         ))}
       </div>
 
       {/* ── End-to-End Cryptographic Communication Pipeline ── */}
-      <div className="animate-fade-slide-up animate-delay-200">
+      <div className="aegis-stagger-3">
         <CommunicationFlow lastSimulation={lastSimulation} />
       </div>
 
-      {/* ── Charts & Live Security Event Stream ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 animate-fade-slide-up animate-delay-300">
+      {/* ── Charts & Live Security Event Stream matching Reference ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 aegis-stagger-4">
         {/* Luminous Bar Chart */}
-        <div className="lg:col-span-7 bg-[#0e1320]/85 border border-[#1c263c] rounded-2xl p-6 shadow-xl shadow-black/40 flex flex-col card-hover backdrop-blur-md">
+        <div className="lg:col-span-7 bg-[#0b1524] border border-[#14243b] rounded-2xl p-6 shadow-xl flex flex-col card-hover">
           <div className="flex items-center justify-between mb-4">
             <div>
               <div className="flex items-center gap-2">
@@ -258,17 +275,17 @@ export const OverviewDashboard = ({ onNavigate }) => {
                     <stop offset="100%" stopColor="#be123c" stopOpacity={0.3} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#182236" vertical={false} />
+                <CartesianGrid strokeDasharray="3 3" stroke="#14243b" vertical={false} />
                 <XAxis
                   dataKey="device_id"
-                  stroke="#26354f"
+                  stroke="#1b3252"
                   fontSize={10}
                   tickLine={false}
                   angle={-12}
                   textAnchor="end"
                   tick={{ fill: '#94a3b8', fontSize: 10 }}
                 />
-                <YAxis stroke="#26354f" fontSize={10} tickLine={false} allowDecimals={false} tick={{ fill: '#94a3b8' }} />
+                <YAxis stroke="#1b3252" fontSize={10} tickLine={false} allowDecimals={false} tick={{ fill: '#94a3b8' }} />
                 <Tooltip content={<CustomTooltip />} />
                 <Legend
                   wrapperStyle={{ fontSize: '11px', paddingTop: '12px', color: '#94a3b8' }}
@@ -283,7 +300,7 @@ export const OverviewDashboard = ({ onNavigate }) => {
         </div>
 
         {/* Live Security Events Stream */}
-        <div className="lg:col-span-5 bg-[#0e1320]/85 border border-[#1c263c] rounded-2xl p-6 shadow-xl shadow-black/40 flex flex-col card-hover backdrop-blur-md">
+        <div className="lg:col-span-5 bg-[#0b1524] border border-[#14243b] rounded-2xl p-6 shadow-xl flex flex-col card-hover">
           <div className="flex items-center justify-between mb-4">
             <div>
               <div className="flex items-center gap-2">
@@ -296,7 +313,7 @@ export const OverviewDashboard = ({ onNavigate }) => {
             </div>
             <button
               onClick={() => onNavigate('logs')}
-              className="text-xs text-cyan-400 hover:text-cyan-300 font-semibold flex items-center gap-1 transition-colors px-2 py-1 rounded-lg hover:bg-cyan-500/10"
+              className="text-xs text-cyan-400 hover:text-cyan-300 font-semibold flex items-center gap-1 transition-colors px-2 py-1 rounded-lg hover:bg-cyan-500/10 cursor-pointer"
             >
               <span>Explore All</span>
               <ArrowUpRight className="w-3.5 h-3.5" />
@@ -308,7 +325,7 @@ export const OverviewDashboard = ({ onNavigate }) => {
               stats.recent_events.map((evt, i) => (
                 <div
                   key={evt.id}
-                  className="p-3 rounded-xl bg-[#090d16] border border-[#182236] hover:border-cyan-500/30 transition-all flex items-start gap-3 group animate-fade-in"
+                  className="p-3 rounded-xl bg-[#08101c] border border-[#14243b] hover:border-cyan-500/30 transition-all flex items-start gap-3 group animate-fade-in"
                   style={{ animationDelay: `${i * 40}ms` }}
                 >
                   <div className="mt-0.5 shrink-0">
@@ -327,7 +344,7 @@ export const OverviewDashboard = ({ onNavigate }) => {
                     </div>
                     <p className="text-[11px] text-slate-300 line-clamp-1 mt-0.5">{evt.message}</p>
                     <div className="flex items-center gap-2 mt-1.5 text-[10px] text-slate-500 font-mono-code">
-                      <span className="px-1.5 py-0.2 rounded bg-slate-900 border border-slate-800 text-slate-400">{evt.device_id || 'CORE'}</span>
+                      <span className="px-1.5 py-0.2 rounded bg-[#0b1524] border border-[#14243b] text-slate-400">{evt.device_id || 'CORE'}</span>
                       <span>•</span>
                       <span>{evt.timestamp ? new Date(evt.timestamp).toLocaleTimeString() : 'Recent'}</span>
                     </div>

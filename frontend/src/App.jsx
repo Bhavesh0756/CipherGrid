@@ -7,9 +7,39 @@ import { AccessControl } from './pages/AccessControl';
 import { SecureCommunication } from './pages/SecureCommunication';
 import { SecurityEventLogs } from './pages/SecurityEventLogs';
 import { ProjectInformation } from './pages/ProjectInformation';
+import { AegisEntrySequence } from './components/AegisEntrySequence';
 
 export function App() {
   const [activeTab, setActiveTab] = useState('overview');
+
+  // Check if initial boot sequence has already executed in this session
+  const [isBooted, setIsBooted] = useState(() => {
+    try {
+      return sessionStorage.getItem('aegisgrid_session_booted') === 'true';
+    } catch {
+      return false;
+    }
+  });
+
+  const [showEntrySequence, setShowEntrySequence] = useState(() => {
+    try {
+      return sessionStorage.getItem('aegisgrid_session_booted') !== 'true';
+    } catch {
+      return true;
+    }
+  });
+
+  const [bootIteration, setBootIteration] = useState(0);
+
+  const handleEntryComplete = () => {
+    setIsBooted(true);
+    setShowEntrySequence(false);
+  };
+
+  const handleReplayBootSequence = () => {
+    setBootIteration(prev => prev + 1);
+    setShowEntrySequence(true);
+  };
 
   const renderContent = () => {
     switch (activeTab) {
@@ -33,10 +63,25 @@ export function App() {
   };
 
   return (
-    <DashboardLayout activeTab={activeTab} onTabChange={setActiveTab}>
-      {renderContent()}
-    </DashboardLayout>
+    <>
+      {showEntrySequence && (
+        <AegisEntrySequence 
+          key={bootIteration}
+          onComplete={handleEntryComplete} 
+          forcePlay={true}
+        />
+      )}
+      <DashboardLayout 
+        activeTab={activeTab} 
+        onTabChange={setActiveTab}
+        onReplayBoot={handleReplayBootSequence}
+        isBooted={isBooted}
+      >
+        {renderContent()}
+      </DashboardLayout>
+    </>
   );
 }
 
 export default App;
+

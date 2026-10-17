@@ -21,7 +21,7 @@ import { api } from '../services/api';
 
 /* ─── Panel wrapper for consistent card appearance ─── */
 const Panel = ({ children, className = '' }) => (
-  <div className={`bg-[#0e1320]/85 border border-[#1c263c] rounded-2xl p-6 shadow-xl shadow-black/40 backdrop-blur-md card-hover ${className}`}>
+  <div className={`bg-[#0b1524] border border-[#14243b] rounded-2xl p-6 shadow-xl card-hover ${className}`}>
     {children}
   </div>
 );
@@ -29,7 +29,7 @@ const Panel = ({ children, className = '' }) => (
 const SectionHeader = ({ icon: Icon, title, badge, iconColor = 'text-cyan-400' }) => (
   <div className="flex items-center justify-between mb-4">
     <h3 className="text-sm font-bold text-white flex items-center gap-2">
-      <div className={`p-1.5 rounded-lg bg-cyan-500/10 border border-cyan-500/20 ${iconColor}`}>
+      <div className={`p-1.5 rounded-lg bg-cyan-500/10 border border-cyan-500/25 ${iconColor}`}>
         <Icon className="w-4 h-4" />
       </div>
       <span>{title}</span>
@@ -147,11 +147,11 @@ export const IndustrialDevices = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="relative overflow-hidden bg-gradient-to-r from-[#0c101b] via-[#0f1524] to-[#0c111d] border border-cyan-500/20 rounded-2xl p-6 shadow-xl shadow-black/40 backdrop-blur-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      {/* Header matching Reference */}
+      <div className="relative overflow-hidden bg-[#0a1220] border border-[#14243b] rounded-2xl p-6 shadow-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
-            <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
+            <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
             <span className="text-[10px] font-mono-code uppercase tracking-wider text-cyan-400 font-semibold">
               SCADA Hardware Admission
             </span>
@@ -167,14 +167,14 @@ export const IndustrialDevices = () => {
         <div className="flex items-center gap-2.5 shrink-0">
           <button
             onClick={() => setShowAddModal(true)}
-            className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-cyan-600 to-sky-600 hover:from-cyan-500 hover:to-sky-500 text-white text-xs font-bold shadow-lg shadow-cyan-950/40 flex items-center gap-2 transition-all btn-press border border-cyan-400/30"
+            className="px-4 py-2.5 rounded-xl bg-[#0e2a38]/85 hover:bg-[#13384a] text-cyan-300 text-xs font-bold shadow-[0_0_15px_rgba(6,182,212,0.15)] flex items-center gap-2 transition-all btn-press border border-cyan-500/50 cursor-pointer"
           >
-            <Plus className="w-4 h-4" />
+            <Plus className="w-4 h-4 text-cyan-400" />
             <span>Enroll New Node</span>
           </button>
           <button
             onClick={fetchDevices}
-            className="p-2.5 rounded-xl bg-[#0f1422] hover:bg-[#161d30] text-slate-300 border border-[#1f2b42] transition-colors btn-press shadow-sm"
+            className="p-2.5 rounded-xl bg-[#0c1626] hover:bg-[#112036] text-slate-300 border border-[#162942] transition-colors btn-press shadow-sm cursor-pointer"
             title="Refresh Node Registry"
           >
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin text-cyan-400' : ''}`} />

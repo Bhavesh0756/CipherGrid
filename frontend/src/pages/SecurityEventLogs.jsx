@@ -111,12 +111,11 @@ export const SecurityEventLogs = () => {
 
   return (
     <div className="space-y-6">
-      {/* Page Header */}
-      <div className="relative overflow-hidden bg-[#0a0f1d]/90 backdrop-blur-md border border-[#17253e] rounded-2xl p-6 shadow-xl shadow-black/40">
-        <div className="absolute inset-x-0 top-0 h-[1.5px] bg-gradient-to-r from-cyan-500/0 via-cyan-500/60 to-sky-500/0" />
+      {/* Page Header matching Reference */}
+      <div className="relative overflow-hidden bg-[#0a1220] border border-[#14243b] rounded-2xl p-6 shadow-xl">
         <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           <div className="flex items-center gap-3.5">
-            <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-cyan-500/20 to-sky-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 shadow-lg shadow-cyan-950/40">
+            <div className="w-11 h-11 rounded-xl bg-cyan-500/10 border border-cyan-500/25 flex items-center justify-center text-cyan-400 shadow-lg shadow-cyan-950/40">
               <ScrollText className="w-5 h-5" />
             </div>
             <div>
@@ -124,7 +123,7 @@ export const SecurityEventLogs = () => {
                 <h1 className="text-xl font-bold tracking-tight text-white">
                   Security Audit & Telemetry Ledger
                 </h1>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-mono-code font-semibold bg-cyan-500/10 text-cyan-300 border border-cyan-500/20">
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-mono-code font-semibold bg-cyan-950/60 text-cyan-300 border border-cyan-500/30">
                   SQLite Journal
                 </span>
               </div>
@@ -137,14 +136,14 @@ export const SecurityEventLogs = () => {
           <div className="flex flex-wrap items-center gap-2.5">
             <button
               onClick={handleExportJson}
-              className="px-3.5 py-2 rounded-xl bg-[#070b16] hover:bg-slate-800 text-slate-200 text-xs font-medium border border-[#1a263d] hover:border-slate-600 flex items-center gap-2 transition-all shadow-sm active:scale-95 cursor-pointer"
+              className="px-3.5 py-2 rounded-xl bg-[#0c1626] hover:bg-[#112036] text-slate-200 text-xs font-semibold border border-[#162942] flex items-center gap-2 transition-all shadow-sm active:scale-95 cursor-pointer"
             >
               <Download className="w-3.5 h-3.5 text-cyan-400" />
               <span>Export JSON Ledger</span>
             </button>
             <button
               onClick={handleClearLogs}
-              className="px-3.5 py-2 rounded-xl bg-rose-950/30 hover:bg-rose-900/50 text-rose-300 text-xs font-medium border border-rose-700/40 hover:border-rose-600/60 flex items-center gap-2 transition-all shadow-sm active:scale-95 cursor-pointer"
+              className="px-3.5 py-2 rounded-xl bg-[#2a1218]/85 hover:bg-[#381820] text-rose-300 text-xs font-semibold border border-rose-500/50 flex items-center gap-2 transition-all shadow-[0_0_15px_rgba(244,63,94,0.15)] active:scale-95 cursor-pointer"
             >
               <Trash2 className="w-3.5 h-3.5 text-rose-400" />
               <span>Purge Ledger</span>
@@ -155,9 +154,8 @@ export const SecurityEventLogs = () => {
 
       {/* Metrics Row */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
-        <div className="p-4 rounded-2xl bg-[#0a0f1d]/85 backdrop-blur-md border border-[#17253e] flex items-center gap-3.5 relative overflow-hidden shadow-lg shadow-black/20">
-          <div className="absolute inset-x-0 top-0 h-[1.5px] bg-gradient-to-r from-sky-500/0 via-sky-500/60 to-transparent" />
-          <div className="p-2.5 rounded-xl bg-sky-500/10 border border-sky-500/30 text-sky-400 shadow-inner">
+        <div className="p-4 rounded-2xl bg-[#0b1524] border border-[#14243b] flex items-center gap-3.5 relative overflow-hidden shadow-xl card-hover">
+          <div className="p-2.5 rounded-xl bg-sky-500/10 border border-sky-500/25 text-sky-400 shadow-inner">
             <Activity className="w-4 h-4" />
           </div>
           <div>
@@ -166,9 +164,8 @@ export const SecurityEventLogs = () => {
           </div>
         </div>
 
-        <div className="p-4 rounded-2xl bg-[#0a0f1d]/85 backdrop-blur-md border border-[#17253e] flex items-center gap-3.5 relative overflow-hidden shadow-lg shadow-black/20">
-          <div className="absolute inset-x-0 top-0 h-[1.5px] bg-gradient-to-r from-rose-500/0 via-rose-500/60 to-transparent" />
-          <div className="p-2.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 shadow-inner">
+        <div className="p-4 rounded-2xl bg-[#0b1524] border border-[#14243b] flex items-center gap-3.5 relative overflow-hidden shadow-xl card-hover">
+          <div className="p-2.5 rounded-xl bg-rose-500/10 border border-rose-500/25 text-rose-400 shadow-inner">
             <ShieldAlert className="w-4 h-4" />
           </div>
           <div>
@@ -177,9 +174,8 @@ export const SecurityEventLogs = () => {
           </div>
         </div>
 
-        <div className="p-4 rounded-2xl bg-[#0a0f1d]/85 backdrop-blur-md border border-[#17253e] flex items-center gap-3.5 relative overflow-hidden shadow-lg shadow-black/20">
-          <div className="absolute inset-x-0 top-0 h-[1.5px] bg-gradient-to-r from-amber-500/0 via-amber-500/60 to-transparent" />
-          <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 shadow-inner">
+        <div className="p-4 rounded-2xl bg-[#0b1524] border border-[#14243b] flex items-center gap-3.5 relative overflow-hidden shadow-xl card-hover">
+          <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/25 text-amber-400 shadow-inner">
             <AlertTriangle className="w-4 h-4" />
           </div>
           <div>
@@ -188,9 +184,8 @@ export const SecurityEventLogs = () => {
           </div>
         </div>
 
-        <div className="p-4 rounded-2xl bg-[#0a0f1d]/85 backdrop-blur-md border border-[#17253e] flex items-center gap-3.5 relative overflow-hidden shadow-lg shadow-black/20">
-          <div className="absolute inset-x-0 top-0 h-[1.5px] bg-gradient-to-r from-emerald-500/0 via-emerald-500/60 to-transparent" />
-          <div className="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 shadow-inner">
+        <div className="p-4 rounded-2xl bg-[#0b1524] border border-[#14243b] flex items-center gap-3.5 relative overflow-hidden shadow-xl card-hover">
+          <div className="p-2.5 rounded-xl bg-teal-500/10 border border-teal-500/25 text-teal-400 shadow-inner">
             <ShieldCheck className="w-4 h-4" />
           </div>
           <div>
@@ -201,7 +196,7 @@ export const SecurityEventLogs = () => {
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="bg-[#0a0f1d]/85 backdrop-blur-md border border-[#17253e] rounded-2xl p-4 shadow-xl shadow-black/30 flex flex-col md:flex-row gap-3 items-center justify-between">
+      <div className="bg-[#0b1524] border border-[#14243b] rounded-2xl p-4 shadow-xl flex flex-col md:flex-row gap-3 items-center justify-between">
         <form onSubmit={handleSearchSubmit} className="flex-1 w-full flex items-center gap-2">
           <div className="relative flex-1">
             <Search className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
@@ -210,12 +205,12 @@ export const SecurityEventLogs = () => {
               placeholder="Search by Device ID, action, message, or cryptographic event..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full bg-[#070b16] border border-[#1a263d] rounded-xl pl-10 pr-3.5 py-2.5 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500/40 transition-all font-mono-code"
+              className="w-full bg-[#08101c] border border-[#14243b] rounded-xl pl-10 pr-3.5 py-2.5 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-500/30 transition-all font-mono-code"
             />
           </div>
           <button
             type="submit"
-            className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-cyan-600 to-sky-600 hover:from-cyan-500 hover:to-sky-500 text-white text-xs font-semibold shadow-md shadow-cyan-950/40 transition-all active:scale-95 cursor-pointer"
+            className="px-4 py-2.5 rounded-xl bg-[#0e2a38]/85 hover:bg-[#13384a] text-cyan-300 text-xs font-semibold border border-cyan-500/50 shadow-[0_0_15px_rgba(6,182,212,0.15)] transition-all active:scale-95 cursor-pointer"
           >
             Filter
           </button>
@@ -256,10 +251,10 @@ export const SecurityEventLogs = () => {
       </div>
 
       {/* Logs Table */}
-      <div className="bg-[#0a0f1d]/85 backdrop-blur-md border border-[#17253e] rounded-2xl overflow-hidden shadow-xl shadow-black/40">
+      <div className="bg-[#0b1524] border border-[#14243b] rounded-2xl overflow-hidden shadow-xl shadow-black/40">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="bg-[#070b16] border-b border-[#18253e] text-slate-400 font-semibold tracking-wider uppercase text-[10px]">
+            <thead className="bg-[#08101c] border-b border-[#14243b] text-slate-400 font-semibold tracking-wider uppercase text-[10px]">
               <tr>
                 <th className="py-3.5 px-4 font-semibold">Timestamp</th>
                 <th className="py-3.5 px-3 font-semibold">Severity</th>
@@ -270,7 +265,7 @@ export const SecurityEventLogs = () => {
                 <th className="py-3.5 px-4 text-right font-semibold">Details</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#152035] font-mono-code">
+            <tbody className="divide-y divide-[#14243b] font-mono-code">
               {logs.length > 0 ? (
                 logs.map((evt) => (
                   <tr key={evt.id} className="hover:bg-slate-800/25 transition-colors group">
@@ -337,7 +332,7 @@ export const SecurityEventLogs = () => {
         </div>
 
         {/* Pagination Bar */}
-        <div className="p-3.5 bg-[#070b16] border-t border-[#18253e] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-400">
+        <div className="p-3.5 bg-[#08101c] border-t border-[#14243b] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-400">
           <span>
             Displaying <strong className="text-slate-200">{logs.length}</strong> of <strong className="text-slate-200">{total}</strong> recorded telemetry events
           </span>
@@ -345,18 +340,18 @@ export const SecurityEventLogs = () => {
             <button
               onClick={() => setPage(Math.max(0, page - 1))}
               disabled={page === 0}
-              className="px-2.5 py-1 rounded-lg bg-[#0a0f1d] hover:bg-slate-800 disabled:opacity-40 text-slate-300 border border-[#1a263d] transition-colors flex items-center gap-1 cursor-pointer disabled:cursor-not-allowed"
+              className="px-2.5 py-1 rounded-lg bg-[#0b1524] hover:bg-[#0e2238] disabled:opacity-40 text-slate-300 border border-[#14243b] transition-colors flex items-center gap-1 cursor-pointer disabled:cursor-not-allowed"
             >
               <ChevronLeft className="w-3.5 h-3.5" />
               <span>Prev</span>
             </button>
-            <span className="font-mono-code text-cyan-300 px-2 py-0.5 rounded bg-[#0a0f1d] border border-[#1a263d] text-[11px]">
+            <span className="font-mono-code text-cyan-300 px-2 py-0.5 rounded bg-[#0b1524] border border-[#14243b] text-[11px]">
               Page {page + 1} / {totalPages}
             </span>
             <button
               onClick={() => setPage(Math.min(totalPages - 1, page + 1))}
               disabled={page >= totalPages - 1}
-              className="px-2.5 py-1 rounded-lg bg-[#0a0f1d] hover:bg-slate-800 disabled:opacity-40 text-slate-300 border border-[#1a263d] transition-colors flex items-center gap-1 cursor-pointer disabled:cursor-not-allowed"
+              className="px-2.5 py-1 rounded-lg bg-[#0b1524] hover:bg-[#0e2238] disabled:opacity-40 text-slate-300 border border-[#14243b] transition-colors flex items-center gap-1 cursor-pointer disabled:cursor-not-allowed"
             >
               <span>Next</span>
               <ChevronRight className="w-3.5 h-3.5" />
@@ -368,8 +363,8 @@ export const SecurityEventLogs = () => {
       {/* Inspect Modal */}
       {inspectedEvent && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 animate-fade-in">
-          <div className="bg-[#091325] border border-[#1a2c4e] rounded-2xl p-6 max-w-xl w-full shadow-2xl space-y-4 relative">
-            <div className="flex items-center justify-between border-b border-slate-800/80 pb-3.5">
+          <div className="bg-[#0b1524] border border-[#14243b] rounded-2xl p-6 max-w-xl w-full shadow-2xl space-y-4 relative">
+            <div className="flex items-center justify-between border-b border-[#14243b] pb-3.5">
               <div className="flex items-center gap-2.5">
                 <Badge variant={inspectedEvent.severity} size="sm">
                   {inspectedEvent.severity}
@@ -380,22 +375,22 @@ export const SecurityEventLogs = () => {
               </div>
               <button
                 onClick={() => setInspectedEvent(null)}
-                className="text-slate-400 hover:text-white px-2 py-1 rounded-lg hover:bg-slate-800 text-xs transition-colors"
+                className="text-slate-400 hover:text-white px-2 py-1 rounded-lg hover:bg-[#0e2238] text-xs transition-colors"
               >
                 ✕ Close
               </button>
             </div>
 
-            <div className="grid grid-cols-2 gap-2 text-xs font-mono-code bg-[#050c18] p-3.5 rounded-xl border border-slate-800/80">
+            <div className="grid grid-cols-2 gap-2 text-xs font-mono-code bg-[#08101c] p-3.5 rounded-xl border border-[#14243b]">
               <div><span className="text-slate-500">Timestamp:</span> <span className="text-slate-300">{inspectedEvent.timestamp}</span></div>
-              <div><span className="text-slate-500">Node ID:</span> <span className="text-sky-300">{inspectedEvent.device_id || 'AEGIS_CORE'}</span></div>
+              <div><span className="text-slate-500">Node ID:</span> <span className="text-cyan-300">{inspectedEvent.device_id || 'AEGIS_CORE'}</span></div>
               <div><span className="text-slate-500">Action:</span> <span className="text-slate-300">{inspectedEvent.action || 'N/A'}</span></div>
-              <div><span className="text-slate-500">Verdict:</span> <span className={inspectedEvent.result === 'ALLOW' || inspectedEvent.result === 'SUCCESS' ? 'text-emerald-400 font-bold' : 'text-rose-400 font-bold'}>{inspectedEvent.result}</span></div>
+              <div><span className="text-slate-500">Verdict:</span> <span className={inspectedEvent.result === 'ALLOW' || inspectedEvent.result === 'SUCCESS' ? 'text-teal-400 font-bold' : 'text-rose-400 font-bold'}>{inspectedEvent.result}</span></div>
             </div>
 
             <div className="space-y-1.5 font-sans">
               <span className="text-xs text-slate-400 font-medium">Security Analyst Narrative</span>
-              <p className="text-xs text-slate-200 bg-[#050c18] p-3 rounded-xl border border-slate-800/80 leading-relaxed">
+              <p className="text-xs text-slate-200 bg-[#08101c] p-3 rounded-xl border border-[#14243b] leading-relaxed">
                 {inspectedEvent.message}
               </p>
             </div>
@@ -410,7 +405,7 @@ export const SecurityEventLogs = () => {
             <div className="flex justify-end pt-2">
               <button
                 onClick={() => setInspectedEvent(null)}
-                className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold border border-slate-700 transition-colors"
+                className="px-4 py-2 rounded-xl bg-[#08101c] hover:bg-[#0e2238] text-slate-200 text-xs font-semibold border border-[#14243b] transition-colors"
               >
                 Dismiss
               </button>

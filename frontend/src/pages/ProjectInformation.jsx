@@ -134,29 +134,29 @@ export const ProjectInformation = () => {
   return (
     <div className="space-y-6 max-w-6xl pb-8">
       {/* Title Hero */}
-      <div className="relative overflow-hidden bg-[#0a0f1d]/90 backdrop-blur-md border border-[#17253e] rounded-2xl p-6 md:p-8 shadow-xl shadow-black/40">
+      <div className="relative overflow-hidden bg-[#0b1524] border border-[#14243b] rounded-2xl p-6 md:p-8 shadow-xl shadow-black/40">
         <div className="absolute inset-x-0 top-0 h-[1.5px] bg-gradient-to-r from-sky-500/0 via-cyan-500/60 to-emerald-500/0" />
         <div className="absolute top-0 right-0 w-96 h-48 bg-gradient-to-l from-cyan-500/10 via-sky-500/5 to-transparent rounded-full blur-3xl pointer-events-none" />
         
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-5">
           <div className="space-y-2">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 text-[10px] font-mono-code font-bold uppercase tracking-wider shadow-sm">
+              <span className="px-3 py-1 rounded-full bg-[#0e2238] border border-cyan-500/30 text-cyan-300 text-[10px] font-mono-code font-bold uppercase tracking-wider shadow-sm">
                 Network Security College Microproject
               </span>
-              <span className="px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-[10px] font-mono-code">
+              <span className="px-3 py-1 rounded-full bg-[#0d2a2c] border border-teal-500/30 text-teal-300 text-[10px] font-mono-code">
                 Full-Stack Architecture
               </span>
             </div>
             <h1 className="text-2xl md:text-3xl font-extrabold text-white tracking-tight">
-              AegisGrid <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-sky-400">ICS</span> — Architecture Dossier
+              AegisGrid <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-teal-400">ICS</span> — Architecture Dossier
             </h1>
             <p className="text-xs text-slate-300 max-w-2xl leading-relaxed">
               A pure software-driven industrial cybersecurity simulation platform. Demonstrates how virtual industrial devices (PLCs, RTUs, smart meters) establish cryptographic trust and secure telemetry channels with a monitoring server without physical hardware risk.
             </p>
           </div>
 
-          <div className="p-4 rounded-xl bg-[#070b16] border border-[#17253e] text-right shrink-0 shadow-lg">
+          <div className="p-4 rounded-xl bg-[#08101c] border border-[#14243b] text-right shrink-0 shadow-lg">
             <div className="text-[11px] text-slate-400 font-medium">Target Environment</div>
             <div className="text-xs font-bold text-slate-100 mt-1">Software-Only ICS Simulator</div>
             <div className="text-[10px] text-cyan-400 font-mono-code mt-1 flex items-center justify-end gap-1.5">
@@ -168,8 +168,8 @@ export const ProjectInformation = () => {
       </div>
 
       {/* High-Level Architecture Flow */}
-      <div className="bg-[#0a0f1d]/85 backdrop-blur-md border border-[#17253e] rounded-2xl p-6 shadow-xl shadow-black/40 space-y-4 relative overflow-hidden">
-        <div className="absolute inset-x-0 top-0 h-[1.5px] bg-gradient-to-r from-sky-500/0 via-sky-500/50 to-transparent" />
+      <div className="bg-[#0b1524] border border-[#14243b] rounded-2xl p-6 shadow-xl shadow-black/40 space-y-4 relative overflow-hidden">
+        <div className="absolute inset-x-0 top-0 h-[1.5px] bg-gradient-to-r from-cyan-500/0 via-cyan-500/50 to-transparent" />
         <h2 className="text-xs font-bold uppercase tracking-wider text-slate-200 flex items-center gap-2">
           <Layers className="w-4 h-4 text-cyan-400" />
           <span>AegisGrid System Architecture Pipeline</span>
@@ -178,12 +178,12 @@ export const ProjectInformation = () => {
           {architectureFlow.map((step, idx) => {
             const Icon = step.icon;
             return (
-              <div key={idx} className="p-4 rounded-xl bg-[#070b16] border border-[#17253e] relative space-y-2 hover:border-[#243556] transition-all hover:scale-[1.01]">
+              <div key={idx} className="p-4 rounded-xl bg-[#08101c] border border-[#14243b] relative space-y-2 hover:border-cyan-500/40 transition-all">
                 <div className="flex items-center justify-between">
-                  <div className={`p-2 rounded-lg bg-slate-900/80 border border-[#1c2942] ${step.color}`}>
+                  <div className={`p-2 rounded-lg bg-[#0e1b2e] border border-[#14243b] ${step.color}`}>
                     <Icon className="w-4 h-4" />
                   </div>
-                  <span className="text-[10px] font-mono-code text-cyan-400/80 font-bold px-2 py-0.5 rounded bg-cyan-950/30 border border-cyan-500/20">Tier 0{idx + 1}</span>
+                  <span className="text-[10px] font-mono-code text-cyan-400/90 font-bold px-2 py-0.5 rounded bg-[#0b2033] border border-cyan-500/30">Tier 0{idx + 1}</span>
                 </div>
                 <h3 className="text-xs font-bold text-white">{step.title}</h3>
                 <p className="text-[11px] text-slate-400 leading-relaxed">{step.desc}</p>
@@ -200,7 +200,7 @@ export const ProjectInformation = () => {
             <BookOpen className="w-4 h-4 text-cyan-400" />
             <span>Academic Syllabus & Cryptographic Domains</span>
           </h2>
-          <span className="text-[11px] font-mono-code text-slate-400 bg-[#070b16] px-3 py-1 rounded-full border border-[#17253e]">Complete 4-Module Coverage</span>
+          <span className="text-[11px] font-mono-code text-slate-400 bg-[#08101c] px-3 py-1 rounded-full border border-[#14243b]">Complete 4-Module Coverage</span>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -208,16 +208,16 @@ export const ProjectInformation = () => {
             return (
               <div 
                 key={dom.domainId} 
-                className={`p-5 rounded-2xl bg-gradient-to-br ${dom.accent} bg-[#0a0f1d]/90 backdrop-blur-md border ${dom.borderAccent} shadow-xl shadow-black/30 space-y-3.5 relative overflow-hidden transition-all hover:scale-[1.01]`}
+                className={`p-5 rounded-2xl bg-[#0b1524] border border-[#14243b] shadow-xl shadow-black/30 space-y-3.5 relative overflow-hidden transition-all hover:border-cyan-500/40`}
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2.5">
-                    <span className="w-8 h-8 rounded-lg bg-[#070b16] border border-slate-700/60 text-cyan-400 font-mono-code font-bold text-xs flex items-center justify-center shadow-md">
+                    <span className="w-8 h-8 rounded-lg bg-[#08101c] border border-[#14243b] text-cyan-400 font-mono-code font-bold text-xs flex items-center justify-center shadow-md">
                       {dom.domainId}
                     </span>
                     <h3 className="text-sm font-bold text-white">{dom.title}</h3>
                   </div>
-                  <span className="px-2.5 py-0.5 rounded-full bg-[#070b16]/90 border border-slate-700/60 text-[10px] font-mono-code text-emerald-300 font-medium">
+                  <span className="px-2.5 py-0.5 rounded-full bg-[#08101c] border border-[#14243b] text-[10px] font-mono-code text-teal-300 font-medium">
                     {dom.badge}
                   </span>
                 </div>
@@ -231,7 +231,7 @@ export const ProjectInformation = () => {
                     <span className="text-cyan-400 font-semibold block text-[11px]">Implemented Architecture:</span>
                     <p className="text-slate-200 mt-0.5 text-[11px] leading-relaxed">{dom.implementation}</p>
                   </div>
-                  <div className="pt-1.5 flex items-center gap-2 text-[10px] text-slate-400 font-mono-code border-t border-slate-700/30">
+                  <div className="pt-1.5 flex items-center gap-2 text-[10px] text-slate-400 font-mono-code border-t border-[#14243b]">
                     <span className="text-slate-500 font-medium">Benchmark Standards:</span>
                     <span className="text-slate-300">{dom.standards}</span>
                   </div>
@@ -243,7 +243,7 @@ export const ProjectInformation = () => {
       </div>
 
       {/* Real vs Conceptual Simulation Disclosure Matrix */}
-      <div className="bg-[#0a0f1d]/85 backdrop-blur-md border border-[#17253e] rounded-2xl p-6 shadow-xl shadow-black/40 space-y-4 relative overflow-hidden">
+      <div className="bg-[#0b1524] border border-[#14243b] rounded-2xl p-6 shadow-xl shadow-black/40 space-y-4 relative overflow-hidden">
         <div className="absolute inset-x-0 top-0 h-[1.5px] bg-gradient-to-r from-teal-500/0 via-teal-500/50 to-transparent" />
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <h2 className="text-xs font-bold uppercase tracking-wider text-slate-200 flex items-center gap-2">
@@ -253,23 +253,23 @@ export const ProjectInformation = () => {
           <span className="text-[11px] text-slate-400">Strict disclosure of real cryptography vs simulated elements</span>
         </div>
 
-        <div className="overflow-x-auto rounded-xl border border-[#162238]">
+        <div className="overflow-x-auto rounded-xl border border-[#14243b]">
           <table className="w-full text-left text-xs">
             <thead>
-              <tr className="border-b border-[#162238] bg-[#070b16] text-slate-400 font-semibold uppercase text-[10px]">
+              <tr className="border-b border-[#14243b] bg-[#08101c] text-slate-400 font-semibold uppercase text-[10px]">
                 <th className="py-3 px-4">Feature / Cryptographic Subsystem</th>
                 <th className="py-3 px-3">Implementation Status</th>
                 <th className="py-3 px-4">Technical Details</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#152035] bg-[#090e1c]">
+            <tbody className="divide-y divide-[#14243b] bg-[#091220]">
               {disclosureTable.map((row, idx) => (
-                <tr key={idx} className="hover:bg-slate-800/25 transition-colors">
+                <tr key={idx} className="hover:bg-[#0c1829] transition-colors">
                   <td className="py-3 px-4 font-semibold text-slate-200">{row.feature}</td>
                   <td className="py-3 px-3 whitespace-nowrap">
                     <span className={`px-2.5 py-1 rounded-full text-[10px] font-mono-code border inline-flex items-center gap-1.5 ${
                       row.nature.includes('Real')
-                        ? 'bg-emerald-950/40 text-emerald-300 border-emerald-500/30 shadow-sm'
+                        ? 'bg-[#0d2a2c] text-teal-300 border-teal-500/30 shadow-sm'
                         : 'bg-amber-950/40 text-amber-300 border-amber-500/30 shadow-sm'
                     }`}>
                       <CheckCircle2 className="w-3 h-3" />
@@ -285,10 +285,10 @@ export const ProjectInformation = () => {
       </div>
 
       {/* Execution Instructions */}
-      <div className="bg-[#0a0f1d]/85 backdrop-blur-md border border-[#17253e] rounded-2xl p-6 shadow-xl shadow-black/40 space-y-4 relative overflow-hidden">
-        <div className="absolute inset-x-0 top-0 h-[1.5px] bg-gradient-to-r from-indigo-500/0 via-indigo-500/50 to-transparent" />
+      <div className="bg-[#0b1524] border border-[#14243b] rounded-2xl p-6 shadow-xl shadow-black/40 space-y-4 relative overflow-hidden">
+        <div className="absolute inset-x-0 top-0 h-[1.5px] bg-gradient-to-r from-cyan-500/0 via-cyan-500/50 to-transparent" />
         <h2 className="text-xs font-bold uppercase tracking-wider text-slate-200 flex items-center gap-2">
-          <Terminal className="w-4 h-4 text-indigo-400" />
+          <Terminal className="w-4 h-4 text-cyan-400" />
           <span>Execution Instructions & Verification Commands</span>
         </h2>
 
@@ -309,7 +309,7 @@ export const ProjectInformation = () => {
           </div>
 
           <div className="space-y-1.5">
-            <span className="text-indigo-400 font-semibold block text-[11px]">4. Standalone Native TLS 1.3 Socket Test:</span>
+            <span className="text-cyan-400 font-semibold block text-[11px]">4. Standalone Native TLS 1.3 Socket Test:</span>
             <CodeBlock code="python backend/tls_demo/server.py&#10;python backend/tls_demo/client.py" language="powershell" />
           </div>
         </div>
