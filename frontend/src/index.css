@@ -148,33 +148,35 @@ code, pre, .font-mono {
 
 /* ─── React Flow Canvas Overrides ─── */
 .react-flow__background {
-  background-color: var(--surface-0) !important;
+  background-color: #f3f6fa !important;
 }
 .react-flow__handle {
   width: 7px !important;
   height: 7px !important;
   border-radius: 50% !important;
-  background-color: var(--mod-network) !important;
-  border: 2px solid var(--surface-1) !important;
-  box-shadow: 0 0 0 1px rgba(8, 145, 178, 0.2) !important;
-  transition: transform 0.15s ease, box-shadow 0.15s ease !important;
+  background-color: #3b82f6 !important;
+  border: 1.5px solid #ffffff !important;
+  box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.4) !important;
+  opacity: 0.85;
+  transition: transform 0.15s ease, opacity 0.15s ease !important;
 }
 .react-flow__handle:hover {
-  transform: scale(1.4) !important;
-  box-shadow: 0 0 0 3px rgba(8, 145, 178, 0.2) !important;
+  transform: scale(1.5) !important;
+  opacity: 1 !important;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3) !important;
 }
 .react-flow__edge-path {
-  stroke: var(--border-strong);
+  stroke: #94a3b8;
   stroke-width: 1.5;
   transition: stroke 0.2s ease, stroke-width 0.2s ease;
 }
 .react-flow__edge.selected .react-flow__edge-path {
-  stroke: var(--mod-network);
+  stroke: #2563eb;
   stroke-width: 2.5;
 }
 .react-flow__edge.animated .react-flow__edge-path {
-  stroke: var(--mod-network);
-  stroke-width: 2;
+  stroke: #2563eb;
+  stroke-width: 2.5;
   stroke-dasharray: 6 3;
   animation: dashdraw 0.4s linear infinite;
 }

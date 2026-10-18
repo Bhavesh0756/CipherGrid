@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import {
-  RotateCcw,
+  Bell,
+  ChevronDown,
+  Play,
   Save,
-  Send,
-  ShieldCheck,
 } from 'lucide-react';
 import { api } from '../../services/api';
 import { useSimulatorStore } from '../../store/useSimulatorStore';
@@ -11,7 +11,6 @@ import { useSimulatorStore } from '../../store/useSimulatorStore';
 export const Topbar: React.FC = () => {
   const {
     saveTopology,
-    resetTopology,
     isLoading,
     setMessageModalOpen,
     activeSection,
@@ -33,12 +32,6 @@ export const Topbar: React.FC = () => {
     return () => clearInterval(interval);
   }, []);
 
-  const handleReset = async () => {
-    if (window.confirm('Reset network topology to standard industrial starter configuration? Any unsaved edits will be cleared.')) {
-      await resetTopology();
-    }
-  };
-
   const getSectionTitle = () => {
     switch (activeSection) {
       case 'network-lab': return 'Network Lab';
@@ -49,7 +42,7 @@ export const Topbar: React.FC = () => {
       case 'lab-reports': return 'Lab Reports';
       case 'dashboard': return 'Telemetry Overview';
       case 'settings': return 'Settings';
-      default: return 'ICS Simulator';
+      default: return 'Network Lab';
     }
   };
 
@@ -63,83 +56,80 @@ export const Topbar: React.FC = () => {
       case 'lab-reports': return 'Security Evaluation & Technical Audit';
       case 'dashboard': return 'System Telemetry & Statistics';
       case 'settings': return 'Configuration & Security Parameters';
-      default: return '';
+      default: return 'Interactive Industrial Topology';
     }
   };
 
   return (
-    <header className="h-11 bg-[#1c1917] px-4 flex items-center justify-between text-stone-300 select-none z-20 shrink-0">
-      {/* Left: Brand + Context */}
-      <div className="flex items-center gap-3 min-w-0">
-        <div className="flex items-center gap-2">
-          <div className="w-[22px] h-[22px] rounded-md bg-cyan-600 flex items-center justify-center text-white shadow-sm">
-            <ShieldCheck className="w-3.5 h-3.5" />
-          </div>
-          <span className="font-semibold text-[11.5px] text-stone-200 tracking-wide">
-            CipherGrid
-          </span>
-        </div>
-
-        <div className="h-3.5 w-px bg-stone-700/60" />
-
-        <div className="flex items-center gap-1.5 min-w-0">
-          <span className="text-[12px] font-medium text-stone-300 truncate">
+    <header className="h-14 bg-white border-b border-slate-200/90 px-6 flex items-center justify-between text-slate-700 select-none z-20 shrink-0">
+      {/* Left: Section Context Title */}
+      <div className="flex items-center gap-2.5 min-w-0">
+        <div className="flex items-center gap-1.5 cursor-pointer hover:opacity-80 transition-opacity">
+          <span className="text-[15px] font-bold text-slate-900 tracking-tight">
             {getSectionTitle()}
           </span>
-          <span className="text-[11px] text-stone-600 truncate hidden lg:inline">
-            — {getSectionSubtitle()}
-          </span>
+          <ChevronDown className="w-3.5 h-3.5 text-slate-500" />
         </div>
+
+        <span className="text-slate-300 font-light text-sm mx-1">|</span>
+
+        <span className="text-[13px] text-slate-500 font-normal truncate">
+          {getSectionSubtitle()}
+        </span>
       </div>
 
       {/* Right: Actions */}
-      <div className="flex items-center gap-2">
-        {/* Backend health */}
-        <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-stone-800/50 text-[10.5px] font-mono">
+      <div className="flex items-center gap-3">
+        {/* Online/Offline Status Pill */}
+        <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-semibold">
           <span
-            className={`w-1.5 h-1.5 rounded-full ${
+            className={`w-2 h-2 rounded-full ${
               backendStatus === 'connected'
-                ? 'bg-emerald-400'
+                ? 'bg-emerald-500 shadow-[0_0_6px_#10b981]'
                 : backendStatus === 'checking'
                 ? 'bg-amber-400 animate-pulse'
-                : 'bg-rose-400'
+                : 'bg-rose-500'
             }`}
           />
-          <span className="text-stone-400">
-            {backendStatus === 'connected' ? 'Online' : backendStatus === 'checking' ? 'Connecting' : 'Offline'}
-          </span>
+          <span>{backendStatus === 'connected' ? 'Online' : backendStatus === 'checking' ? 'Connecting' : 'Offline'}</span>
         </div>
 
-        {activeSection === 'network-lab' && (
-          <>
-            <button
-              onClick={() => setMessageModalOpen(true)}
-              className="flex items-center gap-1.5 px-2.5 py-[5px] bg-cyan-600 hover:bg-cyan-500 text-white rounded-md text-[11.5px] font-medium transition-colors"
-            >
-              <Send className="w-3 h-3" />
-              <span>Simulate</span>
-            </button>
+        {/* Primary Action: Simulate */}
+        <button
+          onClick={() => setMessageModalOpen(true)}
+          className="flex items-center gap-2 px-4 py-1.5 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white rounded-lg text-xs font-semibold shadow-sm shadow-blue-600/30 transition-all cursor-pointer"
+        >
+          <Play className="w-3.5 h-3.5 fill-current" />
+          <span>Simulate</span>
+        </button>
 
-            <button
-              onClick={saveTopology}
-              disabled={isLoading}
-              className="flex items-center gap-1.5 px-2.5 py-[5px] bg-stone-800 hover:bg-stone-700 border border-stone-700/60 text-stone-300 rounded-md text-[11.5px] font-medium transition-colors"
-              title="Save current topology state"
-            >
-              <Save className="w-3 h-3" />
-              <span>Save</span>
-            </button>
+        {/* Secondary Action: Save */}
+        <button
+          onClick={saveTopology}
+          disabled={isLoading}
+          className="flex items-center gap-1.5 px-3.5 py-1.5 bg-white hover:bg-slate-50 active:bg-slate-100 border border-slate-200 text-slate-700 rounded-lg text-xs font-medium transition-all shadow-2xs cursor-pointer"
+          title="Save current topology state"
+        >
+          <Save className="w-3.5 h-3.5 text-slate-600" />
+          <span>Save</span>
+        </button>
 
-            <button
-              onClick={handleReset}
-              disabled={isLoading}
-              className="flex items-center gap-1 px-2 py-[5px] bg-stone-800 hover:bg-stone-700 border border-stone-700/60 text-stone-400 rounded-md text-[11.5px] font-medium transition-colors"
-              title="Restore standard sample starter topology"
-            >
-              <RotateCcw className="w-3 h-3" />
-            </button>
-          </>
-        )}
+        {/* Notifications Icon */}
+        <button
+          className="p-2 bg-white hover:bg-slate-50 border border-slate-200 rounded-lg text-slate-600 hover:text-slate-900 transition-colors shadow-2xs cursor-pointer relative"
+          title="Notifications"
+        >
+          <Bell className="w-4 h-4" />
+          <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-blue-600 rounded-full"></span>
+        </button>
+
+        {/* User Avatar Circle */}
+        <div
+          className="w-8 h-8 rounded-full bg-slate-800 text-white font-bold text-xs flex items-center justify-center shadow-xs select-none cursor-pointer hover:ring-2 hover:ring-blue-500/40 transition-all"
+          title="Bhavesh Gambhirrao"
+        >
+          BG
+        </div>
       </div>
     </header>
   );

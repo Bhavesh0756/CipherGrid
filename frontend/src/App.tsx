@@ -42,15 +42,17 @@ export const App: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col h-screen w-screen overflow-hidden bg-[#fafaf9] text-stone-900 font-sans">
-      <Topbar />
+    <div className="flex h-screen w-screen overflow-hidden bg-[#f3f6fa] text-slate-800 font-sans">
+      {/* Sidebar spanning full height */}
+      <Sidebar />
 
-      <div className="flex flex-1 overflow-hidden">
-        <Sidebar />
+      {/* Main workspace container with Topbar and content */}
+      <div className="flex-1 flex flex-col overflow-hidden min-w-0">
+        <Topbar />
 
-        <main className="flex-1 flex flex-col overflow-hidden relative">
+        <main className="flex-1 flex flex-col overflow-hidden relative min-w-0">
           {error && (
-            <div className="bg-rose-600 text-white px-4 py-1.5 text-[11px] flex items-center gap-2 z-30">
+            <div className="bg-rose-600 text-white px-4 py-1.5 text-xs flex items-center gap-2 z-30 shrink-0">
               <span className="w-1.5 h-1.5 rounded-full bg-white/60" />
               <span className="font-medium">{error}</span>
             </div>

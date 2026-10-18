@@ -1,23 +1,29 @@
-import React, { useCallback, useEffect, useMemo, useRef } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Background,
   BackgroundVariant,
   Connection as FlowConnection,
-  Controls,
   Edge,
   MarkerType,
   MiniMap,
   Node,
-  NodeChange,
   EdgeChange,
   ReactFlow,
   ReactFlowProvider,
-  addEdge,
-  applyEdgeChanges,
-  applyNodeChanges,
   useReactFlow,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
+
+import {
+  Crosshair,
+  Link2,
+  Maximize2,
+  Minus,
+  MousePointer,
+  Plus,
+  Settings,
+  Trash2,
+} from 'lucide-react';
 
 import { DeviceInspector } from '../components/NetworkLab/DeviceInspector';
 import { DevicePalette } from '../components/NetworkLab/DevicePalette';
@@ -46,15 +52,42 @@ const NetworkLabContent: React.FC = () => {
     activeHopId,
     isMessageModalOpen,
     setMessageModalOpen,
-    activeSessionId,
   } = useSimulatorStore();
 
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
-  const { fitView, screenToFlowPosition } = useReactFlow();
+  const { fitView, zoomIn, zoomOut, getZoom, screenToFlowPosition } = useReactFlow();
+
+  const [activeTool, setActiveTool] = useState<'select' | 'connect'>('select');
+  const [zoomLevel, setZoomLevel] = useState<number>(100);
 
   useEffect(() => {
     fetchTopology();
   }, [fetchTopology]);
+
+  // Once devices are loaded, automatically fit and center the view nicely with optimal padding
+  const initialFitDone = useRef(false);
+  useEffect(() => {
+    if (devices.length > 0 && !initialFitDone.current) {
+      initialFitDone.current = true;
+      setTimeout(() => {
+        fitView({ padding: 0.22, duration: 300 });
+        setTimeout(() => {
+          setZoomLevel(Math.round(getZoom() * 100));
+        }, 350);
+      }, 150);
+    }
+  }, [devices.length, fitView, getZoom]);
+
+  // Default select Core OT Ethernet Switch so Node Details panel opens immediately matching reference screenshot
+  useEffect(() => {
+    if (!selectedDevice && devices.length > 0) {
+      const switchDev =
+        devices.find((d) => d.name.toLowerCase().includes('switch')) ||
+        devices.find((d) => d.device_type === 'Ethernet Switch') ||
+        devices[0];
+      setSelectedDevice(switchDev);
+    }
+  }, [devices, selectedDevice, setSelectedDevice]);
 
   const nodes: Node[] = useMemo(() => {
     return devices.map((d) => {
@@ -73,6 +106,7 @@ const NetworkLabContent: React.FC = () => {
     });
   }, [devices, selectedDevice, highlightedPath, activeHopId]);
 
+  // Generate edges matching reference styling
   const edges: Edge[] = useMemo(() => {
     return connections.map((c) => {
       let inPath = false;
@@ -86,31 +120,57 @@ const NetworkLabContent: React.FC = () => {
         }
       }
 
+      const sourceDev = devices.find((d) => d.id === c.source_id);
+      let strokeColor = '#3b82f6'; // default blue
+
+      if (sourceDev) {
+        if (sourceDev.device_type === 'Monitoring Server' || sourceDev.device_type === 'Industrial Gateway') {
+          strokeColor = '#10b981'; // emerald
+        } else if (sourceDev.device_type === 'SCADA Server') {
+          strokeColor = '#8b5cf6'; // purple
+        } else if (sourceDev.device_type === 'Operator Workstation') {
+          strokeColor = '#f59e0b'; // amber
+        } else if (sourceDev.device_type === 'Untrusted Device') {
+          strokeColor = '#e11d48'; // red
+        }
+      }
+
       return {
         id: c.id,
         source: c.source_id,
         target: c.target_id,
         sourceHandle: 'r',
         targetHandle: 'l',
+        type: 'default', // smooth bezier curve
         animated: inPath,
         style: {
-          stroke: inPath ? '#0891b2' : '#d6d3d1',
-          strokeWidth: inPath ? 2.5 : 1.5,
+          stroke: inPath ? '#2563eb' : strokeColor,
+          strokeWidth: inPath ? 3 : 2,
         },
         markerEnd: {
           type: MarkerType.ArrowClosed,
-          color: inPath ? '#0891b2' : '#a8a29e',
-          width: 12,
-          height: 12,
+          color: inPath ? '#2563eb' : strokeColor,
+          width: 13,
+          height: 13,
         },
-        label: `${c.latency_ms}ms`,
-        labelStyle: { fill: '#78716c', fontSize: 9.5, fontFamily: 'JetBrains Mono, monospace' },
-        labelBgStyle: { fill: '#fafaf9', fillOpacity: 0.95 },
-        labelBgPadding: [3, 2] as [number, number],
-        labelBgBorderRadius: 3,
+        label: `${c.latency_ms} ms`,
+        labelStyle: {
+          fill: '#334155',
+          fontSize: 10,
+          fontFamily: 'Inter, sans-serif',
+          fontWeight: 600,
+        },
+        labelBgStyle: {
+          fill: '#ffffff',
+          fillOpacity: 1,
+          stroke: '#e2e8f0',
+          strokeWidth: 1,
+        },
+        labelBgPadding: [6, 3] as [number, number],
+        labelBgBorderRadius: 9999,
       };
     });
-  }, [connections, highlightedPath]);
+  }, [connections, highlightedPath, devices]);
 
   const onNodeDragStop = useCallback(
     (_: any, node: Node) => {
@@ -128,8 +188,8 @@ const NetworkLabContent: React.FC = () => {
   );
 
   const onPaneClick = useCallback(() => {
-    setSelectedDevice(null);
-  }, [setSelectedDevice]);
+    // Preserve selection on pane click
+  }, []);
 
   const onConnect = useCallback(
     (params: FlowConnection) => {
@@ -212,58 +272,205 @@ const NetworkLabContent: React.FC = () => {
     });
   };
 
+  const handleZoomIn = () => {
+    zoomIn();
+    setTimeout(() => {
+      setZoomLevel(Math.round(getZoom() * 100));
+    }, 50);
+  };
+
+  const handleZoomOut = () => {
+    zoomOut();
+    setTimeout(() => {
+      setZoomLevel(Math.round(getZoom() * 100));
+    }, 50);
+  };
+
+  const handleFitView = () => {
+    fitView({ padding: 0.22, duration: 250 });
+    setTimeout(() => {
+      setZoomLevel(Math.round(getZoom() * 100));
+    }, 300);
+  };
+
   return (
-    <div className="flex-1 flex flex-col h-full overflow-hidden" style={{ background: '#fafaf9' }}>
-      <div className="flex-1 flex overflow-hidden relative">
+    <div className="flex-1 flex flex-col h-full overflow-hidden bg-[#f3f6fa]">
+      {/* ─── Top Main Workspace Area: Left Palette | Center Canvas | Right Node Details ─── */}
+      <div className="flex-1 flex overflow-hidden relative min-h-0">
         {/* Left: Device Palette */}
         <DevicePalette onAddDevice={handleAddFromPalette} />
 
-        {/* Center: Canvas */}
-        <div ref={reactFlowWrapper} className="flex-1 h-full w-full relative">
-          <ReactFlow
-            nodes={nodes}
-            edges={edges}
-            onNodeDragStop={onNodeDragStop}
-            onNodeClick={onNodeClick}
-            onPaneClick={onPaneClick}
-            onConnect={onConnect}
-            onEdgesChange={onEdgesChange}
-            onDragOver={onDragOver}
-            onDrop={onDrop}
-            nodeTypes={nodeTypes}
-            fitView
-            snapToGrid
-            snapGrid={[16, 16]}
-            minZoom={0.2}
-            maxZoom={2.5}
-          >
-            <Background variant={BackgroundVariant.Dots} gap={20} size={1} color="#e7e5e4" />
-            <Controls />
-            <MiniMap
-              nodeColor={() => '#a8a29e'}
-              maskColor="rgba(250, 250, 249, 0.75)"
-            />
-          </ReactFlow>
+        {/* Center: Topology Canvas */}
+        <div ref={reactFlowWrapper} className="flex-1 h-full w-full relative flex flex-col min-w-0">
+          {/* Canvas Top Bar matching reference */}
+          <div className="h-12 bg-white/95 backdrop-blur-sm border-b border-slate-200/90 px-5 flex items-center justify-between shrink-0 z-10 shadow-2xs">
+            {/* Left title and subtitle */}
+            <div className="flex items-center gap-2.5">
+              <div className="w-7 h-7 rounded-lg bg-blue-50 border border-blue-200/80 flex items-center justify-center text-blue-600 shadow-2xs">
+                <Settings className="w-3.5 h-3.5" />
+              </div>
+              <div>
+                <h3 className="text-xs font-bold text-slate-900 leading-tight">
+                  Topology Canvas
+                </h3>
+                <p className="text-[10.5px] text-slate-400">
+                  Connect port handles to wire links • Drag nodes to reposition
+                </p>
+              </div>
+            </div>
 
-          {/* Canvas tip overlay */}
-          <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm border border-stone-200/80 text-stone-500 px-3 py-1.5 rounded-lg text-[10.5px] shadow-xs pointer-events-none">
-            <span className="font-medium text-stone-700">Drag</span> palette items onto canvas ·{' '}
-            <span className="font-medium text-stone-700">Connect</span> port handles to wire links ·{' '}
-            <span className="font-medium text-stone-700">Click</span> node to inspect
+            {/* Right Tools Bar */}
+            <div className="flex items-center gap-2">
+              {/* Select tool */}
+              <button
+                onClick={() => setActiveTool('select')}
+                className={`p-1.5 rounded-lg border transition-all cursor-pointer ${
+                  activeTool === 'select'
+                    ? 'bg-blue-600 border-blue-600 text-white shadow-xs'
+                    : 'bg-white border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                }`}
+                title="Select Tool"
+              >
+                <MousePointer className="w-3.5 h-3.5" />
+              </button>
+
+              {/* Link tool */}
+              <button
+                onClick={() => setActiveTool('connect')}
+                className={`p-1.5 rounded-lg border transition-all cursor-pointer ${
+                  activeTool === 'connect'
+                    ? 'bg-blue-600 border-blue-600 text-white shadow-xs'
+                    : 'bg-white border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                }`}
+                title="Connect Link Tool"
+              >
+                <Link2 className="w-3.5 h-3.5" />
+              </button>
+
+              {/* Delete / Clear button */}
+              <button
+                onClick={() => {
+                  if (selectedDevice) {
+                    if (window.confirm(`Delete ${selectedDevice.name}?`)) {
+                      deleteConnection(selectedDevice.id);
+                      setSelectedDevice(null);
+                    }
+                  }
+                }}
+                className="p-1.5 bg-white hover:bg-slate-50 border border-slate-200 rounded-lg text-slate-600 hover:text-rose-600 transition-colors shadow-2xs cursor-pointer"
+                title="Delete Selected Node"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+              </button>
+
+              {/* Fit view button */}
+              <button
+                onClick={handleFitView}
+                className="p-1.5 bg-white hover:bg-slate-50 border border-slate-200 rounded-lg text-slate-600 hover:text-slate-900 transition-colors shadow-2xs cursor-pointer"
+                title="Fit View"
+              >
+                <Crosshair className="w-3.5 h-3.5" />
+              </button>
+
+              {/* Zoom controls: - 100% + */}
+              <div className="flex items-center px-1.5 py-1 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-700 shadow-2xs gap-1">
+                <button
+                  onClick={handleZoomOut}
+                  className="p-0.5 text-slate-500 hover:text-slate-800 transition-colors cursor-pointer"
+                  title="Zoom Out"
+                >
+                  <Minus className="w-3 h-3" />
+                </button>
+                <span className="w-10 text-center font-mono text-[11px] text-slate-600">
+                  {zoomLevel}%
+                </span>
+                <button
+                  onClick={handleZoomIn}
+                  className="p-0.5 text-slate-500 hover:text-slate-800 transition-colors cursor-pointer"
+                  title="Zoom In"
+                >
+                  <Plus className="w-3 h-3" />
+                </button>
+              </div>
+
+              {/* Expand / fullscreen button */}
+              <button
+                onClick={handleFitView}
+                className="p-1.5 bg-white hover:bg-slate-50 border border-slate-200 rounded-lg text-slate-600 hover:text-slate-900 transition-colors shadow-2xs cursor-pointer"
+                title="Expand View"
+              >
+                <Maximize2 className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </div>
+
+          {/* React Flow Container */}
+          <div className="flex-1 w-full h-full relative">
+            <ReactFlow
+              nodes={nodes}
+              edges={edges}
+              onNodeDragStop={onNodeDragStop}
+              onNodeClick={onNodeClick}
+              onPaneClick={onPaneClick}
+              onConnect={onConnect}
+              onEdgesChange={onEdgesChange}
+              onDragOver={onDragOver}
+              onDrop={onDrop}
+              nodeTypes={nodeTypes}
+              fitView
+              snapToGrid
+              snapGrid={[16, 16]}
+              minZoom={0.2}
+              maxZoom={2.5}
+            >
+              <Background
+                variant={BackgroundVariant.Dots}
+                gap={24}
+                size={1.5}
+                color="#cbd5e1"
+              />
+              <MiniMap
+                position="top-right"
+                nodeColor={(node: any) => {
+                  const type = node.data?.device?.device_type;
+                  if (type === 'PLC') return '#2563eb';
+                  if (type === 'SCADA Server') return '#9333ea';
+                  if (type === 'Ethernet Switch') return '#3b82f6';
+                  if (type === 'Monitoring Server') return '#10b981';
+                  if (type === 'Operator Workstation') return '#f59e0b';
+                  if (type === 'Untrusted Device') return '#e11d48';
+                  return '#64748b';
+                }}
+                maskColor="rgba(243, 246, 250, 0.75)"
+                style={{
+                  top: 14,
+                  right: 14,
+                  width: 105,
+                  height: 65,
+                }}
+                className="!bg-white !border !border-slate-200 !rounded-xl !shadow-sm"
+              />
+            </ReactFlow>
           </div>
         </div>
 
-        {/* Right: Device Inspector */}
+        {/* Right: Node Details Inspector Panel */}
         {selectedDevice && (
-          <DeviceInspector device={selectedDevice} onClose={() => setSelectedDevice(null)} />
+          <DeviceInspector
+            device={selectedDevice}
+            onClose={() => setSelectedDevice(null)}
+          />
         )}
       </div>
 
-      {/* Bottom: Simulation controls */}
+      {/* ─── Bottom Workspace: Simulation Controls and Event Logs ─── */}
       <SimulationControls />
 
-      {/* Modal */}
-      <MessageSimulatorModal isOpen={isMessageModalOpen} onClose={() => setMessageModalOpen(false)} />
+      {/* Message Simulator Modal */}
+      <MessageSimulatorModal
+        isOpen={isMessageModalOpen}
+        onClose={() => setMessageModalOpen(false)}
+      />
     </div>
   );
 };
