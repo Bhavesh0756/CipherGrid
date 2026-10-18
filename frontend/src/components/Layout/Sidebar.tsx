@@ -65,10 +65,10 @@ export const Sidebar: React.FC = () => {
   const { activeSection, setActiveSection } = useSimulatorStore();
 
   return (
-    <aside className="w-60 bg-[#0c1322] border-r border-slate-900 flex flex-col justify-between select-none h-screen shrink-0 relative overflow-hidden">
+    <aside className="w-52 bg-[#0c1322] border-r border-slate-900 flex flex-col justify-between select-none h-screen shrink-0 relative overflow-hidden">
       {/* Top Brand Logo Area */}
       <div>
-        <div className="px-5 py-4 flex items-center gap-3 border-b border-slate-800/60">
+        <div className="px-4 py-3.5 flex items-center gap-2.5 border-b border-slate-800/60">
           <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-700 flex items-center justify-center text-white shadow-md shadow-blue-900/40 relative">
             {/* Hexagonal shield logo icon */}
             <svg

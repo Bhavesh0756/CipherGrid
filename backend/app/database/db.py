@@ -105,8 +105,8 @@ def seed_default_topology():
             "role": "sensor",
             "trust_status": "Trusted",
             "allowed_actions": ["Sensor Reading"],
-            "x_pos": 100,
-            "y_pos": 180
+            "x_pos": 60,
+            "y_pos": 200
         },
         {
             "id": "PLC-01",
@@ -117,8 +117,8 @@ def seed_default_topology():
             "role": "plc",
             "trust_status": "Trusted",
             "allowed_actions": ["Sensor Reading", "Device Status", "Controller Command", "Alarm Notification"],
-            "x_pos": 320,
-            "y_pos": 180
+            "x_pos": 60,
+            "y_pos": 50
         },
         {
             "id": "Industrial-Switch",
@@ -129,8 +129,8 @@ def seed_default_topology():
             "role": "switch",
             "trust_status": "Trusted",
             "allowed_actions": [],
-            "x_pos": 540,
-            "y_pos": 280
+            "x_pos": 450,
+            "y_pos": 200
         },
         {
             "id": "SCADA-Server",
@@ -141,8 +141,8 @@ def seed_default_topology():
             "role": "scada",
             "trust_status": "Trusted",
             "allowed_actions": ["Sensor Reading", "Device Status", "Controller Command", "Alarm Notification"],
-            "x_pos": 780,
-            "y_pos": 160
+            "x_pos": 450,
+            "y_pos": 50
         },
         {
             "id": "Operator-01",
@@ -153,8 +153,8 @@ def seed_default_topology():
             "role": "operator",
             "trust_status": "Trusted",
             "allowed_actions": ["Device Status", "Controller Command", "Alarm Notification"],
-            "x_pos": 780,
-            "y_pos": 380
+            "x_pos": 800,
+            "y_pos": 200
         },
         {
             "id": "Monitoring-Server",
@@ -165,8 +165,8 @@ def seed_default_topology():
             "role": "monitor",
             "trust_status": "Trusted",
             "allowed_actions": ["Device Status", "Alarm Notification"],
-            "x_pos": 540,
-            "y_pos": 460
+            "x_pos": 450,
+            "y_pos": 350
         },
         {
             "id": "Untrusted-01",
@@ -177,8 +177,8 @@ def seed_default_topology():
             "role": "untrusted",
             "trust_status": "Untrusted",
             "allowed_actions": [],
-            "x_pos": 320,
-            "y_pos": 380
+            "x_pos": 60,
+            "y_pos": 350
         }
     ]
 

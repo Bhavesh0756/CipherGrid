@@ -7,7 +7,6 @@ import {
   Layers,
   Network,
   Plus,
-  Radio,
   Router as RouterIcon,
   Search,
   ShieldAlert,
@@ -148,38 +147,38 @@ export const DevicePalette: React.FC<DevicePaletteProps> = ({ onAddDevice }) => 
   });
 
   return (
-    <div className="w-[225px] bg-white border-r border-slate-200/90 flex flex-col h-full select-none shrink-0 shadow-2xs z-10">
-      {/* Header */}
-      <div className="px-4 pt-3.5 pb-3 border-b border-slate-100 flex flex-col gap-1.5 shrink-0">
-        <h2 className="text-[13px] font-bold text-slate-900 tracking-tight leading-tight">
+    <aside className="w-[210px] bg-white border-r border-slate-200 flex flex-col h-full select-none shrink-0 z-10">
+      {/* Header & Search */}
+      <div className="px-3.5 pt-3 pb-2.5 border-b border-slate-100 flex flex-col shrink-0">
+        <h2 className="text-[12.5px] font-bold text-slate-900 tracking-tight leading-tight">
           Device Palette
         </h2>
-        <p className="text-[10.5px] text-slate-400">
+        <p className="text-[10px] text-slate-400 mt-0.5">
           Drag devices to the canvas
         </p>
 
-        {/* Search input with clean margins */}
-        <div className="relative mt-1">
+        {/* Clean, well-aligned search input */}
+        <div className="relative mt-2">
           <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
           <input
             type="text"
             placeholder="Search devices..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-8 pr-2.5 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg text-slate-700 placeholder:text-slate-400 focus:outline-none focus:border-blue-500 focus:bg-white transition-all"
+            className="w-full pl-8 pr-2 py-1 text-xs bg-slate-50 border border-slate-200 rounded-lg text-slate-700 placeholder:text-slate-400 focus:outline-none focus:border-blue-500 focus:bg-white transition-all"
           />
         </div>
       </div>
 
       {/* Categorized Device List */}
-      <div className="flex-1 overflow-y-auto px-3 py-3 space-y-4">
+      <div className="flex-1 overflow-y-auto px-2.5 py-2.5 space-y-3">
         {CATEGORIES.map((cat) => {
           const items = filteredItems.filter((i) => i.category === cat);
           if (items.length === 0) return null;
 
           return (
             <div key={cat} className="space-y-1">
-              <div className="text-[9.5px] font-bold text-slate-400 tracking-wider px-1 uppercase">
+              <div className="text-[9px] font-bold text-slate-400 tracking-wider px-1 uppercase mb-1">
                 {cat}
               </div>
 
@@ -190,11 +189,11 @@ export const DevicePalette: React.FC<DevicePaletteProps> = ({ onAddDevice }) => 
                     draggable
                     onDragStart={(e) => onDragStart(e, item)}
                     onClick={() => onAddDevice(item)}
-                    className="group flex items-center justify-between px-2 py-1.5 rounded-xl border border-transparent hover:border-slate-200 hover:bg-slate-50 transition-all duration-150 cursor-grab active:cursor-grabbing hover:shadow-2xs"
+                    className="group flex items-center justify-between px-2 py-1.5 rounded-lg border border-transparent hover:border-slate-200 hover:bg-slate-50 transition-all duration-150 cursor-grab active:cursor-grabbing hover:shadow-2xs"
                   >
-                    <div className="flex items-center gap-2.5 min-w-0">
+                    <div className="flex items-center gap-2 min-w-0">
                       <div
-                        className={`w-7 h-7 rounded-lg flex items-center justify-center border shadow-2xs shrink-0 ${item.iconBg}`}
+                        className={`w-6 h-6 rounded-md flex items-center justify-center border shadow-2xs shrink-0 ${item.iconBg}`}
                       >
                         {item.icon}
                       </div>
@@ -203,13 +202,13 @@ export const DevicePalette: React.FC<DevicePaletteProps> = ({ onAddDevice }) => 
                         <div className="text-[11.5px] font-semibold text-slate-800 truncate leading-tight group-hover:text-blue-600 transition-colors">
                           {item.label}
                         </div>
-                        <div className="text-[9.5px] text-slate-400 font-mono mt-0.5">
+                        <div className="text-[9px] text-slate-400 font-mono mt-0.5 leading-none">
                           {item.defaultPurdue}
                         </div>
                       </div>
                     </div>
 
-                    <Plus className="w-3.5 h-3.5 text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
+                    <Plus className="w-3 h-3 text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
                   </div>
                 ))}
               </div>
@@ -217,6 +216,6 @@ export const DevicePalette: React.FC<DevicePaletteProps> = ({ onAddDevice }) => 
           );
         })}
       </div>
-    </div>
+    </aside>
   );
 };

@@ -58,27 +58,27 @@ const NetworkLabContent: React.FC = () => {
   const { fitView, zoomIn, zoomOut, getZoom, screenToFlowPosition } = useReactFlow();
 
   const [activeTool, setActiveTool] = useState<'select' | 'connect'>('select');
-  const [zoomLevel, setZoomLevel] = useState<number>(100);
+  const [zoomLevel, setZoomLevel] = useState<number>(95);
 
   useEffect(() => {
     fetchTopology();
   }, [fetchTopology]);
 
-  // Once devices are loaded, automatically fit and center the view nicely with optimal padding
+  // Gentle initial fit ONLY once on first load with strict minZoom constraint so nodes never shrink
   const initialFitDone = useRef(false);
   useEffect(() => {
     if (devices.length > 0 && !initialFitDone.current) {
       initialFitDone.current = true;
       setTimeout(() => {
-        fitView({ padding: 0.22, duration: 300 });
+        fitView({ padding: 0.12, minZoom: 0.85, maxZoom: 1.0 });
         setTimeout(() => {
           setZoomLevel(Math.round(getZoom() * 100));
-        }, 350);
-      }, 150);
+        }, 150);
+      }, 100);
     }
   }, [devices.length, fitView, getZoom]);
 
-  // Default select Core OT Ethernet Switch so Node Details panel opens immediately matching reference screenshot
+  // Select Core OT Ethernet Switch by default if none selected
   useEffect(() => {
     if (!selectedDevice && devices.length > 0) {
       const switchDev =
@@ -106,7 +106,7 @@ const NetworkLabContent: React.FC = () => {
     });
   }, [devices, selectedDevice, highlightedPath, activeHopId]);
 
-  // Generate edges matching reference styling
+  // Edges: Consistent neutral industrial links, highlighted blue during simulation
   const edges: Edge[] = useMemo(() => {
     return connections.map((c) => {
       let inPath = false;
@@ -120,21 +120,6 @@ const NetworkLabContent: React.FC = () => {
         }
       }
 
-      const sourceDev = devices.find((d) => d.id === c.source_id);
-      let strokeColor = '#3b82f6'; // default blue
-
-      if (sourceDev) {
-        if (sourceDev.device_type === 'Monitoring Server' || sourceDev.device_type === 'Industrial Gateway') {
-          strokeColor = '#10b981'; // emerald
-        } else if (sourceDev.device_type === 'SCADA Server') {
-          strokeColor = '#8b5cf6'; // purple
-        } else if (sourceDev.device_type === 'Operator Workstation') {
-          strokeColor = '#f59e0b'; // amber
-        } else if (sourceDev.device_type === 'Untrusted Device') {
-          strokeColor = '#e11d48'; // red
-        }
-      }
-
       return {
         id: c.id,
         source: c.source_id,
@@ -144,18 +129,18 @@ const NetworkLabContent: React.FC = () => {
         type: 'default', // smooth bezier curve
         animated: inPath,
         style: {
-          stroke: inPath ? '#2563eb' : strokeColor,
-          strokeWidth: inPath ? 3 : 2,
+          stroke: inPath ? '#2563eb' : '#94a3b8',
+          strokeWidth: inPath ? 2.5 : 1.5,
         },
         markerEnd: {
           type: MarkerType.ArrowClosed,
-          color: inPath ? '#2563eb' : strokeColor,
-          width: 13,
-          height: 13,
+          color: inPath ? '#2563eb' : '#94a3b8',
+          width: 12,
+          height: 12,
         },
         label: `${c.latency_ms} ms`,
         labelStyle: {
-          fill: '#334155',
+          fill: '#475569',
           fontSize: 10,
           fontFamily: 'Inter, sans-serif',
           fontWeight: 600,
@@ -163,14 +148,14 @@ const NetworkLabContent: React.FC = () => {
         labelBgStyle: {
           fill: '#ffffff',
           fillOpacity: 1,
-          stroke: '#e2e8f0',
+          stroke: '#cbd5e1',
           strokeWidth: 1,
         },
-        labelBgPadding: [6, 3] as [number, number],
+        labelBgPadding: [5, 2] as [number, number],
         labelBgBorderRadius: 9999,
       };
     });
-  }, [connections, highlightedPath, devices]);
+  }, [connections, highlightedPath]);
 
   const onNodeDragStop = useCallback(
     (_: any, node: Node) => {
@@ -188,7 +173,7 @@ const NetworkLabContent: React.FC = () => {
   );
 
   const onPaneClick = useCallback(() => {
-    // Preserve selection on pane click
+    // Keep selection intact
   }, []);
 
   const onConnect = useCallback(
@@ -287,7 +272,7 @@ const NetworkLabContent: React.FC = () => {
   };
 
   const handleFitView = () => {
-    fitView({ padding: 0.22, duration: 250 });
+    fitView({ padding: 0.12, minZoom: 0.85, maxZoom: 1.05, duration: 250 });
     setTimeout(() => {
       setZoomLevel(Math.round(getZoom() * 100));
     }, 300);
@@ -302,29 +287,30 @@ const NetworkLabContent: React.FC = () => {
 
         {/* Center: Topology Canvas */}
         <div ref={reactFlowWrapper} className="flex-1 h-full w-full relative flex flex-col min-w-0">
-          {/* Canvas Top Bar matching reference */}
-          <div className="h-12 bg-white/95 backdrop-blur-sm border-b border-slate-200/90 px-5 flex items-center justify-between shrink-0 z-10 shadow-2xs">
+          {/* Canvas Top Bar */}
+          <div className="h-11 bg-white border-b border-slate-200 px-4 flex items-center justify-between shrink-0 z-10 shadow-2xs">
             {/* Left title and subtitle */}
-            <div className="flex items-center gap-2.5">
-              <div className="w-7 h-7 rounded-lg bg-blue-50 border border-blue-200/80 flex items-center justify-center text-blue-600 shadow-2xs">
-                <Settings className="w-3.5 h-3.5" />
+            <div className="flex items-center gap-2">
+              <div className="w-6 h-6 rounded-md bg-blue-50 border border-blue-200/80 flex items-center justify-center text-blue-600 shadow-2xs">
+                <Settings className="w-3 h-3" />
               </div>
-              <div>
+              <div className="flex items-center gap-2">
                 <h3 className="text-xs font-bold text-slate-900 leading-tight">
                   Topology Canvas
                 </h3>
+                <span className="text-slate-300 text-xs font-light">|</span>
                 <p className="text-[10.5px] text-slate-400">
-                  Connect port handles to wire links • Drag nodes to reposition
+                  Connect port handles to wire links · Drag nodes to reposition
                 </p>
               </div>
             </div>
 
             {/* Right Tools Bar */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5">
               {/* Select tool */}
               <button
                 onClick={() => setActiveTool('select')}
-                className={`p-1.5 rounded-lg border transition-all cursor-pointer ${
+                className={`p-1.5 rounded-md border transition-all cursor-pointer ${
                   activeTool === 'select'
                     ? 'bg-blue-600 border-blue-600 text-white shadow-xs'
                     : 'bg-white border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-slate-50'
@@ -337,7 +323,7 @@ const NetworkLabContent: React.FC = () => {
               {/* Link tool */}
               <button
                 onClick={() => setActiveTool('connect')}
-                className={`p-1.5 rounded-lg border transition-all cursor-pointer ${
+                className={`p-1.5 rounded-md border transition-all cursor-pointer ${
                   activeTool === 'connect'
                     ? 'bg-blue-600 border-blue-600 text-white shadow-xs'
                     : 'bg-white border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-slate-50'
@@ -357,7 +343,7 @@ const NetworkLabContent: React.FC = () => {
                     }
                   }
                 }}
-                className="p-1.5 bg-white hover:bg-slate-50 border border-slate-200 rounded-lg text-slate-600 hover:text-rose-600 transition-colors shadow-2xs cursor-pointer"
+                className="p-1.5 bg-white hover:bg-slate-50 border border-slate-200 rounded-md text-slate-600 hover:text-rose-600 transition-colors shadow-2xs cursor-pointer"
                 title="Delete Selected Node"
               >
                 <Trash2 className="w-3.5 h-3.5" />
@@ -366,14 +352,14 @@ const NetworkLabContent: React.FC = () => {
               {/* Fit view button */}
               <button
                 onClick={handleFitView}
-                className="p-1.5 bg-white hover:bg-slate-50 border border-slate-200 rounded-lg text-slate-600 hover:text-slate-900 transition-colors shadow-2xs cursor-pointer"
+                className="p-1.5 bg-white hover:bg-slate-50 border border-slate-200 rounded-md text-slate-600 hover:text-slate-900 transition-colors shadow-2xs cursor-pointer"
                 title="Fit View"
               >
                 <Crosshair className="w-3.5 h-3.5" />
               </button>
 
               {/* Zoom controls: - 100% + */}
-              <div className="flex items-center px-1.5 py-1 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-700 shadow-2xs gap-1">
+              <div className="flex items-center px-1 py-0.5 bg-white border border-slate-200 rounded-md text-xs font-semibold text-slate-700 shadow-2xs gap-0.5">
                 <button
                   onClick={handleZoomOut}
                   className="p-0.5 text-slate-500 hover:text-slate-800 transition-colors cursor-pointer"
@@ -381,7 +367,7 @@ const NetworkLabContent: React.FC = () => {
                 >
                   <Minus className="w-3 h-3" />
                 </button>
-                <span className="w-10 text-center font-mono text-[11px] text-slate-600">
+                <span className="w-9 text-center font-mono text-[10.5px] text-slate-600">
                   {zoomLevel}%
                 </span>
                 <button
@@ -396,7 +382,7 @@ const NetworkLabContent: React.FC = () => {
               {/* Expand / fullscreen button */}
               <button
                 onClick={handleFitView}
-                className="p-1.5 bg-white hover:bg-slate-50 border border-slate-200 rounded-lg text-slate-600 hover:text-slate-900 transition-colors shadow-2xs cursor-pointer"
+                className="p-1.5 bg-white hover:bg-slate-50 border border-slate-200 rounded-md text-slate-600 hover:text-slate-900 transition-colors shadow-2xs cursor-pointer"
                 title="Expand View"
               >
                 <Maximize2 className="w-3.5 h-3.5" />
@@ -417,11 +403,11 @@ const NetworkLabContent: React.FC = () => {
               onDragOver={onDragOver}
               onDrop={onDrop}
               nodeTypes={nodeTypes}
-              fitView
+              defaultViewport={{ x: 30, y: 30, zoom: 0.95 }}
               snapToGrid
               snapGrid={[16, 16]}
-              minZoom={0.2}
-              maxZoom={2.5}
+              minZoom={0.65}
+              maxZoom={1.5}
             >
               <Background
                 variant={BackgroundVariant.Dots}
@@ -430,7 +416,7 @@ const NetworkLabContent: React.FC = () => {
                 color="#cbd5e1"
               />
               <MiniMap
-                position="top-right"
+                position="bottom-right"
                 nodeColor={(node: any) => {
                   const type = node.data?.device?.device_type;
                   if (type === 'PLC') return '#2563eb';
@@ -443,12 +429,12 @@ const NetworkLabContent: React.FC = () => {
                 }}
                 maskColor="rgba(243, 246, 250, 0.75)"
                 style={{
-                  top: 14,
-                  right: 14,
-                  width: 105,
-                  height: 65,
+                  bottom: 12,
+                  right: 12,
+                  width: 115,
+                  height: 70,
                 }}
-                className="!bg-white !border !border-slate-200 !rounded-xl !shadow-sm"
+                className="!bg-white !border !border-slate-200 !rounded-lg !shadow-sm"
               />
             </ReactFlow>
           </div>

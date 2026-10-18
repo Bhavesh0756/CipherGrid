@@ -71,7 +71,6 @@ export const SimulationControls: React.FC = () => {
     dispatchMessage,
     resetSimulationState,
     isSimulating,
-    setMessageModalOpen,
   } = useSimulatorStore();
 
   const [sourceId, setSourceId] = useState<string>('PLC-01');
@@ -156,56 +155,59 @@ export const SimulationControls: React.FC = () => {
   });
 
   return (
-    <div className="bg-white border-t border-slate-200 select-none shrink-0 flex flex-col shadow-xs">
-      {/* ─── Top Sub-row: Simulation Control Bar ─── */}
-      <div className="px-6 py-3.5 border-b border-slate-200 flex flex-wrap items-center justify-between gap-4">
+    <div className="bg-white border-t border-slate-200 select-none shrink-0 flex flex-col z-20 shadow-xs">
+      {/* ─── Top Toolbar: Simulation Control ─── */}
+      <div className="px-5 py-2.5 border-b border-slate-200 flex flex-wrap items-center justify-between gap-3 min-h-[50px]">
         {/* Left: Section Header */}
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-blue-50 border border-blue-200/80 flex items-center justify-center text-blue-600 shadow-2xs">
-            <Settings className="w-4 h-4" />
+        <div className="flex items-center gap-2.5 shrink-0">
+          <div className="w-7 h-7 rounded-lg bg-blue-50 border border-blue-200/80 flex items-center justify-center text-blue-600 shadow-2xs">
+            <Settings className="w-3.5 h-3.5" />
           </div>
           <div>
-            <h3 className="text-[13px] font-bold text-slate-900 tracking-tight leading-tight">
+            <h3 className="text-xs font-bold text-slate-900 tracking-tight leading-tight">
               Simulation Control
             </h3>
-            <p className="text-[11px] text-slate-400 mt-0.5">
+            <p className="text-[10px] text-slate-400">
               Send test messages between devices
             </p>
           </div>
         </div>
 
-        {/* Center / Right: Action Buttons and Controls */}
-        <div className="flex flex-wrap items-center gap-3">
-          {/* Simulate Action Button */}
-          <button
-            onClick={handleSimulate}
-            disabled={isSimulating}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 disabled:bg-slate-300 text-white rounded-lg text-xs font-semibold shadow-sm shadow-blue-600/30 transition-all cursor-pointer"
-          >
-            <Play className="w-3.5 h-3.5 fill-current" />
-            <span>{isSimulating ? 'Simulating…' : 'Simulate Message'}</span>
-          </button>
+        {/* Center / Right: Action Buttons and Dropdowns */}
+        <div className="flex flex-wrap items-center gap-2.5">
+          {/* Action Buttons */}
+          <div className="flex items-center gap-1.5 shrink-0">
+            <button
+              onClick={handleSimulate}
+              disabled={isSimulating}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 disabled:bg-slate-300 text-white rounded-lg text-xs font-semibold shadow-xs transition-all cursor-pointer"
+            >
+              <Play className="w-3 h-3 fill-current" />
+              <span>{isSimulating ? 'Simulating…' : 'Simulate Message'}</span>
+            </button>
 
-          {/* Reset Action Button */}
-          <button
-            onClick={handleReset}
-            className="flex items-center gap-1.5 px-3 py-2 bg-white hover:bg-slate-50 active:bg-slate-100 border border-slate-200 text-slate-700 rounded-lg text-xs font-medium transition-all shadow-2xs cursor-pointer"
-            title="Reset simulation playback"
-          >
-            <RotateCcw className="w-3.5 h-3.5 text-slate-500" />
-            <span>Reset</span>
-          </button>
+            <button
+              onClick={handleReset}
+              className="flex items-center gap-1 px-2.5 py-1.5 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 rounded-lg text-xs font-medium transition-all shadow-2xs cursor-pointer"
+              title="Reset simulation playback"
+            >
+              <RotateCcw className="w-3 h-3 text-slate-500" />
+              <span>Reset</span>
+            </button>
+          </div>
 
-          {/* Source Device Dropdown */}
-          <div className="flex items-center gap-2">
-            <span className="text-[11.5px] font-semibold text-slate-600">
-              Source Device
+          <div className="h-4 w-px bg-slate-200 hidden sm:block" />
+
+          {/* Source Device */}
+          <div className="flex items-center gap-1.5">
+            <span className="text-[11px] font-semibold text-slate-600 shrink-0">
+              Source:
             </span>
             <div className="relative">
               <select
                 value={sourceId}
                 onChange={(e) => setSourceId(e.target.value)}
-                className="appearance-none pl-3 pr-8 py-1.5 text-xs font-medium bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:border-blue-500 cursor-pointer min-w-[170px]"
+                className="appearance-none pl-2.5 pr-7 py-1 text-xs font-medium bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:border-blue-500 cursor-pointer w-40 truncate"
               >
                 {devices.map((d) => (
                   <option key={d.id} value={d.id}>
@@ -213,23 +215,22 @@ export const SimulationControls: React.FC = () => {
                   </option>
                 ))}
               </select>
-              <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <ChevronDown className="w-3 h-3 text-slate-400 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
             </div>
           </div>
 
-          {/* Arrow */}
-          <ArrowRight className="w-4 h-4 text-blue-600 shrink-0" />
+          <ArrowRight className="w-3.5 h-3.5 text-blue-600 shrink-0 hidden sm:block" />
 
-          {/* Destination Device Dropdown */}
-          <div className="flex items-center gap-2">
-            <span className="text-[11.5px] font-semibold text-slate-600">
-              Destination Device
+          {/* Destination Device */}
+          <div className="flex items-center gap-1.5">
+            <span className="text-[11px] font-semibold text-slate-600 shrink-0">
+              Destination:
             </span>
             <div className="relative">
               <select
                 value={destId}
                 onChange={(e) => setDestId(e.target.value)}
-                className="appearance-none pl-3 pr-8 py-1.5 text-xs font-medium bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:border-blue-500 cursor-pointer min-w-[170px]"
+                className="appearance-none pl-2.5 pr-7 py-1 text-xs font-medium bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:border-blue-500 cursor-pointer w-40 truncate"
               >
                 {devices.map((d) => (
                   <option key={d.id} value={d.id}>
@@ -237,41 +238,41 @@ export const SimulationControls: React.FC = () => {
                   </option>
                 ))}
               </select>
-              <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <ChevronDown className="w-3 h-3 text-slate-400 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
             </div>
           </div>
 
-          {/* Message Type Dropdown */}
-          <div className="flex items-center gap-2">
-            <span className="text-[11.5px] font-semibold text-slate-600">
-              Message Type
+          {/* Message Type */}
+          <div className="flex items-center gap-1.5">
+            <span className="text-[11px] font-semibold text-slate-600 shrink-0">
+              Message:
             </span>
             <div className="relative">
               <select
                 value={messageType}
                 onChange={(e) => setMessageType(e.target.value as MessageType)}
-                className="appearance-none pl-3 pr-8 py-1.5 text-xs font-medium bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:border-blue-500 cursor-pointer min-w-[170px]"
+                className="appearance-none pl-2.5 pr-7 py-1 text-xs font-medium bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:border-blue-500 cursor-pointer w-44 truncate"
               >
                 <option value="Sensor Reading">Read Status (Modbus)</option>
                 <option value="Device Status">Device Status</option>
                 <option value="Controller Command">Controller Command</option>
                 <option value="Alarm Notification">Alarm Notification</option>
               </select>
-              <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <ChevronDown className="w-3 h-3 text-slate-400 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
             </div>
           </div>
         </div>
       </div>
 
-      {/* ─── Bottom Sub-row: Event Logs Table ─── */}
+      {/* ─── Bottom Section: Event Logs Table ─── */}
       <div className="flex flex-col">
-        {/* Table Header Controls */}
-        <div className="px-6 py-2.5 border-b border-slate-100 flex items-center justify-between text-xs font-medium">
+        {/* Table Header Tabs & Filter Bar */}
+        <div className="px-5 py-2 border-b border-slate-100 flex items-center justify-between text-xs font-medium bg-slate-50/50">
           {/* Tabs */}
-          <div className="flex items-center gap-6">
+          <div className="flex items-center gap-5">
             <button
               onClick={() => setActiveTab('logs')}
-              className={`pb-1 border-b-2 transition-all cursor-pointer ${
+              className={`pb-0.5 border-b-2 text-[11.5px] transition-all cursor-pointer ${
                 activeTab === 'logs'
                   ? 'border-blue-600 text-blue-600 font-bold'
                   : 'border-transparent text-slate-500 hover:text-slate-800'
@@ -281,7 +282,7 @@ export const SimulationControls: React.FC = () => {
             </button>
             <button
               onClick={() => setActiveTab('trace')}
-              className={`pb-1 border-b-2 transition-all cursor-pointer ${
+              className={`pb-0.5 border-b-2 text-[11.5px] transition-all cursor-pointer ${
                 activeTab === 'trace'
                   ? 'border-blue-600 text-blue-600 font-bold'
                   : 'border-transparent text-slate-500 hover:text-slate-800'
@@ -291,7 +292,7 @@ export const SimulationControls: React.FC = () => {
             </button>
             <button
               onClick={() => setActiveTab('results')}
-              className={`pb-1 border-b-2 transition-all cursor-pointer ${
+              className={`pb-0.5 border-b-2 text-[11.5px] transition-all cursor-pointer ${
                 activeTab === 'results'
                   ? 'border-blue-600 text-blue-600 font-bold'
                   : 'border-transparent text-slate-500 hover:text-slate-800'
@@ -302,12 +303,12 @@ export const SimulationControls: React.FC = () => {
           </div>
 
           {/* Right: Filter & Clear Logs */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2.5">
             <div className="relative">
               <select
                 value={filterType}
                 onChange={(e) => setFilterType(e.target.value)}
-                className="appearance-none pl-3 pr-7 py-1 text-xs font-medium bg-slate-50 border border-slate-200 rounded-lg text-slate-700 focus:outline-none focus:border-blue-500 cursor-pointer"
+                className="appearance-none pl-2.5 pr-6 py-0.5 text-xs font-medium bg-white border border-slate-200 rounded-md text-slate-700 focus:outline-none focus:border-blue-500 cursor-pointer"
               >
                 <option value="all">All Events</option>
                 <option value="info">Info Events</option>
@@ -315,32 +316,32 @@ export const SimulationControls: React.FC = () => {
                 <option value="accepted">Accepted Only</option>
                 <option value="rejected">Rejected Only</option>
               </select>
-              <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <ChevronDown className="w-3 h-3 text-slate-400 absolute right-1.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             </div>
 
             <button
               onClick={() => setCleared(true)}
-              className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium text-rose-600 hover:text-rose-700 hover:bg-rose-50 border border-rose-200/80 rounded-lg transition-colors cursor-pointer"
+              className="flex items-center gap-1 px-2 py-0.5 text-xs font-medium text-rose-600 hover:text-rose-700 hover:bg-rose-50 border border-rose-200 rounded-md transition-colors cursor-pointer"
               title="Clear event logs"
             >
-              <Trash2 className="w-3.5 h-3.5" />
-              <span>Clear Logs</span>
+              <Trash2 className="w-3 h-3" />
+              <span>Clear</span>
             </button>
           </div>
         </div>
 
-        {/* Table Body */}
-        <div className="max-h-44 overflow-y-auto">
+        {/* Table Body with explicit column widths */}
+        <div className="h-36 overflow-y-auto">
           {activeTab === 'logs' && (
             <table className="w-full text-left border-collapse text-xs">
-              <thead>
-                <tr className="bg-slate-50/70 border-b border-slate-100 text-slate-500 font-semibold text-[11px]">
-                  <th className="py-2 px-6">Time</th>
-                  <th className="py-2 px-4">Event Type</th>
-                  <th className="py-2 px-4">Source</th>
-                  <th className="py-2 px-4">Destination</th>
-                  <th className="py-2 px-4">Message</th>
-                  <th className="py-2 px-6 text-right">Status</th>
+              <thead className="sticky top-0 bg-white shadow-2xs z-10">
+                <tr className="border-b border-slate-100 text-slate-400 font-semibold text-[10.5px]">
+                  <th className="py-1.5 px-5 w-20">Time</th>
+                  <th className="py-1.5 px-3 w-24">Event Type</th>
+                  <th className="py-1.5 px-3 w-48">Source</th>
+                  <th className="py-1.5 px-3 w-48">Destination</th>
+                  <th className="py-1.5 px-3">Message</th>
+                  <th className="py-1.5 px-5 w-24 text-right">Status</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -354,33 +355,33 @@ export const SimulationControls: React.FC = () => {
                   filteredEvents.map((evt) => (
                     <tr
                       key={evt.id}
-                      className="hover:bg-slate-50/80 transition-colors text-slate-700"
+                      className="hover:bg-slate-50/70 transition-colors text-slate-700 h-8"
                     >
-                      <td className="py-2 px-6 font-mono text-[11px] text-slate-500">
+                      <td className="py-1 px-5 font-mono text-[10.5px] text-slate-400">
                         {evt.time}
                       </td>
-                      <td className="py-2 px-4">
-                        <span className="flex items-center gap-1.5 font-medium">
+                      <td className="py-1 px-3">
+                        <span className="flex items-center gap-1 text-[11px] font-medium">
                           {evt.type === 'Info' ? (
-                            <Info className="w-3.5 h-3.5 text-blue-500" />
+                            <Info className="w-3 h-3 text-blue-500" />
                           ) : (
-                            <AlertTriangle className="w-3.5 h-3.5 text-amber-500" />
+                            <AlertTriangle className="w-3 h-3 text-amber-500" />
                           )}
                           <span>{evt.type}</span>
                         </span>
                       </td>
-                      <td className="py-2 px-4 font-medium text-slate-800">
+                      <td className="py-1 px-3 font-medium text-slate-800 text-[11px] truncate max-w-[180px]">
                         {evt.source}
                       </td>
-                      <td className="py-2 px-4 font-medium text-slate-800">
+                      <td className="py-1 px-3 font-medium text-slate-800 text-[11px] truncate max-w-[180px]">
                         {evt.destination}
                       </td>
-                      <td className="py-2 px-4 text-slate-600 truncate max-w-xs">
+                      <td className="py-1 px-3 text-slate-600 text-[11px] truncate max-w-sm">
                         {evt.message}
                       </td>
-                      <td className="py-2 px-6 text-right">
+                      <td className="py-1 px-5 text-right">
                         <span
-                          className={`inline-block px-2.5 py-0.5 rounded-full text-[10.5px] font-semibold ${
+                          className={`inline-block px-2 py-0.5 rounded-full text-[9.5px] font-semibold ${
                             evt.status === 'Accepted'
                               ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
                               : 'bg-rose-50 text-rose-700 border border-rose-200'
@@ -397,20 +398,20 @@ export const SimulationControls: React.FC = () => {
           )}
 
           {activeTab === 'trace' && (
-            <div className="p-4 text-slate-600 text-xs">
+            <div className="p-3 text-slate-600 text-xs">
               {simulationEvents.length === 0 ? (
                 <div className="py-4 text-center text-slate-400 italic">
                   Run a simulation to view hop-by-hop cryptographic and network path traces.
                 </div>
               ) : (
-                <div className="space-y-2">
+                <div className="space-y-1.5">
                   {simulationEvents.map((step, i) => (
                     <div
                       key={i}
-                      className="p-2.5 bg-slate-50 border border-slate-200 rounded-lg flex items-center justify-between"
+                      className="p-2 bg-slate-50 border border-slate-200 rounded-md flex items-center justify-between text-xs"
                     >
                       <div className="flex items-center gap-2">
-                        <span className="w-5 h-5 rounded-full bg-blue-100 text-blue-700 font-bold text-[10px] flex items-center justify-center">
+                        <span className="w-4 h-4 rounded-full bg-blue-100 text-blue-700 font-bold text-[9px] flex items-center justify-center">
                           {i + 1}
                         </span>
                         <span className="font-semibold text-slate-800">
@@ -419,7 +420,7 @@ export const SimulationControls: React.FC = () => {
                         <span className="text-slate-400">·</span>
                         <span className="text-slate-600">{step.explanation}</span>
                       </div>
-                      <span className="font-mono text-[10.5px] text-slate-500">
+                      <span className="font-mono text-[10px] text-slate-500">
                         {step.security_status}
                       </span>
                     </div>
@@ -430,20 +431,20 @@ export const SimulationControls: React.FC = () => {
           )}
 
           {activeTab === 'results' && (
-            <div className="p-4 text-slate-600 text-xs">
+            <div className="p-3 text-slate-600 text-xs">
               {lastResult ? (
-                <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-2">
+                <div className="p-2.5 bg-slate-50 border border-slate-200 rounded-lg space-y-1.5">
                   <div className="flex items-center gap-2 font-semibold">
                     {lastResult.delivered ? (
                       <CheckCircle2 className="w-4 h-4 text-emerald-600" />
                     ) : (
                       <XCircle className="w-4 h-4 text-rose-600" />
                     )}
-                    <span className={lastResult.delivered ? 'text-emerald-700' : 'text-rose-700'}>
+                    <span className={lastResult.delivered ? 'text-emerald-700 text-xs' : 'text-rose-700 text-xs'}>
                       {lastResult.delivered ? 'Message Transmission Delivered & Verified' : 'Transmission Rejected by Security Policy'}
                     </span>
                   </div>
-                  <div className="text-[11.5px] text-slate-600 font-mono">
+                  <div className="text-[11px] text-slate-600 font-mono">
                     Session: {lastResult.session_id} · Path: {(lastResult.path || []).join(' ➔ ')}
                   </div>
                 </div>

@@ -45,23 +45,23 @@ const getManufacturerAndModel = (type: DeviceType, name: string) => {
     case 'Ethernet Switch':
       return { manufacturer: 'Cisco', model: 'IE-3300' };
     case 'PLC':
-      return { manufacturer: 'Siemens', model: 'SIMATIC S7-1500' };
+      return { manufacturer: 'Siemens', model: 'S7-1500' };
     case 'SCADA Server':
-      return { manufacturer: 'Schneider Electric', model: 'Foxboro Evo' };
+      return { manufacturer: 'Schneider', model: 'Foxboro' };
     case 'Operator Workstation':
-      return { manufacturer: 'Dell Precision', model: 'Tower 7920' };
+      return { manufacturer: 'Dell', model: 'Precision' };
     case 'Monitoring Server':
-      return { manufacturer: 'Claroty', model: 'CTD-Sensor 200' };
+      return { manufacturer: 'Claroty', model: 'CTD-200' };
     case 'Industrial Gateway':
-      return { manufacturer: 'Moxa', model: 'MGate 5105' };
+      return { manufacturer: 'Moxa', model: 'MGate' };
     case 'Router':
-      return { manufacturer: 'Cisco', model: 'IR1101 Rugged' };
+      return { manufacturer: 'Cisco', model: 'IR1101' };
     case 'Sensor':
-      return { manufacturer: 'Endress+Hauser', model: 'iTEMP TMT82' };
+      return { manufacturer: 'Endress', model: 'iTEMP' };
     case 'Untrusted Device':
-      return { manufacturer: 'Generic / Rogue', model: 'Hardware Tap' };
+      return { manufacturer: 'Rogue Tap', model: 'Tap v1' };
     default:
-      return { manufacturer: 'Industrial Vendor', model: 'Standard-01' };
+      return { manufacturer: 'Vendor', model: 'Standard' };
   }
 };
 
@@ -169,71 +169,71 @@ export const DeviceInspector: React.FC<DeviceInspectorProps> = ({ device, onClos
   };
 
   const inputClass =
-    'w-full px-2.5 py-1.5 border border-slate-200 rounded-lg text-xs bg-white text-slate-800 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors';
+    'w-full px-2.5 py-1 border border-slate-200 rounded-md text-xs bg-white text-slate-800 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors';
   const selectClass =
-    'w-full px-2 py-1.5 border border-slate-200 rounded-lg text-xs bg-white text-slate-800 focus:outline-none focus:border-blue-500 transition-colors';
-  const labelClass = 'block text-[11px] font-semibold text-slate-600 mb-1';
+    'w-full px-2 py-1 border border-slate-200 rounded-md text-xs bg-white text-slate-800 focus:outline-none focus:border-blue-500 transition-colors';
+  const labelClass = 'block text-[11px] font-semibold text-slate-600 mb-0.5';
 
   return (
-    <div className="w-[325px] bg-white border-l border-slate-200/90 flex flex-col h-full select-text shrink-0 shadow-2xs z-10">
+    <aside className="w-[290px] bg-white border-l border-slate-200 flex flex-col h-full select-text shrink-0 z-10 overflow-hidden">
       {/* Top Header */}
-      <div className="px-5 py-3.5 border-b border-slate-100 flex items-center justify-between">
-        <h2 className="text-[13px] font-bold text-slate-900 tracking-tight">
+      <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between shrink-0">
+        <h2 className="text-xs font-bold text-slate-900 tracking-tight">
           Node Details
         </h2>
         <button
           onClick={onClose}
-          className="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+          className="p-1 rounded-md text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
           title="Close details"
         >
-          <X className="w-4 h-4" />
+          <X className="w-3.5 h-3.5" />
         </button>
       </div>
 
       {/* Device Overview Banner */}
-      <div className="px-5 py-3.5 border-b border-slate-100 flex items-center justify-between">
-        <div className="flex items-center gap-3 min-w-0">
-          <div className="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center shrink-0 shadow-sm">
+      <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between shrink-0">
+        <div className="flex items-center gap-2.5 min-w-0">
+          <div className="w-9 h-9 rounded-lg bg-slate-900 text-white flex items-center justify-center shrink-0 shadow-xs">
             {getDeviceIcon(device.device_type)}
           </div>
           <div className="min-w-0">
             <h3
-              className="text-[13px] font-bold text-slate-900 truncate leading-snug"
+              className="text-xs font-bold text-slate-900 truncate leading-snug"
               title={device.name}
             >
               {device.name}
             </h3>
-            <p className="text-[11px] text-slate-400 font-medium">
+            <p className="text-[10.5px] text-slate-400 font-medium">
               {device.device_type}
             </p>
           </div>
         </div>
 
         {/* Status Pill */}
-        <div className="shrink-0">
+        <div className="shrink-0 ml-1">
           {device.trust_status === 'Trusted' && (
-            <span className="text-[10px] font-semibold px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+            <span className="text-[9.5px] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
               Trusted
             </span>
           )}
           {device.trust_status === 'Untrusted' && (
-            <span className="text-[10px] font-semibold px-2.5 py-0.5 rounded-full bg-rose-50 text-rose-700 border border-rose-200">
+            <span className="text-[9.5px] font-semibold px-2 py-0.5 rounded-full bg-rose-50 text-rose-700 border border-rose-200">
               Untrusted
             </span>
           )}
           {device.trust_status === 'Quarantined' && (
-            <span className="text-[10px] font-semibold px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200">
+            <span className="text-[9.5px] font-semibold px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200">
               Quarantined
             </span>
           )}
         </div>
       </div>
 
-      {/* Tabs with explicit spacing */}
-      <div className="flex border-b border-slate-200 px-5 text-xs font-medium gap-5">
+      {/* Tabs */}
+      <div className="flex border-b border-slate-200 px-3 text-xs font-medium shrink-0 justify-between">
         <button
           onClick={() => setActiveTab('overview')}
-          className={`py-2.5 border-b-2 transition-all cursor-pointer ${
+          className={`py-2 px-1 border-b-2 text-[11.5px] transition-all cursor-pointer ${
             activeTab === 'overview'
               ? 'border-blue-600 text-blue-600 font-bold'
               : 'border-transparent text-slate-500 hover:text-slate-800'
@@ -243,7 +243,7 @@ export const DeviceInspector: React.FC<DeviceInspectorProps> = ({ device, onClos
         </button>
         <button
           onClick={() => setActiveTab('ports')}
-          className={`py-2.5 border-b-2 transition-all cursor-pointer ${
+          className={`py-2 px-1 border-b-2 text-[11.5px] transition-all cursor-pointer ${
             activeTab === 'ports'
               ? 'border-blue-600 text-blue-600 font-bold'
               : 'border-transparent text-slate-500 hover:text-slate-800'
@@ -253,7 +253,7 @@ export const DeviceInspector: React.FC<DeviceInspectorProps> = ({ device, onClos
         </button>
         <button
           onClick={() => setActiveTab('configuration')}
-          className={`py-2.5 border-b-2 transition-all cursor-pointer ${
+          className={`py-2 px-1 border-b-2 text-[11.5px] transition-all cursor-pointer ${
             activeTab === 'configuration'
               ? 'border-blue-600 text-blue-600 font-bold'
               : 'border-transparent text-slate-500 hover:text-slate-800'
@@ -263,44 +263,44 @@ export const DeviceInspector: React.FC<DeviceInspectorProps> = ({ device, onClos
         </button>
       </div>
 
-      {/* Tab Contents */}
-      <div className="flex-1 overflow-y-auto px-5 py-4 text-xs">
+      {/* Tab Contents - Scrollable internal area */}
+      <div className="flex-1 overflow-y-auto px-4 py-3 text-xs">
         {activeTab === 'overview' && (
-          <div className="space-y-3.5">
-            {/* Key-Value Pairs matching reference */}
-            <div className="space-y-2.5">
+          <div className="space-y-3">
+            {/* Key-Value Pairs */}
+            <div className="space-y-2">
               <div className="flex items-center justify-between py-1 border-b border-slate-100">
-                <span className="text-slate-500 font-medium">Name</span>
-                <span className="text-slate-900 font-semibold truncate max-w-[180px] text-right">
+                <span className="text-slate-500 font-medium text-[11px] shrink-0">Name</span>
+                <span className="text-slate-900 font-semibold text-[11.5px] truncate ml-2 text-right">
                   {device.name}
                 </span>
               </div>
 
               <div className="flex items-center justify-between py-1 border-b border-slate-100">
-                <span className="text-slate-500 font-medium">Type</span>
-                <span className="text-slate-900 font-medium">
+                <span className="text-slate-500 font-medium text-[11px] shrink-0">Type</span>
+                <span className="text-slate-900 font-medium text-[11.5px] ml-2 text-right">
                   {device.device_type}
                 </span>
               </div>
 
               <div className="flex items-center justify-between py-1 border-b border-slate-100">
-                <span className="text-slate-500 font-medium">IP Address</span>
-                <span className="font-mono text-slate-900 font-medium">
+                <span className="text-slate-500 font-medium text-[11px] shrink-0">IP Address</span>
+                <span className="font-mono text-slate-900 font-medium text-[11px] ml-2 text-right">
                   {device.ip_address}
                 </span>
               </div>
 
               <div className="flex items-center justify-between py-1 border-b border-slate-100">
-                <span className="text-slate-500 font-medium">Purdue Level</span>
-                <span className="px-2 py-0.5 rounded-full bg-sky-50 text-sky-700 border border-sky-200 text-[10.5px] font-semibold">
+                <span className="text-slate-500 font-medium text-[11px] shrink-0">Purdue Level</span>
+                <span className="px-2 py-0.5 rounded-full bg-sky-50 text-sky-700 border border-sky-200 text-[10px] font-semibold">
                   {device.purdue_level}
                 </span>
               </div>
 
               <div className="flex items-center justify-between py-1 border-b border-slate-100">
-                <span className="text-slate-500 font-medium">Trust Status</span>
+                <span className="text-slate-500 font-medium text-[11px] shrink-0">Trust Status</span>
                 <span
-                  className={`px-2 py-0.5 rounded-full text-[10.5px] font-semibold ${
+                  className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${
                     device.trust_status === 'Trusted'
                       ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
                       : 'bg-rose-50 text-rose-700 border border-rose-200'
@@ -311,29 +311,29 @@ export const DeviceInspector: React.FC<DeviceInspectorProps> = ({ device, onClos
               </div>
 
               <div className="flex items-center justify-between py-1 border-b border-slate-100">
-                <span className="text-slate-500 font-medium">MAC Address</span>
-                <span className="font-mono text-slate-700 text-[11px]">
+                <span className="text-slate-500 font-medium text-[11px] shrink-0">MAC Address</span>
+                <span className="font-mono text-slate-700 text-[10.5px] ml-2 text-right">
                   {device.mac_address || '00:1B:44:11:3A:B7'}
                 </span>
               </div>
 
               <div className="flex items-center justify-between py-1 border-b border-slate-100">
-                <span className="text-slate-500 font-medium">Manufacturer</span>
-                <span className="text-slate-900 font-medium">{manufacturer}</span>
+                <span className="text-slate-500 font-medium text-[11px] shrink-0">Manufacturer</span>
+                <span className="text-slate-900 font-medium text-[11.5px] ml-2 text-right">{manufacturer}</span>
               </div>
 
               <div className="flex items-center justify-between py-1 border-b border-slate-100">
-                <span className="text-slate-500 font-medium">Model</span>
-                <span className="text-slate-900 font-medium">{model}</span>
+                <span className="text-slate-500 font-medium text-[11px] shrink-0">Model</span>
+                <span className="text-slate-900 font-medium text-[11.5px] ml-2 text-right">{model}</span>
               </div>
             </div>
 
-            {/* Description box matching reference */}
-            <div className="mt-4">
-              <span className="block text-slate-500 font-medium mb-1.5">
+            {/* Description */}
+            <div className="mt-2.5">
+              <span className="block text-slate-500 font-medium text-[11px] mb-1">
                 Description
               </span>
-              <div className="p-3 bg-slate-50 border border-slate-200/70 rounded-xl text-slate-600 text-[11.5px] leading-relaxed">
+              <div className="p-2.5 bg-slate-50 border border-slate-200/80 rounded-lg text-slate-600 text-[11px] leading-relaxed break-words">
                 {description}
               </div>
             </div>
@@ -341,33 +341,33 @@ export const DeviceInspector: React.FC<DeviceInspectorProps> = ({ device, onClos
         )}
 
         {activeTab === 'ports' && (
-          <div className="space-y-3">
-            <div className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-2">
+          <div className="space-y-2.5">
+            <div className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-1">
               Attached Conduits & Links
             </div>
             {deviceConnections.length === 0 ? (
-              <div className="p-6 text-center text-slate-400 italic bg-slate-50 rounded-xl border border-dashed border-slate-200">
-                No active connections. Wire links from port handles on canvas.
+              <div className="p-4 text-center text-slate-400 italic bg-slate-50 rounded-lg border border-dashed border-slate-200 text-xs">
+                No active connections.
               </div>
             ) : (
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 {deviceConnections.map((c) => {
                   const peerId = c.source_id === device.id ? c.target_id : c.source_id;
                   const port = c.source_id === device.id ? c.source_port : c.target_port;
                   return (
                     <div
                       key={c.id}
-                      className="p-3 bg-slate-50 border border-slate-200/80 rounded-xl flex items-center justify-between"
+                      className="p-2 bg-slate-50 border border-slate-200 rounded-lg flex items-center justify-between"
                     >
-                      <div>
-                        <div className="font-semibold text-slate-800 text-xs">
+                      <div className="min-w-0 pr-2">
+                        <div className="font-semibold text-slate-800 text-[11.5px] truncate">
                           {peerId}
                         </div>
-                        <div className="text-[10px] text-slate-400 font-mono mt-0.5">
-                          Port: {port || 'eth0'} · {c.connection_type || 'Ethernet'}
+                        <div className="text-[9.5px] text-slate-400 font-mono mt-0.5 truncate">
+                          Port: {port || 'eth0'}
                         </div>
                       </div>
-                      <span className="px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200 text-[10px] font-semibold">
+                      <span className="px-1.5 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200 text-[9.5px] font-semibold shrink-0">
                         {c.latency_ms} ms
                       </span>
                     </div>
@@ -379,15 +379,15 @@ export const DeviceInspector: React.FC<DeviceInspectorProps> = ({ device, onClos
         )}
 
         {activeTab === 'configuration' && (
-          <form onSubmit={handleSave} className="space-y-3.5">
+          <form onSubmit={handleSave} className="space-y-2.5">
             {errorMessage && (
-              <div className="p-2.5 bg-rose-50 border border-rose-200 text-rose-700 rounded-lg text-xs font-medium">
+              <div className="p-2 bg-rose-50 border border-rose-200 text-rose-700 rounded-md text-[11px] font-medium">
                 {errorMessage}
               </div>
             )}
             {saveSuccess && (
-              <div className="p-2.5 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-lg text-xs font-medium">
-                Configuration successfully saved!
+              <div className="p-2 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-md text-[11px] font-medium">
+                Saved successfully!
               </div>
             )}
 
@@ -434,7 +434,7 @@ export const DeviceInspector: React.FC<DeviceInspectorProps> = ({ device, onClos
               </div>
 
               <div>
-                <label className={labelClass}>Trust Status</label>
+                <label className={labelClass}>Trust</label>
                 <select
                   value={formData.trust_status}
                   onChange={(e) => setFormData({ ...formData, trust_status: e.target.value as TrustStatus })}
@@ -442,7 +442,7 @@ export const DeviceInspector: React.FC<DeviceInspectorProps> = ({ device, onClos
                 >
                   <option value="Trusted">Trusted</option>
                   <option value="Untrusted">Untrusted</option>
-                  <option value="Quarantined">Quarantined</option>
+                  <option value="Quarantined">Quarantine</option>
                 </select>
               </div>
             </div>
@@ -459,7 +459,7 @@ export const DeviceInspector: React.FC<DeviceInspectorProps> = ({ device, onClos
                 <option value="Level 2">Level 2: Supervisory</option>
                 <option value="Level 3">Level 3: Operations</option>
                 <option value="Level 3.5">Level 3.5: DMZ</option>
-                <option value="Untrusted">Untrusted External</option>
+                <option value="Untrusted">Untrusted</option>
               </select>
             </div>
 
@@ -471,19 +471,19 @@ export const DeviceInspector: React.FC<DeviceInspectorProps> = ({ device, onClos
                 onChange={(e) => setFormData({ ...formData, allowed_actions: e.target.value })}
                 className={inputClass}
               />
-              <span className="text-[10px] text-slate-400 mt-1 block">Comma-separated</span>
+              <span className="text-[9.5px] text-slate-400 block mt-0.5">Comma-separated</span>
             </div>
 
             {/* Status toggle */}
-            <div className="flex items-center justify-between pt-2 border-t border-slate-100">
-              <div className="flex items-center gap-2">
-                <Power className={`w-4 h-4 ${formData.is_enabled ? 'text-emerald-500' : 'text-slate-400'}`} />
-                <span className="text-xs font-semibold text-slate-700">Online State</span>
+            <div className="flex items-center justify-between pt-1.5 border-t border-slate-100">
+              <div className="flex items-center gap-1.5">
+                <Power className={`w-3.5 h-3.5 ${formData.is_enabled ? 'text-emerald-500' : 'text-slate-400'}`} />
+                <span className="text-[11.5px] font-semibold text-slate-700">Online State</span>
               </div>
               <button
                 type="button"
                 onClick={() => setFormData({ ...formData, is_enabled: !formData.is_enabled })}
-                className={`px-3 py-1 rounded-full text-xs font-semibold transition-colors cursor-pointer ${
+                className={`px-2.5 py-0.5 rounded-full text-[10.5px] font-semibold transition-colors cursor-pointer ${
                   formData.is_enabled
                     ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
                     : 'bg-slate-100 text-slate-500 border border-slate-200'
@@ -494,26 +494,26 @@ export const DeviceInspector: React.FC<DeviceInspectorProps> = ({ device, onClos
             </div>
 
             {/* Save & Delete Buttons */}
-            <div className="pt-3 border-t border-slate-100 flex gap-2">
+            <div className="pt-2 border-t border-slate-100 flex gap-2">
               <button
                 type="submit"
-                className="flex-1 flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded-lg transition-all text-xs shadow-xs cursor-pointer"
+                className="flex-1 flex items-center justify-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-1.5 rounded-md transition-all text-xs shadow-xs cursor-pointer"
               >
                 <Save className="w-3.5 h-3.5" />
-                Save Changes
+                Save
               </button>
               <button
                 type="button"
                 onClick={handleDelete}
-                className="p-2 border border-rose-200 text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
+                className="p-1.5 border border-rose-200 text-rose-600 hover:bg-rose-50 rounded-md transition-colors cursor-pointer"
                 title="Delete device"
               >
-                <Trash2 className="w-4 h-4" />
+                <Trash2 className="w-3.5 h-3.5" />
               </button>
             </div>
           </form>
         )}
       </div>
-    </div>
+    </aside>
   );
 };
