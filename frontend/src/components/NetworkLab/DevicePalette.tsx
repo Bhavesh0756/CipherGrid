@@ -147,14 +147,19 @@ export const DevicePalette: React.FC<DevicePaletteProps> = ({ onAddDevice }) => 
   });
 
   return (
-    <aside className="w-[220px] bg-white border-r border-slate-200 flex flex-col h-full select-none shrink-0 z-10">
+    <aside className="w-[245px] bg-slate-50/40 border-r border-slate-200/90 flex flex-col h-full select-none shrink-0 z-10">
       {/* Header & Search */}
-      <div className="p-3.5 border-b border-slate-100 flex flex-col shrink-0">
-        <h2 className="text-[13px] font-bold text-slate-900 tracking-tight leading-tight">
-          Device Palette
-        </h2>
+      <div className="p-3.5 border-b border-slate-200/80 bg-white flex flex-col shrink-0">
+        <div className="flex items-center justify-between">
+          <h2 className="text-[13px] font-bold text-slate-900 tracking-tight leading-tight">
+            Device Palette
+          </h2>
+          <span className="text-[10px] font-mono text-slate-400 bg-slate-100 border border-slate-200 px-1.5 py-0.5 rounded-md font-medium">
+            {filteredItems.length} types
+          </span>
+        </div>
         <p className="text-[10.5px] text-slate-400 mt-0.5">
-          Drag devices to the canvas
+          Drag to canvas or click to add
         </p>
 
         {/* Clean, well-aligned search input */}
@@ -165,50 +170,58 @@ export const DevicePalette: React.FC<DevicePaletteProps> = ({ onAddDevice }) => 
             placeholder="Search devices..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-8 pr-2.5 py-1.5 text-xs bg-slate-100/70 border border-slate-200 rounded-lg text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-blue-500 focus:bg-white transition-all shadow-2xs"
+            className="w-full pl-8 pr-2.5 py-1.5 text-xs bg-slate-50 border border-slate-200/90 rounded-lg text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-blue-500 focus:bg-white focus:ring-1 focus:ring-blue-500/20 transition-all shadow-2xs"
           />
         </div>
       </div>
 
-      {/* Categorized Device List */}
-      <div className="flex-1 overflow-y-auto p-2.5 space-y-3.5">
+      {/* Categorized Device List with Comfortable Spacing */}
+      <div className="flex-1 overflow-y-auto p-3 space-y-5">
         {CATEGORIES.map((cat) => {
           const items = filteredItems.filter((i) => i.category === cat);
           if (items.length === 0) return null;
 
           return (
-            <div key={cat} className="space-y-1">
-              <div className="text-[9.5px] font-bold text-slate-400 tracking-wider px-1.5 uppercase mb-1">
-                {cat}
+            <div key={cat} className="space-y-2">
+              {/* Category Heading with subtle counter */}
+              <div className="px-1 flex items-center justify-between text-[10px] font-bold text-slate-400 tracking-[0.12em] uppercase select-none">
+                <span>{cat}</span>
+                <span className="text-[9.5px] font-mono font-medium text-slate-400/80 bg-slate-200/60 px-1.5 py-0.2 rounded">
+                  {items.length}
+                </span>
               </div>
 
-              <div className="space-y-0.5">
+              {/* Stylish Card Items with generous breathing room */}
+              <div className="space-y-2">
                 {items.map((item) => (
                   <div
                     key={item.type}
                     draggable
                     onDragStart={(e) => onDragStart(e, item)}
                     onClick={() => onAddDevice(item)}
-                    className="group flex items-center justify-between px-2 py-1.5 rounded-lg border border-transparent hover:border-slate-200 hover:bg-slate-50 transition-all duration-150 cursor-grab active:cursor-grabbing hover:shadow-2xs"
+                    className="group relative flex items-center justify-between p-2.5 rounded-xl bg-white hover:bg-blue-50/40 border border-slate-200/80 hover:border-blue-300 transition-all duration-200 cursor-grab active:cursor-grabbing shadow-2xs hover:shadow-xs"
+                    title={`Click or drag to add ${item.label}`}
                   >
                     <div className="flex items-center gap-2.5 min-w-0">
                       <div
-                        className={`w-7 h-7 rounded-lg flex items-center justify-center border shadow-2xs shrink-0 ${item.iconBg}`}
+                        className={`w-8 h-8 rounded-lg flex items-center justify-center border shadow-2xs shrink-0 transition-transform duration-200 group-hover:scale-105 ${item.iconBg}`}
                       >
                         {item.icon}
                       </div>
 
                       <div className="min-w-0 flex flex-col justify-center">
-                        <span className="text-[11.5px] font-semibold text-slate-800 truncate leading-snug group-hover:text-blue-600 transition-colors">
+                        <span className="text-xs font-semibold text-slate-800 truncate leading-snug group-hover:text-blue-600 transition-colors">
                           {item.label}
                         </span>
-                        <span className="text-[10px] text-slate-400 font-mono leading-none mt-0.5">
+                        <span className="text-[10px] text-slate-400 font-mono leading-none mt-1">
                           {item.defaultPurdue}
                         </span>
                       </div>
                     </div>
 
-                    <Plus className="w-3.5 h-3.5 text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
+                    <div className="w-5 h-5 rounded-md bg-blue-50 border border-blue-200/60 text-blue-600 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center shrink-0 shadow-2xs">
+                      <Plus className="w-3 h-3" />
+                    </div>
                   </div>
                 ))}
               </div>
