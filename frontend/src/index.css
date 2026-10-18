@@ -145,6 +145,10 @@ code, pre, .font-mono {
 .react-flow__background {
   background-color: #f3f6fa !important;
 }
+/* ─── React Flow Canvas Overrides: Futuristic Industrial Aesthetic ─── */
+.react-flow__background {
+  background-color: #f1f5f9 !important;
+}
 .react-flow__node {
   background: transparent !important;
   border: none !important;
@@ -152,40 +156,62 @@ code, pre, .font-mono {
   padding: 0 !important;
 }
 .react-flow__handle {
-  width: 8px !important;
-  height: 8px !important;
+  width: 9px !important;
+  height: 9px !important;
   border-radius: 50% !important;
-  background-color: #3b82f6 !important;
+  background-color: #0284c7 !important;
   border: 1.5px solid #ffffff !important;
-  box-shadow: 0 0 0 1.5px rgba(59, 130, 246, 0.4) !important;
-  opacity: 0 !important;
-  transition: transform 0.15s ease, opacity 0.15s ease !important;
+  box-shadow: 0 0 0 1.5px rgba(2, 132, 199, 0.45), 0 0 6px rgba(14, 165, 233, 0.5) !important;
+  opacity: 0.75 !important;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 .react-flow__node:hover .react-flow__handle,
 .react-flow__handle:hover,
 .react-flow__handle.connectingfrom,
 .react-flow__handle.connectionindicator {
   opacity: 1 !important;
-  transform: scale(1.3) !important;
+  transform: scale(1.35) !important;
+  background-color: #00d2ff !important;
+  box-shadow: 0 0 0 2px #ffffff, 0 0 10px #00d2ff, 0 0 18px rgba(0, 210, 255, 0.75) !important;
 }
 .react-flow__edge-path {
-  stroke: #94a3b8;
-  stroke-width: 1.5;
-  transition: stroke 0.2s ease, stroke-width 0.2s ease;
+  stroke-linecap: round;
+  transition: stroke 0.25s ease, stroke-width 0.25s ease, filter 0.25s ease;
+}
+.react-flow__edge:hover .react-flow__edge-path {
+  stroke-width: 2.5 !important;
+  filter: drop-shadow(0 0 4px rgba(59, 130, 246, 0.6)) !important;
 }
 .react-flow__edge.selected .react-flow__edge-path {
-  stroke: #2563eb;
-  stroke-width: 2.5;
+  stroke: #2563eb !important;
+  stroke-width: 2.75 !important;
+  filter: drop-shadow(0 0 6px rgba(37, 99, 235, 0.5)) !important;
 }
 .react-flow__edge.animated .react-flow__edge-path {
-  stroke: #2563eb;
-  stroke-width: 2.5;
-  stroke-dasharray: 6 3;
-  animation: dashdraw 0.4s linear infinite;
+  stroke: #2563eb !important;
+  stroke-width: 2.75 !important;
+  stroke-dasharray: 8 5 !important;
+  animation: cyber-laser-flow 0.45s linear infinite !important;
+  filter: drop-shadow(0 0 6px #2563eb) drop-shadow(0 0 2px #60a5fa) !important;
 }
-@keyframes dashdraw {
-  from { stroke-dashoffset: 9; }
+@keyframes cyber-laser-flow {
+  from { stroke-dashoffset: 26; }
   to { stroke-dashoffset: 0; }
+}
+
+/* Active hop pulse on canvas nodes */
+@keyframes cyber-hop-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.6), 0 0 20px rgba(37, 99, 235, 0.3);
+    transform: scale(1.02);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(37, 99, 235, 0), 0 0 35px rgba(37, 99, 235, 0.5);
+    transform: scale(1.035);
+  }
+}
+.node-active-hop {
+  animation: cyber-hop-pulse 1s cubic-bezier(0.4, 0, 0.6, 1) infinite !important;
 }
 
 /* React Flow controls & minimap — match our design system */
@@ -227,14 +253,7 @@ code, pre, .font-mono {
 .mod-accent-telemetry { border-left: 3px solid var(--mod-telemetry); }
 .mod-accent-settings { border-left: 3px solid var(--mod-settings); }
 
-/* Active hop pulse on canvas nodes */
-@keyframes hop-pulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(8, 145, 178, 0.3); }
-  50% { box-shadow: 0 0 0 8px rgba(8, 145, 178, 0); }
-}
-.node-active-hop {
-  animation: hop-pulse 1.2s ease-in-out infinite;
-}
+
 
 /* Subtle hover card lift */
 .card-hover {

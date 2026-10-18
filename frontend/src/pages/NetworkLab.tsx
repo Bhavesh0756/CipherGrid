@@ -101,8 +101,8 @@ const NetworkLabContent: React.FC = () => {
         id: d.id,
         type: 'industrialDevice',
         position: { x: d.position_x, y: d.position_y },
-        width: 240,
-        height: 86,
+        width: 250,
+        height: 92,
         data: { device: d, isSelected, isHighlighted, isActiveHop, isSource, isDestination },
       };
     });
@@ -159,19 +159,19 @@ const NetworkLabContent: React.FC = () => {
         },
         label: `${c.latency_ms} ms`,
         labelStyle: {
-          fill: '#475569',
-          fontSize: 10,
-          fontFamily: 'Inter, sans-serif',
+          fill: inPath ? '#38bdf8' : '#38bdf8',
+          fontSize: 9.5,
+          fontFamily: 'JetBrains Mono, ui-monospace, monospace',
           fontWeight: 600,
         },
         labelBgStyle: {
-          fill: '#ffffff',
-          fillOpacity: 1,
-          stroke: '#cbd5e1',
-          strokeWidth: 1,
+          fill: inPath ? '#09152e' : '#0f172a',
+          fillOpacity: 0.95,
+          stroke: inPath ? '#2563eb' : '#334155',
+          strokeWidth: 1.2,
         },
         labelBgPadding: [6, 2] as [number, number],
-        labelBgBorderRadius: 9999,
+        labelBgBorderRadius: 6,
       };
     });
   }, [connections, highlightedPath, devices]);
@@ -306,17 +306,21 @@ const NetworkLabContent: React.FC = () => {
 
         {/* Center: Topology Canvas */}
         <div ref={reactFlowWrapper} className="flex-1 h-full w-full relative flex flex-col min-w-0">
-          {/* Canvas Top Bar */}
-          <div className="h-11 bg-white border-b border-slate-200 px-4 flex items-center justify-between shrink-0 z-10 shadow-2xs">
-            {/* Left title and subtitle */}
-            <div className="flex items-center gap-2">
-              <div className="w-6 h-6 rounded-md bg-blue-50 border border-blue-200/80 flex items-center justify-center text-blue-600 shadow-2xs">
-                <Settings className="w-3 h-3" />
+          {/* Canvas Top Bar - Precision Cyber Deck Header */}
+          <div className="h-11 bg-white border-b border-slate-200/90 px-4 flex items-center justify-between shrink-0 z-10 shadow-2xs">
+            {/* Left title, status badge and description */}
+            <div className="flex items-center gap-2.5">
+              <div className="w-6 h-6 rounded-md bg-blue-500/10 border border-blue-400/30 flex items-center justify-center text-blue-600 shadow-2xs">
+                <Settings className="w-3.5 h-3.5" />
               </div>
               <div className="flex items-center gap-2">
-                <h3 className="text-xs font-bold text-slate-900 leading-tight">
+                <h3 className="text-xs font-bold text-slate-900 leading-tight tracking-tight">
                   Topology Canvas
                 </h3>
+                <span className="inline-flex items-center gap-1 font-mono text-[9px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200/90 px-1.5 py-0.5 rounded shadow-2xs">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                  LIVE MESH
+                </span>
                 <span className="text-slate-300 text-xs font-light">|</span>
                 <p className="text-[10.5px] text-slate-400">
                   Connect port handles to wire links · Drag nodes to reposition
