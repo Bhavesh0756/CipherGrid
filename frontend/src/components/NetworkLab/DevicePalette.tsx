@@ -168,7 +168,7 @@ export const DevicePalette: React.FC<DevicePaletteProps> = ({ onAddDevice }) => 
           <Search className="w-3.5 h-3.5 text-slate-400 shrink-0 pointer-events-none" />
           <input
             type="text"
-            placeholder="Search palette..."
+            placeholder="Search devices..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full bg-transparent text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none"

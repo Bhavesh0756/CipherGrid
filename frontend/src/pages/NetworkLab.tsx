@@ -3,6 +3,7 @@ import {
   Background,
   BackgroundVariant,
   Connection as FlowConnection,
+  Controls,
   Edge,
   MarkerType,
   MiniMap,
@@ -22,6 +23,7 @@ import {
   MousePointer,
   Plus,
   Settings,
+  SlidersHorizontal,
   Trash2,
 } from 'lucide-react';
 
@@ -368,6 +370,14 @@ const NetworkLabContent: React.FC = () => {
                 <Trash2 className="w-3.5 h-3.5" />
               </button>
 
+              {/* Sliders / Filter button */}
+              <button
+                className="p-1.5 bg-white hover:bg-slate-50 border border-slate-200 rounded-md text-slate-600 hover:text-slate-900 transition-colors shadow-2xs cursor-pointer"
+                title="Network Settings"
+              >
+                <SlidersHorizontal className="w-3.5 h-3.5" />
+              </button>
+
               {/* Fit view button */}
               <button
                 onClick={handleFitView}
@@ -433,6 +443,28 @@ const NetworkLabContent: React.FC = () => {
                 gap={24}
                 size={1.5}
                 color="#cbd5e1"
+              />
+              <MiniMap
+                position="bottom-right"
+                nodeStrokeWidth={3}
+                nodeColor={(node: any) => {
+                  switch (node.data?.device?.device_type) {
+                    case 'PLC': return '#3b82f6';
+                    case 'Sensor': return '#f59e0b';
+                    case 'SCADA Server': return '#9333ea';
+                    case 'Operator Workstation': return '#f97316';
+                    case 'Untrusted Device': return '#ef4444';
+                    case 'Monitoring Server': return '#10b981';
+                    default: return '#3b82f6';
+                  }
+                }}
+                className="!bg-white !border !border-slate-200 !rounded-xl !shadow-sm overflow-hidden !m-4"
+                style={{ width: 130, height: 80 }}
+              />
+              <Controls
+                showInteractive={false}
+                position="bottom-right"
+                className="!bg-white !border !border-slate-200 !rounded-lg !shadow-sm !mr-4 !mb-26"
               />
             </ReactFlow>
           </div>

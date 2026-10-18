@@ -175,93 +175,91 @@ export const SimulationControls: React.FC = () => {
           </div>
         </div>
 
-        {/* Center: Action Buttons and Dropdowns in a single clean row */}
-        <div className="flex items-center gap-2 min-w-0">
-          {/* Action Buttons */}
-          <div className="flex items-center gap-1.5 shrink-0">
-            <button
-              onClick={handleSimulate}
-              disabled={isSimulating}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 disabled:bg-slate-300 text-white rounded-lg text-xs font-semibold shadow-xs transition-all cursor-pointer shrink-0"
-            >
-              <Play className="w-3 h-3 fill-current" />
-              <span>{isSimulating ? 'Simulating…' : 'Simulate'}</span>
-            </button>
-
-            <button
-              onClick={handleReset}
-              className="flex items-center gap-1 px-2.5 py-1.5 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 rounded-lg text-xs font-medium transition-all shadow-2xs cursor-pointer shrink-0"
-              title="Reset simulation playback"
-            >
-              <RotateCcw className="w-3 h-3 text-slate-500" />
-              <span>Reset</span>
-            </button>
-          </div>
-
-          <div className="h-4 w-px bg-slate-200 shrink-0" />
+        {/* Center: Reset button, Device dropdowns, and Simulate Message Button */}
+        <div className="flex items-center gap-3 min-w-0 flex-1 justify-center">
+          <button
+            onClick={handleReset}
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-slate-50 active:bg-slate-100 border border-slate-200 text-slate-700 rounded-lg text-xs font-semibold transition-all shadow-2xs cursor-pointer shrink-0"
+            title="Reset simulation state"
+          >
+            <RotateCcw className="w-3.5 h-3.5 text-slate-500" />
+            <span>Reset</span>
+          </button>
 
           {/* Source Device */}
-          <div className="flex items-center gap-1 shrink-0">
-            <span className="text-[11px] font-medium text-slate-500 shrink-0 hidden lg:inline">
-              From:
+          <div className="flex flex-col">
+            <span className="text-[10px] font-semibold text-slate-500 mb-0.5">
+              Source Device
             </span>
             <div className="relative">
               <select
                 value={sourceId}
                 onChange={(e) => setSourceId(e.target.value)}
-                className="appearance-none pl-2 pr-6 py-1 text-xs font-medium bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:border-blue-500 cursor-pointer w-36 truncate shadow-2xs"
+                className="appearance-none pl-2.5 pr-7 py-1.5 text-xs font-medium bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:border-blue-500 cursor-pointer w-48 truncate shadow-2xs"
               >
                 {devices.map((d) => (
                   <option key={d.id} value={d.id}>
-                    {d.name.replace(/\s+PLC$/i, '')}
+                    {d.name.replace(/\s+PLC$/i, '')} ({d.ip_address})
                   </option>
                 ))}
               </select>
-              <ChevronDown className="w-3 h-3 text-slate-400 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
             </div>
           </div>
 
-          <ArrowRight className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+          <ArrowRight className="w-4 h-4 text-blue-600 shrink-0 mt-3" />
 
           {/* Destination Device */}
-          <div className="flex items-center gap-1 shrink-0">
-            <span className="text-[11px] font-medium text-slate-500 shrink-0 hidden lg:inline">
-              To:
+          <div className="flex flex-col">
+            <span className="text-[10px] font-semibold text-slate-500 mb-0.5">
+              Destination Device
             </span>
             <div className="relative">
               <select
                 value={destId}
                 onChange={(e) => setDestId(e.target.value)}
-                className="appearance-none pl-2 pr-6 py-1 text-xs font-medium bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:border-blue-500 cursor-pointer w-36 truncate shadow-2xs"
+                className="appearance-none pl-2.5 pr-7 py-1.5 text-xs font-medium bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:border-blue-500 cursor-pointer w-48 truncate shadow-2xs"
               >
                 {devices.map((d) => (
                   <option key={d.id} value={d.id}>
-                    {d.name.replace(/\s+PLC$/i, '')}
+                    {d.name.replace(/\s+PLC$/i, '')} ({d.ip_address})
                   </option>
                 ))}
               </select>
-              <ChevronDown className="w-3 h-3 text-slate-400 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
             </div>
           </div>
 
           {/* Message Type */}
-          <div className="flex items-center gap-1 shrink-0">
-            <span className="text-[11px] font-medium text-slate-500 shrink-0 hidden lg:inline">
-              Msg:
+          <div className="flex flex-col">
+            <span className="text-[10px] font-semibold text-slate-500 mb-0.5">
+              Message Type
             </span>
             <div className="relative">
               <select
                 value={messageType}
                 onChange={(e) => setMessageType(e.target.value as MessageType)}
-                className="appearance-none pl-2 pr-6 py-1 text-xs font-medium bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:border-blue-500 cursor-pointer w-40 truncate shadow-2xs"
+                className="appearance-none pl-2.5 pr-7 py-1.5 text-xs font-medium bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:border-blue-500 cursor-pointer w-44 truncate shadow-2xs"
               >
                 <option value="Sensor Reading">Read Status (Modbus)</option>
                 <option value="Device Status">Device Status</option>
                 <option value="Controller Command">Controller Command</option>
                 <option value="Alarm Notification">Alarm Notification</option>
               </select>
-              <ChevronDown className="w-3 h-3 text-slate-400 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
             </div>
+          </div>
+
+          {/* Simulate Message Action Button */}
+          <div className="flex flex-col justify-end mt-3">
+            <button
+              onClick={handleSimulate}
+              disabled={isSimulating}
+              className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 disabled:bg-slate-300 text-white rounded-lg text-xs font-semibold shadow-sm shadow-blue-600/30 transition-all cursor-pointer shrink-0"
+            >
+              <Play className="w-3.5 h-3.5 fill-current" />
+              <span>{isSimulating ? 'Simulating…' : 'Simulate Message'}</span>
+            </button>
           </div>
         </div>
 
@@ -336,11 +334,11 @@ export const SimulationControls: React.FC = () => {
 
             <button
               onClick={() => setCleared(true)}
-              className="flex items-center gap-1 px-2 py-0.5 text-xs font-medium text-rose-600 hover:text-rose-700 hover:bg-rose-50 border border-rose-200 rounded-md transition-colors cursor-pointer"
+              className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded-lg transition-colors cursor-pointer shadow-2xs"
               title="Clear event logs"
             >
-              <Trash2 className="w-3 h-3" />
-              <span>Clear</span>
+              <Trash2 className="w-3.5 h-3.5" />
+              <span>Clear Logs</span>
             </button>
           </div>
         </div>
@@ -357,12 +355,13 @@ export const SimulationControls: React.FC = () => {
                   <th className="py-1.5 px-3 w-48">Destination</th>
                   <th className="py-1.5 px-3">Message</th>
                   <th className="py-1.5 px-5 w-24 text-right">Status</th>
+                  <th className="py-1.5 px-3 w-10 text-center"></th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {filteredEvents.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="py-6 text-center text-slate-400 italic">
+                    <td colSpan={7} className="py-6 text-center text-slate-400 italic">
                       No event log records matching filter.
                     </td>
                   </tr>
@@ -404,6 +403,9 @@ export const SimulationControls: React.FC = () => {
                         >
                           {evt.status}
                         </span>
+                      </td>
+                      <td className="py-1 px-3 text-center text-slate-400 font-bold tracking-widest text-xs cursor-pointer hover:text-slate-700 select-none">
+                        ···
                       </td>
                     </tr>
                   ))
