@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Save, Trash2, Power, Shield, Activity, Network } from 'lucide-react';
+import { X, Save, Trash2, Power, Shield, Network } from 'lucide-react';
 import { Device, DeviceRole, TrustStatus, PurdueLevel } from '../../types';
 import { useSimulatorStore } from '../../store/useSimulatorStore';
 
@@ -48,10 +48,9 @@ export const DeviceInspector: React.FC<DeviceInspectorProps> = ({ device, onClos
     e.preventDefault();
     setErrorMessage(null);
 
-    // Validate IP address format (simple regex)
     const ipPattern = /^(\d{1,3}\.){3}\d{1,3}$/;
     if (!ipPattern.test(formData.ip_address.trim())) {
-      setErrorMessage('Invalid IPv4 address format (e.g., 192.168.10.50)');
+      setErrorMessage('Invalid IPv4 address format');
       return;
     }
 
@@ -74,92 +73,74 @@ export const DeviceInspector: React.FC<DeviceInspectorProps> = ({ device, onClos
       setSaveSuccess(true);
       setTimeout(() => setSaveSuccess(false), 2000);
     } catch (err: any) {
-      setErrorMessage(err.message || 'Failed to update device configuration');
+      setErrorMessage(err.message || 'Failed to save');
     }
   };
 
   const handleDelete = async () => {
-    if (window.confirm(`Are you sure you want to delete virtual device ${device.name}?`)) {
+    if (window.confirm(`Delete virtual device ${device.name}?`)) {
       await deleteDevice(device.id);
       onClose();
     }
   };
 
+  const inputClass = "w-full px-2.5 py-[6px] border border-stone-200 rounded-md text-[12px] bg-white focus:ring-1 focus:ring-cyan-500 focus:border-cyan-500 transition-colors outline-none";
+  const selectClass = "w-full px-2 py-[6px] border border-stone-200 rounded-md text-[12px] bg-white focus:ring-1 focus:ring-cyan-500 outline-none";
+  const labelClass = "block text-[11px] font-medium text-stone-600 mb-1";
+
   return (
-    <div className="w-80 bg-white border-l border-slate-200 flex flex-col h-full select-text shadow-sm">
+    <div className="w-72 bg-white border-l border-stone-200/80 flex flex-col h-full select-text">
       {/* Header */}
-      <div className="p-3 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
-        <div>
-          <h3 className="text-xs font-semibold text-slate-800 uppercase tracking-wider">Device Inspector</h3>
-          <p className="text-[11px] font-mono text-slate-500 truncate max-w-[200px]">{device.id}</p>
+      <div className="px-3.5 py-3 border-b border-stone-100 flex items-center justify-between">
+        <div className="min-w-0">
+          <h3 className="text-[11px] font-semibold text-stone-700 uppercase tracking-wide">Inspector</h3>
+          <p className="text-[10px] font-mono text-stone-400 truncate max-w-[180px] mt-0.5">{device.id}</p>
         </div>
         <button
           onClick={onClose}
-          className="p-1 rounded text-slate-400 hover:text-slate-600 hover:bg-slate-200"
-          title="Close inspector"
+          className="p-1 rounded-md text-stone-400 hover:text-stone-600 hover:bg-stone-100 transition-colors"
         >
-          <X className="w-4 h-4" />
+          <X className="w-3.5 h-3.5" />
         </button>
       </div>
 
       {/* Form */}
-      <form onSubmit={handleSave} className="flex-1 overflow-y-auto p-4 space-y-3.5 text-xs">
+      <form onSubmit={handleSave} className="flex-1 overflow-y-auto px-3.5 py-3 space-y-3 text-xs">
         {errorMessage && (
-          <div className="p-2 bg-rose-50 border border-rose-200 text-rose-700 rounded text-[11px]">
+          <div className="p-2 bg-rose-50 border border-rose-200/60 text-rose-700 rounded-md text-[10.5px]">
             {errorMessage}
           </div>
         )}
-
         {saveSuccess && (
-          <div className="p-2 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded text-[11px]">
-            Device configuration successfully saved!
+          <div className="p-2 bg-emerald-50 border border-emerald-200/60 text-emerald-700 rounded-md text-[10.5px]">
+            Configuration saved
           </div>
         )}
 
         <div>
-          <label className="block font-medium text-slate-700 mb-1">Device Label</label>
-          <input
-            type="text"
-            value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            className="w-full px-2.5 py-1.5 border border-slate-300 rounded text-xs focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-            required
-          />
+          <label className={labelClass}>Device Label</label>
+          <input type="text" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className={inputClass} required />
         </div>
 
         <div>
-          <label className="block font-medium text-slate-700 mb-1">Device Type</label>
-          <div className="px-2.5 py-1.5 bg-slate-100 border border-slate-200 rounded text-slate-600 font-medium">
-            {device.device_type}
-          </div>
+          <label className={labelClass}>Type</label>
+          <div className="px-2.5 py-[6px] bg-stone-50 border border-stone-100 rounded-md text-stone-500 text-[12px] font-medium">{device.device_type}</div>
         </div>
 
         <div>
-          <label className="block font-medium text-slate-700 mb-1">IP Address (IPv4)</label>
-          <input
-            type="text"
-            value={formData.ip_address}
-            onChange={(e) => setFormData({ ...formData, ip_address: e.target.value })}
-            className="w-full px-2.5 py-1.5 border border-slate-300 rounded font-mono text-xs focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-            required
-          />
+          <label className={labelClass}>IP Address</label>
+          <input type="text" value={formData.ip_address} onChange={(e) => setFormData({ ...formData, ip_address: e.target.value })} className={`${inputClass} font-mono`} required />
         </div>
 
         <div>
-          <label className="block font-medium text-slate-700 mb-1">Hardware MAC Address</label>
-          <div className="px-2.5 py-1.5 bg-slate-100 border border-slate-200 rounded font-mono text-[11px] text-slate-600">
-            {device.mac_address}
-          </div>
+          <label className={labelClass}>MAC Address</label>
+          <div className="px-2.5 py-[6px] bg-stone-50 border border-stone-100 rounded-md font-mono text-[10.5px] text-stone-500">{device.mac_address}</div>
         </div>
 
         <div className="grid grid-cols-2 gap-2">
           <div>
-            <label className="block font-medium text-slate-700 mb-1">Role</label>
-            <select
-              value={formData.role}
-              onChange={(e) => setFormData({ ...formData, role: e.target.value as DeviceRole })}
-              className="w-full px-2 py-1.5 border border-slate-300 rounded text-xs focus:ring-1 focus:ring-blue-500"
-            >
+            <label className={labelClass}>Role</label>
+            <select value={formData.role} onChange={(e) => setFormData({ ...formData, role: e.target.value as DeviceRole })} className={selectClass}>
               <option value="Sensor">Sensor</option>
               <option value="Controller">Controller</option>
               <option value="SCADA">SCADA</option>
@@ -171,14 +152,9 @@ export const DeviceInspector: React.FC<DeviceInspectorProps> = ({ device, onClos
               <option value="Untrusted">Untrusted</option>
             </select>
           </div>
-
           <div>
-            <label className="block font-medium text-slate-700 mb-1">Trust Status</label>
-            <select
-              value={formData.trust_status}
-              onChange={(e) => setFormData({ ...formData, trust_status: e.target.value as TrustStatus })}
-              className="w-full px-2 py-1.5 border border-slate-300 rounded text-xs focus:ring-1 focus:ring-blue-500"
-            >
+            <label className={labelClass}>Trust</label>
+            <select value={formData.trust_status} onChange={(e) => setFormData({ ...formData, trust_status: e.target.value as TrustStatus })} className={selectClass}>
               <option value="Trusted">Trusted</option>
               <option value="Untrusted">Untrusted</option>
               <option value="Quarantined">Quarantined</option>
@@ -187,68 +163,58 @@ export const DeviceInspector: React.FC<DeviceInspectorProps> = ({ device, onClos
         </div>
 
         <div>
-          <label className="block font-medium text-slate-700 mb-1">Purdue Model Level</label>
-          <select
-            value={formData.purdue_level}
-            onChange={(e) => setFormData({ ...formData, purdue_level: e.target.value as PurdueLevel })}
-            className="w-full px-2 py-1.5 border border-slate-300 rounded text-xs focus:ring-1 focus:ring-blue-500"
-          >
+          <label className={labelClass}>Purdue Level</label>
+          <select value={formData.purdue_level} onChange={(e) => setFormData({ ...formData, purdue_level: e.target.value as PurdueLevel })} className={selectClass}>
             <option value="Level 0">Level 0: Process</option>
             <option value="Level 1">Level 1: Basic Control</option>
-            <option value="Level 2">Level 2: Supervisory Control</option>
-            <option value="Level 3">Level 3: Site Operations</option>
-            <option value="Level 3.5">Level 3.5: Industrial DMZ</option>
+            <option value="Level 2">Level 2: Supervisory</option>
+            <option value="Level 3">Level 3: Operations</option>
+            <option value="Level 3.5">Level 3.5: DMZ</option>
             <option value="Untrusted">Untrusted External</option>
           </select>
         </div>
 
         <div>
-          <label className="block font-medium text-slate-700 mb-1">Allowed Message Types</label>
-          <input
-            type="text"
-            value={formData.allowed_actions}
-            onChange={(e) => setFormData({ ...formData, allowed_actions: e.target.value })}
-            placeholder="Sensor Reading, Device Status..."
-            className="w-full px-2.5 py-1.5 border border-slate-300 rounded text-xs focus:ring-1 focus:ring-blue-500"
-          />
-          <p className="text-[10px] text-slate-400 mt-0.5">Comma-separated allowed operation types</p>
+          <label className={labelClass}>Allowed Message Types</label>
+          <input type="text" value={formData.allowed_actions} onChange={(e) => setFormData({ ...formData, allowed_actions: e.target.value })} placeholder="Sensor Reading, Device Status" className={inputClass} />
+          <p className="text-[9px] text-stone-400 mt-0.5">Comma-separated</p>
         </div>
 
-        <div className="flex items-center justify-between pt-2 border-t border-slate-200">
-          <div className="flex items-center gap-2">
-            <Power className={`w-4 h-4 ${formData.is_enabled ? 'text-emerald-600' : 'text-slate-400'}`} />
-            <span className="font-medium text-slate-700">Administrative Status</span>
+        {/* Status toggle */}
+        <div className="flex items-center justify-between pt-2 border-t border-stone-100">
+          <div className="flex items-center gap-1.5">
+            <Power className={`w-3.5 h-3.5 ${formData.is_enabled ? 'text-emerald-500' : 'text-stone-400'}`} />
+            <span className="text-[11px] font-medium text-stone-600">Status</span>
           </div>
           <button
             type="button"
             onClick={() => setFormData({ ...formData, is_enabled: !formData.is_enabled })}
-            className={`px-2.5 py-1 rounded text-[11px] font-medium border transition-colors ${
+            className={`px-2.5 py-[3px] rounded-full text-[10px] font-medium transition-colors ${
               formData.is_enabled
-                ? 'bg-emerald-50 text-emerald-700 border-emerald-300'
-                : 'bg-slate-100 text-slate-600 border-slate-300'
+                ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                : 'bg-stone-50 text-stone-500 border border-stone-200'
             }`}
           >
-            {formData.is_enabled ? 'Online / Enabled' : 'Offline / Disabled'}
+            {formData.is_enabled ? 'Online' : 'Offline'}
           </button>
         </div>
 
-        {/* Active Link Connections */}
-        <div className="pt-2 border-t border-slate-200">
-          <div className="flex items-center gap-1.5 font-medium text-slate-700 mb-2">
-            <Network className="w-3.5 h-3.5 text-blue-600" />
-            <span>Connected Interfaces ({deviceConnections.length})</span>
+        {/* Connections */}
+        <div className="pt-2 border-t border-stone-100">
+          <div className="flex items-center gap-1 text-[11px] font-medium text-stone-600 mb-1.5">
+            <Network className="w-3 h-3 text-cyan-600" />
+            <span>Links ({deviceConnections.length})</span>
           </div>
           {deviceConnections.length === 0 ? (
-            <p className="text-[11px] text-slate-400 italic">No links wired to this node.</p>
+            <p className="text-[10px] text-stone-400 italic">No connections</p>
           ) : (
             <div className="space-y-1">
               {deviceConnections.map((c) => {
-                const isSrc = c.source_id === device.id;
-                const peerId = isSrc ? c.target_id : c.source_id;
+                const peerId = c.source_id === device.id ? c.target_id : c.source_id;
                 return (
-                  <div key={c.id} className="p-1.5 bg-slate-50 border border-slate-200 rounded flex justify-between items-center text-[10px] font-mono">
-                    <span className="text-slate-700 truncate max-w-[150px]">To: {peerId}</span>
-                    <span className="text-slate-400">{c.latency_ms}ms</span>
+                  <div key={c.id} className="px-2 py-1 bg-stone-50 rounded-md flex justify-between items-center text-[10px] font-mono text-stone-600">
+                    <span className="truncate max-w-[140px]">{peerId}</span>
+                    <span className="text-stone-400">{c.latency_ms}ms</span>
                   </div>
                 );
               })}
@@ -256,35 +222,27 @@ export const DeviceInspector: React.FC<DeviceInspectorProps> = ({ device, onClos
           )}
         </div>
 
-        {/* Public Key Display */}
+        {/* Public key */}
         {device.public_key_pem && (
-          <div className="pt-2 border-t border-slate-200">
-            <label className="block font-medium text-slate-700 mb-1 flex items-center gap-1">
-              <Shield className="w-3.5 h-3.5 text-blue-600" />
-              <span>RSA-2048 Public Key (PEM)</span>
-            </label>
-            <div className="bg-slate-900 text-slate-300 p-2 rounded font-mono text-[9px] overflow-x-auto max-h-20 leading-tight">
+          <div className="pt-2 border-t border-stone-100">
+            <div className="flex items-center gap-1 text-[11px] font-medium text-stone-600 mb-1">
+              <Shield className="w-3 h-3 text-cyan-600" />
+              <span>RSA-2048 Public Key</span>
+            </div>
+            <div className="bg-stone-900 text-stone-400 p-2 rounded-md font-mono text-[8.5px] overflow-x-auto max-h-16 leading-tight">
               {device.public_key_pem}
             </div>
           </div>
         )}
 
-        {/* Action Buttons */}
-        <div className="pt-3 border-t border-slate-200 flex gap-2">
-          <button
-            type="submit"
-            className="flex-1 flex items-center justify-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white font-medium py-1.5 px-3 rounded shadow-sm transition-colors"
-          >
-            <Save className="w-3.5 h-3.5" />
-            <span>Save Changes</span>
+        {/* Actions */}
+        <div className="pt-3 border-t border-stone-100 flex gap-2">
+          <button type="submit" className="flex-1 flex items-center justify-center gap-1.5 bg-cyan-600 hover:bg-cyan-500 text-white font-medium py-[6px] rounded-md transition-colors text-[11px]">
+            <Save className="w-3 h-3" />
+            Save
           </button>
-          <button
-            type="button"
-            onClick={handleDelete}
-            className="flex items-center justify-center p-1.5 border border-rose-300 text-rose-600 hover:bg-rose-50 rounded transition-colors"
-            title="Delete virtual device"
-          >
-            <Trash2 className="w-4 h-4" />
+          <button type="button" onClick={handleDelete} className="p-[6px] border border-rose-200 text-rose-500 hover:bg-rose-50 rounded-md transition-colors">
+            <Trash2 className="w-3.5 h-3.5" />
           </button>
         </div>
       </form>

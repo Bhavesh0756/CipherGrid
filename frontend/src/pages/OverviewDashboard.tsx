@@ -1,17 +1,14 @@
 import React, { useEffect } from 'react';
 import {
-  Activity,
   ArrowRight,
   CheckCircle2,
-  Database,
-  Layers,
+  LayoutDashboard,
   Network,
   Play,
-  Radio,
   Send,
   Server,
-  ShieldAlert,
   ShieldCheck,
+  TrendingUp,
   XCircle,
 } from 'lucide-react';
 import { useSimulatorStore } from '../store/useSimulatorStore';
@@ -31,227 +28,215 @@ export const OverviewDashboard: React.FC = () => {
 
   const stats = dashboardStats;
 
+  const passRate = stats?.pass_rate ?? 0;
+  const passRateBar = Math.min(100, passRate);
+
   return (
-    <div className="flex-1 flex flex-col h-full bg-[#fafbfc] overflow-y-auto p-6 select-text">
-      {/* Title */}
-      <div className="mb-6 flex items-center justify-between">
-        <div>
-          <h1 className="text-base font-bold text-slate-900 tracking-tight">
-            Operational Telemetry & Simulation Status
-          </h1>
-          <p className="text-xs text-slate-500 mt-0.5">
-            Real-time backend metrics derived from the active industrial network state and SQLite logs
-          </p>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => setActiveSection('network-lab')}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 rounded text-xs font-medium transition-colors shadow-xs"
-          >
-            <Network className="w-3.5 h-3.5 text-blue-600" />
-            <span>Open Network Lab</span>
-          </button>
-          <button
-            onClick={() => setMessageModalOpen(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded text-xs font-medium transition-colors shadow-xs"
-          >
-            <Send className="w-3.5 h-3.5" />
-            <span>Dispatch Packet</span>
-          </button>
-        </div>
-      </div>
-
-      {/* Metrics Row: Restrained, purposeful cards */}
-      <div className="grid grid-cols-5 gap-3.5 mb-6">
-        <div className="p-3.5 bg-white border border-slate-200 rounded-md">
-          <div className="flex items-center justify-between text-slate-500">
-            <span className="text-[11px] font-medium uppercase tracking-wider">Active Devices</span>
-            <Server className="w-4 h-4 text-slate-400" />
-          </div>
-          <div className="text-2xl font-bold text-slate-900 mt-1 font-mono">
-            {stats?.total_devices ?? 0}
-          </div>
-          <div className="text-[10px] text-slate-500 mt-1">
-            {stats?.devices_summary?.online ?? 0} online / {stats?.devices_summary?.offline ?? 0} offline
-          </div>
-        </div>
-
-        <div className="p-3.5 bg-white border border-slate-200 rounded-md">
-          <div className="flex items-center justify-between text-slate-500">
-            <span className="text-[11px] font-medium uppercase tracking-wider">Simulation Sessions</span>
-            <Radio className="w-4 h-4 text-slate-400" />
-          </div>
-          <div className="text-2xl font-bold text-slate-900 mt-1 font-mono">
-            {stats?.total_sessions ?? 0}
-          </div>
-          <div className="text-[10px] text-slate-500 mt-1">Logged in SQLite database</div>
-        </div>
-
-        <div className="p-3.5 bg-white border border-slate-200 rounded-md">
-          <div className="flex items-center justify-between text-emerald-700">
-            <span className="text-[11px] font-medium uppercase tracking-wider">Packets Delivered</span>
-            <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-          </div>
-          <div className="text-2xl font-bold text-emerald-800 mt-1 font-mono">
-            {stats?.messages_delivered ?? 0}
-          </div>
-          <div className="text-[10px] text-slate-500 mt-1">Passed integrity & RBAC</div>
-        </div>
-
-        <div className="p-3.5 bg-white border border-slate-200 rounded-md">
-          <div className="flex items-center justify-between text-rose-700">
-            <span className="text-[11px] font-medium uppercase tracking-wider">Packets Rejected</span>
-            <XCircle className="w-4 h-4 text-rose-600" />
-          </div>
-          <div className="text-2xl font-bold text-rose-800 mt-1 font-mono">
-            {stats?.messages_rejected ?? 0}
-          </div>
-          <div className="text-[10px] text-slate-500 mt-1">Tampering or policy violations</div>
-        </div>
-
-        <div className="p-3.5 bg-white border border-slate-200 rounded-md">
-          <div className="flex items-center justify-between text-blue-700">
-            <span className="text-[11px] font-medium uppercase tracking-wider">Security Pass Rate</span>
-            <ShieldCheck className="w-4 h-4 text-blue-600" />
-          </div>
-          <div className="text-2xl font-bold text-blue-800 mt-1 font-mono">
-            {stats?.pass_rate ?? 0}%
-          </div>
-          <div className="text-[10px] text-slate-500 mt-1">Automated test scenarios</div>
-        </div>
-      </div>
-
-      {/* Main Grid: Shortcuts & Recent Security Events */}
-      <div className="grid grid-cols-3 gap-6 flex-1 min-h-0">
-        {/* Left 2 Cols: Recent Security Events Table */}
-        <div className="col-span-2 bg-white border border-slate-200 rounded-md flex flex-col overflow-hidden">
-          <div className="px-4 py-3 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Activity className="w-4 h-4 text-blue-600" />
-              <h2 className="text-xs font-semibold text-slate-800 uppercase tracking-wider">
-                Recent Security Audit Events
-              </h2>
+    <div className="flex-1 flex flex-col h-full overflow-y-auto select-text" style={{ background: '#fafaf9' }}>
+      {/* Module header */}
+      <div className="px-6 pt-5 pb-4 border-b border-stone-100 bg-white">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-indigo-50 flex items-center justify-center">
+              <LayoutDashboard className="w-5 h-5 text-indigo-600" />
             </div>
+            <div>
+              <h1 className="text-[15px] font-semibold text-stone-800 tracking-tight">Telemetry Overview</h1>
+              <p className="text-[11px] text-stone-400 mt-0.5">Real-time metrics from the active simulation backend</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
             <button
-              onClick={() => setActiveSection('event-logs')}
-              className="text-blue-600 hover:text-blue-800 text-xs font-medium flex items-center gap-1"
+              onClick={() => setActiveSection('network-lab')}
+              className="flex items-center gap-1.5 px-3 py-[6px] bg-white hover:bg-stone-50 border border-stone-200 text-stone-600 rounded-lg text-[11.5px] font-medium transition-colors"
             >
-              <span>View Full Log</span>
-              <ArrowRight className="w-3 h-3" />
+              <Network className="w-3.5 h-3.5 text-cyan-600" />
+              Network Lab
+            </button>
+            <button
+              onClick={() => setMessageModalOpen(true)}
+              className="flex items-center gap-1.5 px-3 py-[6px] bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-[11.5px] font-medium transition-colors"
+            >
+              <Send className="w-3.5 h-3.5" />
+              Dispatch Packet
             </button>
           </div>
+        </div>
+      </div>
 
-          <div className="flex-1 overflow-auto">
-            {(!stats?.security_events || stats.security_events.length === 0) ? (
-              <div className="h-48 flex flex-col items-center justify-center text-slate-400">
-                <ShieldCheck className="w-6 h-6 text-slate-300 mb-1" />
-                <p className="text-xs font-medium">No recorded audit events in SQLite yet.</p>
-                <p className="text-[11px] text-slate-400">Run a test scenario to populate security audit logs.</p>
+      <div className="px-6 py-5 space-y-5">
+        {/* KPI row */}
+        <div className="grid grid-cols-4 gap-4">
+          {[
+            {
+              label: 'Active Devices',
+              value: stats?.total_devices ?? 0,
+              sub: `${stats?.devices_summary?.online ?? 0} online`,
+              icon: <Server className="w-4 h-4 text-indigo-500" />,
+              color: 'text-indigo-700',
+              bg: 'bg-indigo-50',
+            },
+            {
+              label: 'Sessions',
+              value: stats?.total_sessions ?? 0,
+              sub: 'Logged in SQLite',
+              icon: <TrendingUp className="w-4 h-4 text-stone-400" />,
+              color: 'text-stone-800',
+              bg: 'bg-stone-50',
+            },
+            {
+              label: 'Delivered',
+              value: stats?.messages_delivered ?? 0,
+              sub: 'Passed all checks',
+              icon: <CheckCircle2 className="w-4 h-4 text-emerald-500" />,
+              color: 'text-emerald-700',
+              bg: 'bg-emerald-50',
+            },
+            {
+              label: 'Rejected',
+              value: stats?.messages_rejected ?? 0,
+              sub: 'Policy violations',
+              icon: <XCircle className="w-4 h-4 text-rose-500" />,
+              color: 'text-rose-700',
+              bg: 'bg-rose-50',
+            },
+          ].map((kpi) => (
+            <div key={kpi.label} className="bg-white rounded-xl border border-stone-200/60 p-4">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[10.5px] font-medium text-stone-500 uppercase tracking-wide">{kpi.label}</span>
+                <div className={`w-7 h-7 rounded-lg ${kpi.bg} flex items-center justify-center`}>{kpi.icon}</div>
               </div>
-            ) : (
-              <table className="w-full text-left text-xs border-collapse">
-                <thead>
-                  <tr className="bg-slate-50/70 border-b border-slate-200 text-slate-500 font-semibold uppercase tracking-wider text-[10px]">
-                    <th className="py-2 px-3">Time</th>
-                    <th className="py-2 px-3">Event</th>
-                    <th className="py-2 px-3">Source → Target</th>
-                    <th className="py-2 px-3">Decision</th>
-                    <th className="py-2 px-3">Reason</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100 font-mono text-[11px]">
-                  {stats.security_events.slice(0, 8).map((ev) => (
-                    <tr key={ev.id} className="hover:bg-slate-50">
-                      <td className="py-2 px-3 text-slate-500 whitespace-nowrap">
-                        {ev.timestamp.replace('T', ' ').slice(11, 19)}
-                      </td>
-                      <td className="py-2 px-3 font-semibold text-slate-800 font-sans">{ev.event_type}</td>
-                      <td className="py-2 px-3 text-slate-600">
-                        {ev.source_id} → {ev.destination_id}
-                      </td>
-                      <td className="py-2 px-3 font-sans">
-                        {ev.status === 'ACCEPTED' ? (
-                          <span className="text-emerald-700 font-medium">ACCEPTED</span>
-                        ) : (
-                          <span className="text-rose-700 font-medium">REJECTED</span>
-                        )}
-                      </td>
-                      <td className="py-2 px-3 font-sans text-slate-600 truncate max-w-xs">
-                        {ev.rejection_reason || '—'}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
+              <div className={`text-2xl font-bold font-mono ${kpi.color}`}>{kpi.value}</div>
+              <div className="text-[10px] text-stone-400 mt-1">{kpi.sub}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* Security pass rate */}
+        <div className="bg-white rounded-xl border border-stone-200/60 p-4">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2">
+              <ShieldCheck className="w-4 h-4 text-indigo-500" />
+              <span className="text-[12px] font-semibold text-stone-700">Security Pass Rate</span>
+            </div>
+            <span className="text-[13px] font-bold font-mono text-indigo-700">{passRate}%</span>
+          </div>
+          <div className="h-2 bg-stone-100 rounded-full overflow-hidden">
+            <div
+              className="h-2 rounded-full transition-all duration-700"
+              style={{
+                width: `${passRateBar}%`,
+                background: passRate >= 80 ? '#4f46e5' : passRate >= 50 ? '#d97706' : '#e11d48',
+              }}
+            />
+          </div>
+          <div className="text-[10px] text-stone-400 mt-1.5">
+            Across automated test scenarios — AES-GCM, RSA-PSS, RBAC, Replay protection
           </div>
         </div>
 
-        {/* Right Col: Quick Security Verification Shortcuts */}
-        <div className="space-y-4">
-          <div className="bg-white border border-slate-200 rounded-md p-4 space-y-3">
-            <h3 className="text-xs font-semibold text-slate-800 uppercase tracking-wider">
-              Quick Security Tests
-            </h3>
-            <p className="text-xs text-slate-600">
-              Trigger repeatable backend cryptographic test scenarios directly:
-            </p>
-
-            <div className="space-y-2 text-xs">
+        {/* Main 2-column layout */}
+        <div className="grid grid-cols-3 gap-5">
+          {/* Recent events table — 2 cols */}
+          <div className="col-span-2 bg-white rounded-xl border border-stone-200/60 flex flex-col overflow-hidden">
+            <div className="px-4 py-3 border-b border-stone-100 flex items-center justify-between">
+              <span className="text-[12px] font-semibold text-stone-700">Recent Security Events</span>
               <button
-                onClick={async () => {
-                  await runScenario('normal');
-                  setActiveSection('security-center');
-                }}
-                className="w-full flex items-center justify-between p-2.5 rounded border border-slate-200 hover:bg-slate-50 hover:border-slate-300 text-slate-800 transition-colors text-left"
+                onClick={() => setActiveSection('event-logs')}
+                className="text-[11px] text-indigo-600 hover:text-indigo-800 font-medium flex items-center gap-1"
               >
-                <div>
-                  <div className="font-medium">1. Normal Secure Message</div>
-                  <div className="text-[10px] text-slate-500">AES-GCM + RSA-PSS valid flow</div>
-                </div>
-                <Play className="w-3.5 h-3.5 text-blue-600 fill-current" />
+                View all <ArrowRight className="w-3 h-3" />
               </button>
-
-              <button
-                onClick={async () => {
-                  await runScenario('tampering');
-                  setActiveSection('security-center');
-                }}
-                className="w-full flex items-center justify-between p-2.5 rounded border border-slate-200 hover:bg-slate-50 hover:border-slate-300 text-slate-800 transition-colors text-left"
-              >
-                <div>
-                  <div className="font-medium text-rose-700">2. Message Tampering Test</div>
-                  <div className="text-[10px] text-slate-500">In-transit ciphertext bit flip</div>
+            </div>
+            <div className="flex-1 overflow-auto">
+              {(!stats?.security_events || stats.security_events.length === 0) ? (
+                <div className="h-40 flex flex-col items-center justify-center text-stone-400">
+                  <ShieldCheck className="w-6 h-6 text-stone-200 mb-2" />
+                  <p className="text-[11px] font-medium">No audit events yet</p>
+                  <p className="text-[10px] text-stone-300 mt-0.5">Run a scenario to populate logs</p>
                 </div>
-                <Play className="w-3.5 h-3.5 text-rose-600 fill-current" />
-              </button>
-
-              <button
-                onClick={async () => {
-                  await runScenario('unauthorized_device');
-                  setActiveSection('security-center');
-                }}
-                className="w-full flex items-center justify-between p-2.5 rounded border border-slate-200 hover:bg-slate-50 hover:border-slate-300 text-slate-800 transition-colors text-left"
-              >
-                <div>
-                  <div className="font-medium text-amber-700">4. Unauthorized Device (RBAC)</div>
-                  <div className="text-[10px] text-slate-500">Untrusted source policy denial</div>
-                </div>
-                <Play className="w-3.5 h-3.5 text-amber-600 fill-current" />
-              </button>
+              ) : (
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="border-b border-stone-100 text-stone-400 text-[10px] font-semibold uppercase tracking-wide">
+                      <th className="py-2 px-4">Time</th>
+                      <th className="py-2 px-4">Event</th>
+                      <th className="py-2 px-4">Route</th>
+                      <th className="py-2 px-4">Decision</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {stats.security_events.slice(0, 8).map((ev) => (
+                      <tr key={ev.id} className="border-b border-stone-50 hover:bg-stone-50/60 transition-colors">
+                        <td className="py-2.5 px-4 text-[10.5px] font-mono text-stone-400 whitespace-nowrap">
+                          {ev.timestamp.replace('T', ' ').slice(11, 19)}
+                        </td>
+                        <td className="py-2.5 px-4 text-[11px] font-medium text-stone-700">{ev.event_type}</td>
+                        <td className="py-2.5 px-4 text-[10.5px] font-mono text-stone-500">
+                          {ev.source_id} → {ev.destination_id}
+                        </td>
+                        <td className="py-2.5 px-4">
+                          {ev.status === 'ACCEPTED' ? (
+                            <span className="inline-flex items-center gap-1 px-1.5 py-[1px] rounded-full bg-emerald-50 text-emerald-700 text-[9.5px] font-medium border border-emerald-100">
+                              <CheckCircle2 className="w-2.5 h-2.5" /> OK
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 px-1.5 py-[1px] rounded-full bg-rose-50 text-rose-700 text-[9.5px] font-medium border border-rose-100">
+                              <XCircle className="w-2.5 h-2.5" /> Rejected
+                            </span>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
             </div>
           </div>
 
-          {/* Purdue Architecture Reference Box */}
-          <div className="bg-slate-900 text-slate-300 rounded-md p-4 space-y-2 text-xs">
-            <div className="font-bold text-white text-[11px] uppercase tracking-wider flex items-center gap-1.5">
-              <Layers className="w-3.5 h-3.5 text-blue-400" />
-              <span>ISA-95 Industrial Hierarchy</span>
+          {/* Right: quick tests + ISA-95 ref */}
+          <div className="space-y-4">
+            <div className="bg-white rounded-xl border border-stone-200/60 p-4">
+              <h3 className="text-[11.5px] font-semibold text-stone-700 mb-3">Quick Tests</h3>
+              <div className="space-y-1.5">
+                {[
+                  { id: 'normal', label: 'Normal Secure Flow', color: 'text-indigo-600', desc: 'AES-GCM + RSA-PSS' },
+                  { id: 'tampering', label: 'Tampering Attack', color: 'text-rose-600', desc: 'Ciphertext bit-flip' },
+                  { id: 'unauthorized_device', label: 'RBAC Violation', color: 'text-amber-600', desc: 'Untrusted source' },
+                ].map((t) => (
+                  <button
+                    key={t.id}
+                    onClick={async () => { await runScenario(t.id); setActiveSection('security-center'); }}
+                    className="w-full flex items-center justify-between px-3 py-2 rounded-lg border border-stone-100 hover:border-stone-200 hover:bg-stone-50 transition-all text-left"
+                  >
+                    <div>
+                      <div className={`text-[11px] font-medium ${t.color}`}>{t.label}</div>
+                      <div className="text-[9.5px] text-stone-400 mt-[1px]">{t.desc}</div>
+                    </div>
+                    <Play className={`w-3 h-3 fill-current ${t.color} opacity-60`} />
+                  </button>
+                ))}
+              </div>
             </div>
-            <p className="text-[11px] text-slate-400 leading-relaxed">
-              Industrial operations segment devices into Purdue Levels: Level 0 (Sensors), Level 1 (PLCs), Level 2 (SCADA & HMI), and Level 3 (Site Operations). Protected communication prevents unauthorized cross-zone access.
-            </p>
+
+            {/* ISA-95 reference */}
+            <div className="bg-stone-900 rounded-xl p-4">
+              <div className="text-[10.5px] font-semibold text-white mb-2 uppercase tracking-wide">ISA-95 Purdue Model</div>
+              <div className="space-y-1 text-[10px]">
+                {[
+                  { level: 'L0', label: 'Physical Process', dot: 'bg-amber-400' },
+                  { level: 'L1', label: 'Basic Control (PLC)', dot: 'bg-blue-400' },
+                  { level: 'L2', label: 'Supervisory (SCADA)', dot: 'bg-indigo-400' },
+                  { level: 'L3', label: 'Site Operations', dot: 'bg-teal-400' },
+                ].map((l) => (
+                  <div key={l.level} className="flex items-center gap-2">
+                    <span className={`w-1.5 h-1.5 rounded-full ${l.dot} flex-shrink-0`} />
+                    <span className="font-mono text-stone-500">{l.level}</span>
+                    <span className="text-stone-500">{l.label}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       </div>

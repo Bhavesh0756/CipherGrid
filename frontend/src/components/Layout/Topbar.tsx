@@ -1,9 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import {
-  Activity,
-  CheckCircle,
-  Database,
-  Network,
   RotateCcw,
   Save,
   Send,
@@ -45,62 +41,72 @@ export const Topbar: React.FC = () => {
 
   const getSectionTitle = () => {
     switch (activeSection) {
-      case 'network-lab':
-        return 'Network Lab — Interactive Industrial Topology';
-      case 'device-inventory':
-        return 'Device Inventory — Purdue Model Asset Directory';
-      case 'packet-inspector':
-        return 'Packet Inspector — Deep Simulation Event Analysis';
-      case 'security-center':
-        return 'Security Center — Cryptographic & Access Control Workbench';
-      case 'event-logs':
-        return 'Event Logs — Persistent System & Audit Records';
-      case 'lab-reports':
-        return 'Lab Reports — Security Evaluation & Technical Audit';
-      case 'dashboard':
-        return 'Operational Dashboard — System Telemetry & Statistics';
-      case 'settings':
-        return 'Simulator Configuration & Security Parameters';
-      default:
-        return 'Secure ICS Simulator';
+      case 'network-lab': return 'Network Lab';
+      case 'device-inventory': return 'Device Inventory';
+      case 'packet-inspector': return 'Packet Inspector';
+      case 'security-center': return 'Security Center';
+      case 'event-logs': return 'Event Logs';
+      case 'lab-reports': return 'Lab Reports';
+      case 'dashboard': return 'Telemetry Overview';
+      case 'settings': return 'Settings';
+      default: return 'ICS Simulator';
+    }
+  };
+
+  const getSectionSubtitle = () => {
+    switch (activeSection) {
+      case 'network-lab': return 'Interactive Industrial Topology';
+      case 'device-inventory': return 'Purdue Model Asset Directory';
+      case 'packet-inspector': return 'Deep Simulation Event Analysis';
+      case 'security-center': return 'Cryptographic & Access Control Workbench';
+      case 'event-logs': return 'Persistent System & Audit Records';
+      case 'lab-reports': return 'Security Evaluation & Technical Audit';
+      case 'dashboard': return 'System Telemetry & Statistics';
+      case 'settings': return 'Configuration & Security Parameters';
+      default: return '';
     }
   };
 
   return (
-    <header className="h-12 bg-[#131722] border-b border-slate-800 px-4 flex items-center justify-between text-slate-200 select-none z-20">
-      {/* Title & Brand */}
-      <div className="flex items-center gap-3">
+    <header className="h-11 bg-[#1c1917] px-4 flex items-center justify-between text-stone-300 select-none z-20 shrink-0">
+      {/* Left: Brand + Context */}
+      <div className="flex items-center gap-3 min-w-0">
         <div className="flex items-center gap-2">
-          <div className="w-6 h-6 rounded bg-blue-600 flex items-center justify-center text-white">
-            <ShieldCheck className="w-4 h-4" />
+          <div className="w-[22px] h-[22px] rounded-md bg-cyan-600 flex items-center justify-center text-white shadow-sm">
+            <ShieldCheck className="w-3.5 h-3.5" />
           </div>
-          <span className="font-semibold text-xs text-white tracking-wide uppercase">
-            ICS Simulator
+          <span className="font-semibold text-[11.5px] text-stone-200 tracking-wide">
+            CipherGrid
           </span>
         </div>
 
-        <div className="h-4 w-px bg-slate-700" />
+        <div className="h-3.5 w-px bg-stone-700/60" />
 
-        <span className="text-xs text-slate-400 font-medium truncate max-w-md">
-          {getSectionTitle()}
-        </span>
+        <div className="flex items-center gap-1.5 min-w-0">
+          <span className="text-[12px] font-medium text-stone-300 truncate">
+            {getSectionTitle()}
+          </span>
+          <span className="text-[11px] text-stone-600 truncate hidden lg:inline">
+            — {getSectionSubtitle()}
+          </span>
+        </div>
       </div>
 
-      {/* Action controls */}
-      <div className="flex items-center gap-2.5">
-        {/* Backend health status badge */}
-        <div className="flex items-center gap-1.5 px-2 py-1 rounded bg-slate-800/80 border border-slate-700 text-[11px] font-mono">
+      {/* Right: Actions */}
+      <div className="flex items-center gap-2">
+        {/* Backend health */}
+        <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-stone-800/50 text-[10.5px] font-mono">
           <span
-            className={`w-2 h-2 rounded-full ${
+            className={`w-1.5 h-1.5 rounded-full ${
               backendStatus === 'connected'
-                ? 'bg-emerald-500'
+                ? 'bg-emerald-400'
                 : backendStatus === 'checking'
-                ? 'bg-amber-500 animate-pulse'
-                : 'bg-rose-500'
+                ? 'bg-amber-400 animate-pulse'
+                : 'bg-rose-400'
             }`}
           />
-          <span className="text-slate-300">
-            {backendStatus === 'connected' ? 'Core Online' : backendStatus === 'checking' ? 'Connecting...' : 'Core Offline'}
+          <span className="text-stone-400">
+            {backendStatus === 'connected' ? 'Online' : backendStatus === 'checking' ? 'Connecting' : 'Offline'}
           </span>
         </div>
 
@@ -108,30 +114,29 @@ export const Topbar: React.FC = () => {
           <>
             <button
               onClick={() => setMessageModalOpen(true)}
-              className="flex items-center gap-1.5 px-2.5 py-1 bg-blue-600 hover:bg-blue-500 text-white rounded text-xs font-medium transition-colors shadow-xs"
+              className="flex items-center gap-1.5 px-2.5 py-[5px] bg-cyan-600 hover:bg-cyan-500 text-white rounded-md text-[11.5px] font-medium transition-colors"
             >
-              <Send className="w-3.5 h-3.5" />
+              <Send className="w-3 h-3" />
               <span>Simulate</span>
             </button>
 
             <button
               onClick={saveTopology}
               disabled={isLoading}
-              className="flex items-center gap-1.5 px-2.5 py-1 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 rounded text-xs font-medium transition-colors"
+              className="flex items-center gap-1.5 px-2.5 py-[5px] bg-stone-800 hover:bg-stone-700 border border-stone-700/60 text-stone-300 rounded-md text-[11.5px] font-medium transition-colors"
               title="Save current topology state"
             >
-              <Save className="w-3.5 h-3.5" />
+              <Save className="w-3 h-3" />
               <span>Save</span>
             </button>
 
             <button
               onClick={handleReset}
               disabled={isLoading}
-              className="flex items-center gap-1.5 px-2.5 py-1 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 rounded text-xs font-medium transition-colors"
+              className="flex items-center gap-1 px-2 py-[5px] bg-stone-800 hover:bg-stone-700 border border-stone-700/60 text-stone-400 rounded-md text-[11.5px] font-medium transition-colors"
               title="Restore standard sample starter topology"
             >
-              <RotateCcw className="w-3.5 h-3.5" />
-              <span>Reset Starter</span>
+              <RotateCcw className="w-3 h-3" />
             </button>
           </>
         )}

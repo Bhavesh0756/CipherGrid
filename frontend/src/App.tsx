@@ -42,18 +42,17 @@ export const App: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col h-screen w-screen overflow-hidden bg-[#f1f3f5] text-slate-900 font-sans">
-      {/* Top Application Bar */}
+    <div className="flex flex-col h-screen w-screen overflow-hidden bg-[#fafaf9] text-stone-900 font-sans">
       <Topbar />
 
-      {/* Main Workspace with Sidebar and Content View */}
       <div className="flex flex-1 overflow-hidden">
         <Sidebar />
 
         <main className="flex-1 flex flex-col overflow-hidden relative">
           {error && (
-            <div className="bg-rose-600 text-white px-4 py-2 text-xs flex items-center justify-between z-30">
-              <span className="font-mono">Simulator Notice: {error}</span>
+            <div className="bg-rose-600 text-white px-4 py-1.5 text-[11px] flex items-center gap-2 z-30">
+              <span className="w-1.5 h-1.5 rounded-full bg-white/60" />
+              <span className="font-medium">{error}</span>
             </div>
           )}
           {renderActiveSection()}

@@ -56,36 +56,25 @@ const NetworkLabContent: React.FC = () => {
     fetchTopology();
   }, [fetchTopology]);
 
-  // Convert our store devices to React Flow nodes
   const nodes: Node[] = useMemo(() => {
     return devices.map((d) => {
       const isSelected = selectedDevice?.id === d.id;
       const isHighlighted = highlightedPath.includes(d.id);
       const isActiveHop = activeHopId === d.id;
       const isSource = highlightedPath.length > 0 && highlightedPath[0] === d.id;
-      const isDestination =
-        highlightedPath.length > 1 && highlightedPath[highlightedPath.length - 1] === d.id;
+      const isDestination = highlightedPath.length > 1 && highlightedPath[highlightedPath.length - 1] === d.id;
 
       return {
         id: d.id,
         type: 'industrialDevice',
         position: { x: d.position_x, y: d.position_y },
-        data: {
-          device: d,
-          isSelected,
-          isHighlighted,
-          isActiveHop,
-          isSource,
-          isDestination,
-        },
+        data: { device: d, isSelected, isHighlighted, isActiveHop, isSource, isDestination },
       };
     });
   }, [devices, selectedDevice, highlightedPath, activeHopId]);
 
-  // Convert our store connections to React Flow edges
   const edges: Edge[] = useMemo(() => {
     return connections.map((c) => {
-      // Check if this connection is part of the highlighted route
       let inPath = false;
       for (let i = 0; i < highlightedPath.length - 1; i++) {
         if (
@@ -105,25 +94,24 @@ const NetworkLabContent: React.FC = () => {
         targetHandle: 'l',
         animated: inPath,
         style: {
-          stroke: inPath ? '#2563eb' : '#64748b',
-          strokeWidth: inPath ? 3 : 2,
+          stroke: inPath ? '#0891b2' : '#d6d3d1',
+          strokeWidth: inPath ? 2.5 : 1.5,
         },
         markerEnd: {
           type: MarkerType.ArrowClosed,
-          color: inPath ? '#2563eb' : '#64748b',
-          width: 14,
-          height: 14,
+          color: inPath ? '#0891b2' : '#a8a29e',
+          width: 12,
+          height: 12,
         },
         label: `${c.latency_ms}ms`,
-        labelStyle: { fill: '#64748b', fontSize: 10, fontFamily: 'monospace' },
-        labelBgStyle: { fill: '#f8fafc', fillOpacity: 0.9 },
-        labelBgPadding: [4, 2] as [number, number],
-        labelBgBorderRadius: 2,
+        labelStyle: { fill: '#78716c', fontSize: 9.5, fontFamily: 'JetBrains Mono, monospace' },
+        labelBgStyle: { fill: '#fafaf9', fillOpacity: 0.95 },
+        labelBgPadding: [3, 2] as [number, number],
+        labelBgBorderRadius: 3,
       };
     });
   }, [connections, highlightedPath]);
 
-  // Handle node drag stop to persist coordinates in memory
   const onNodeDragStop = useCallback(
     (_: any, node: Node) => {
       setDevicePosition(node.id, Math.round(node.position.x), Math.round(node.position.y));
@@ -131,7 +119,6 @@ const NetworkLabContent: React.FC = () => {
     [setDevicePosition]
   );
 
-  // Handle node click to inspect
   const onNodeClick = useCallback(
     (_: any, node: Node) => {
       const dev = devices.find((d) => d.id === node.id);
@@ -140,12 +127,10 @@ const NetworkLabContent: React.FC = () => {
     [devices, setSelectedDevice]
   );
 
-  // Handle pane click to deselect
   const onPaneClick = useCallback(() => {
     setSelectedDevice(null);
   }, [setSelectedDevice]);
 
-  // Handle connect (wiring links between devices)
   const onConnect = useCallback(
     (params: FlowConnection) => {
       if (params.source && params.target && params.source !== params.target) {
@@ -155,7 +140,6 @@ const NetworkLabContent: React.FC = () => {
     [addConnection]
   );
 
-  // Handle edge delete (click edge and delete or via edge change)
   const onEdgesChange = useCallback(
     (changes: EdgeChange[]) => {
       changes.forEach((change) => {
@@ -167,7 +151,6 @@ const NetworkLabContent: React.FC = () => {
     [deleteConnection]
   );
 
-  // Drag and Drop from Palette onto React Flow canvas
   const onDragOver = useCallback((event: React.DragEvent) => {
     event.preventDefault();
     event.dataTransfer.dropEffect = 'move';
@@ -176,21 +159,14 @@ const NetworkLabContent: React.FC = () => {
   const onDrop = useCallback(
     (event: React.DragEvent) => {
       event.preventDefault();
-
       const paletteData = event.dataTransfer.getData('application/palette-item');
       if (!paletteData) return;
 
       const item = JSON.parse(paletteData);
-      const position = screenToFlowPosition({
-        x: event.clientX,
-        y: event.clientY,
-      });
-
+      const position = screenToFlowPosition({ x: event.clientX, y: event.clientY });
       const uniqueCount = devices.filter((d) => d.device_type === item.type).length + 1;
       const cleanName = `${item.label.replace(/[\s/]/g, '-')}-${String(uniqueCount).padStart(2, '0')}`;
       const uniqueId = `${item.type.toLowerCase().replace(/[\s/]/g, '_')}_${Date.now()}`;
-
-      // Generate plausible private network IP
       const ip = `192.168.${item.type === 'Sensor' ? 10 : item.type === 'PLC' ? 20 : 30}.${10 + uniqueCount}`;
 
       createDevice({
@@ -237,13 +213,12 @@ const NetworkLabContent: React.FC = () => {
   };
 
   return (
-    <div className="flex-1 flex flex-col h-full overflow-hidden bg-[#fafbfc]">
-      {/* Central Editor Layout */}
+    <div className="flex-1 flex flex-col h-full overflow-hidden" style={{ background: '#fafaf9' }}>
       <div className="flex-1 flex overflow-hidden relative">
         {/* Left: Device Palette */}
         <DevicePalette onAddDevice={handleAddFromPalette} />
 
-        {/* Center: React Flow Canvas */}
+        {/* Center: Canvas */}
         <div ref={reactFlowWrapper} className="flex-1 h-full w-full relative">
           <ReactFlow
             nodes={nodes}
@@ -258,39 +233,37 @@ const NetworkLabContent: React.FC = () => {
             nodeTypes={nodeTypes}
             fitView
             snapToGrid
-            snapGrid={[15, 15]}
+            snapGrid={[16, 16]}
             minZoom={0.2}
-            maxZoom={2}
+            maxZoom={2.5}
           >
-            <Background variant={BackgroundVariant.Dots} gap={15} size={1} color="#cbd5e1" />
-            <Controls className="!bg-white !border-slate-200 !shadow-sm !rounded text-slate-700" />
+            <Background variant={BackgroundVariant.Dots} gap={20} size={1} color="#e7e5e4" />
+            <Controls />
             <MiniMap
-              nodeColor={() => '#94a3b8'}
-              maskColor="rgba(241, 245, 249, 0.7)"
-              className="!border !border-slate-200 !rounded !shadow-sm"
+              nodeColor={() => '#a8a29e'}
+              maskColor="rgba(250, 250, 249, 0.75)"
             />
           </ReactFlow>
 
-          {/* Canvas Floating Quick Hint */}
-          <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-xs border border-slate-200 text-slate-600 px-3 py-1.5 rounded text-[11px] shadow-xs pointer-events-none">
-            <span className="font-semibold text-slate-800">Topology Canvas:</span> Connect port handles to wire links. Drag nodes to reposition.
+          {/* Canvas tip overlay */}
+          <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm border border-stone-200/80 text-stone-500 px-3 py-1.5 rounded-lg text-[10.5px] shadow-xs pointer-events-none">
+            <span className="font-medium text-stone-700">Drag</span> palette items onto canvas ·{' '}
+            <span className="font-medium text-stone-700">Connect</span> port handles to wire links ·{' '}
+            <span className="font-medium text-stone-700">Click</span> node to inspect
           </div>
         </div>
 
-        {/* Right: Contextual Device Inspector */}
+        {/* Right: Device Inspector */}
         {selectedDevice && (
           <DeviceInspector device={selectedDevice} onClose={() => setSelectedDevice(null)} />
         )}
       </div>
 
-      {/* Bottom: Simulation Event Controls */}
+      {/* Bottom: Simulation controls */}
       <SimulationControls />
 
-      {/* Message Simulator Modal */}
-      <MessageSimulatorModal
-        isOpen={isMessageModalOpen}
-        onClose={() => setMessageModalOpen(false)}
-      />
+      {/* Modal */}
+      <MessageSimulatorModal isOpen={isMessageModalOpen} onClose={() => setMessageModalOpen(false)} />
     </div>
   );
 };
