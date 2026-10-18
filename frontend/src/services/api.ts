@@ -1,0 +1,223 @@
+import type {
+  AuditLog,
+  DashboardStats,
+  Device,
+  LabReport,
+  SecurityScenarioResult,
+  SimulationEvent,
+  TopologyData,
+} from '../types';
+
+const BASE_URL = '/api';
+
+async function handleResponse<T>(res: Response): Promise<T> {
+  if (!res.ok) {
+    let errorMsg = `HTTP Error ${res.status}: ${res.statusText}`;
+    try {
+      const errorJson = await res.json();
+      if (errorJson.error) {
+        errorMsg = errorJson.error;
+      }
+    } catch {
+      // ignore
+    }
+    throw new Error(errorMsg);
+  }
+  return res.json();
+}
+
+export const api = {
+  // Health
+  async getHealth(): Promise<{ status: string; service: string }> {
+    const res = await fetch(`${BASE_URL}/health`);
+    return handleResponse(res);
+  },
+
+  // Devices
+  async getDevices(): Promise<{ success: boolean; devices: any[] }> {
+    const res = await fetch(`${BASE_URL}/devices`);
+    return handleResponse(res);
+  },
+
+  async getDevice(id: string): Promise<{ success: boolean; device: any }> {
+    const res = await fetch(`${BASE_URL}/devices/${id}`);
+    return handleResponse(res);
+  },
+
+  async createDevice(device: any): Promise<{ success: boolean; message: string }> {
+    const res = await fetch(`${BASE_URL}/devices`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(device),
+    });
+    return handleResponse(res);
+  },
+
+  async updateDevice(id: string, updates: any): Promise<{ success: boolean; message: string }> {
+    const res = await fetch(`${BASE_URL}/devices/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updates),
+    });
+    return handleResponse(res);
+  },
+
+  async deleteDevice(id: string): Promise<{ success: boolean; message: string }> {
+    const res = await fetch(`${BASE_URL}/devices/${id}`, {
+      method: 'DELETE',
+    });
+    return handleResponse(res);
+  },
+
+  // Topology
+  async getTopology(): Promise<{
+    success: boolean;
+    topology_id: string;
+    name: string;
+    description: string;
+    nodes: any[];
+    edges: any[];
+  }> {
+    const res = await fetch(`${BASE_URL}/topology`);
+    return handleResponse(res);
+  },
+
+  async getConnections(): Promise<{ success: boolean; connections: any[]; total: number }> {
+    const res = await fetch(`${BASE_URL}/topology/connections`);
+    return handleResponse(res);
+  },
+
+  async saveTopology(data: {
+    nodes: any[];
+    edges: any[];
+    name?: string;
+    description?: string;
+  }): Promise<{ success: boolean; message: string; topology_id: string }> {
+    const res = await fetch(`${BASE_URL}/topology`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    return handleResponse(res);
+  },
+
+  async resetTopology(): Promise<{ success: boolean; message: string }> {
+    const res = await fetch(`${BASE_URL}/topology/reset`, {
+      method: 'POST',
+    });
+    return handleResponse(res);
+  },
+
+  // Messages & Simulation
+  async simulateMessage(params: {
+    sender_id: string;
+    receiver_id: string;
+    message_type: string;
+    payload: string;
+    security_profile: string;
+    scenario_id?: string;
+    session_id?: string;
+  }): Promise<{
+    success: boolean;
+    session_id: string;
+    message_id: string;
+    delivered: boolean;
+    status: string;
+    reason: string;
+    path: string[];
+    events: any[];
+    message_record: Record<string, any>;
+    security_record: Record<string, any>;
+  }> {
+    const res = await fetch(`${BASE_URL}/messages/send`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(params),
+    });
+    return handleResponse(res);
+  },
+
+  async getMessages(limit = 50): Promise<{ success: boolean; messages: any[] }> {
+    const res = await fetch(`${BASE_URL}/messages?limit=${limit}`);
+    return handleResponse(res);
+  },
+
+  // Security Scenarios
+  async getScenarios(): Promise<{ success: boolean; scenarios: any[] }> {
+    const res = await fetch(`${BASE_URL}/security/scenarios`);
+    return handleResponse(res);
+  },
+
+  async runSecurityScenario(scenarioId: string): Promise<{ success: boolean; result: any }> {
+    const res = await fetch(`${BASE_URL}/security/scenarios/${scenarioId}/run`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({}),
+    });
+    return handleResponse(res);
+  },
+
+  async verifyCryptoWorkbench(params: {
+    payload: string;
+    device_id?: string;
+    tamper_ciphertext?: boolean;
+    tamper_signature?: boolean;
+  }): Promise<any> {
+    const res = await fetch(`${BASE_URL}/security/verify`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(params),
+    });
+    return handleResponse(res);
+  },
+
+  // Events & Audit
+  async getPacketEvents(limit = 100): Promise<{ success: boolean; events: any[] }> {
+    const res = await fetch(`${BASE_URL}/events/packet-stream?limit=${limit}`);
+    return handleResponse(res);
+  },
+
+  async getAuditLogs(params?: {
+    limit?: number;
+    offset?: number;
+    event_type?: string;
+    decision?: string;
+    search?: string;
+  }): Promise<{
+    success: boolean;
+    total: number;
+    limit: number;
+    offset: number;
+    logs: any[];
+  }> {
+    const query = new URLSearchParams();
+    if (params?.limit) query.set('limit', params.limit.toString());
+    if (params?.offset) query.set('offset', params.offset.toString());
+    if (params?.event_type) query.set('event_type', params.event_type);
+    if (params?.decision) query.set('decision', params.decision);
+    if (params?.search) query.set('search', params.search);
+
+    const res = await fetch(`${BASE_URL}/events?${query.toString()}`);
+    return handleResponse(res);
+  },
+
+  // Dashboard Metrics
+  async getDashboardStats(): Promise<any> {
+    const res = await fetch(`${BASE_URL}/dashboard/stats`);
+    return handleResponse(res);
+  },
+
+  // Lab Report
+  async getLabReport(): Promise<{ success: boolean; report: any }> {
+    const res = await fetch(`${BASE_URL}/reports/lab-report`);
+    return handleResponse(res);
+  },
+
+  getExportEventsUrl(): string {
+    return `${BASE_URL}/events/export`;
+  },
+
+  getExportScenariosUrl(): string {
+    return `${BASE_URL}/reports/scenarios/export`;
+  },
+};

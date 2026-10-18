@@ -1,395 +1,104 @@
 @import "tailwindcss";
 
-/* =====================================================
-   AegisGrid ICS — High-Tech Obsidian Design System
-   Hyper-Premium Industrial Cybersecurity Platform
-   ===================================================== */
-
-@layer base {
-  :root {
-    /* Industrial Cyber Dark Hierarchy matching Reference */
-    --bg-void:    #060b13;
-    --bg-base:    #080e18;
-    --bg-surface: #0a1322;
-    --bg-card:    #0b1626;
-    --bg-panel:   #0d1828;
-    --bg-raised:  #112036;
-
-    /* Precision Reference Hairline Borders */
-    --border-subtle:  #111f33;
-    --border-default: #14243b;
-    --border-bright:  #1b3252;
-    --border-accent:  #0ea5e9;
-
-    /* Reference Cyber Accents */
-    --accent-cyan:     #06b6d4;   /* Luminous Cyan */
-    --accent-sky:      #0ea5e9;   /* Technical Sky */
-    --accent-teal:     #14b8a6;   /* Active / Operational Teal */
-    --accent-emerald:  #10b981;   /* Authorized / Green Indicator */
-    --accent-amber:    #f59e0b;   /* Warning / Integrity Spike */
-    --accent-rose:     #f43f5e;   /* Breach / Dropped Packet */
-    --accent-violet:   #8b5cf6;   /* Cryptographic PKI */
-
-    /* Restrained Technical Glows */
-    --glow-cyan:    0 0 20px rgba(6, 182, 212, 0.18);
-    --glow-emerald: 0 0 20px rgba(16, 185, 129, 0.18);
-    --glow-rose:    0 0 20px rgba(244, 63, 94, 0.18);
-  }
-
-  html {
-    scroll-behavior: smooth;
-  }
-
-  body {
-    background-color: var(--bg-void);
-    background-image: 
-      radial-gradient(ellipse 85% 45% at 50% -5%, rgba(14, 165, 233, 0.05), transparent 75%),
-      radial-gradient(ellipse 70% 35% at 100% 50%, rgba(6, 182, 212, 0.03), transparent 65%);
-    background-attachment: fixed;
-    color: #f1f5f9;
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
-    min-height: 100vh;
-    overflow-x: hidden;
-  }
-
-  /* ── Ultra-Sleek Scrollbar ── */
-  ::-webkit-scrollbar {
-    width: 4px;
-    height: 4px;
-  }
-  ::-webkit-scrollbar-track {
-    background: transparent;
-  }
-  ::-webkit-scrollbar-thumb {
-    background: #152238;
-    border-radius: 9999px;
-  }
-  ::-webkit-scrollbar-thumb:hover {
-    background: #203350;
-  }
-
-  /* ── Typography Classes ── */
-  .font-mono-code {
-    font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Consolas, monospace;
-  }
-
-  /* ── Luminous Gradient Text ── */
-  .text-gradient {
-    background: linear-gradient(135deg, #38bdf8 0%, #22d3ee 50%, #2dd4bf 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
-  .text-gradient-violet {
-    background: linear-gradient(135deg, #a78bfa 0%, #818cf8 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
-
-  /* ── Reference Technical Cyber Grid Background Pattern ── */
-  .bg-grid-pattern {
-    background-image:
-      linear-gradient(rgba(14, 165, 233, 0.04) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(14, 165, 233, 0.04) 1px, transparent 1px);
-    background-size: 36px 36px;
-  }
-
-  /* ── Glass Surface with Bevel Highlight ── */
-  .glass-card {
-    background: rgba(15, 20, 34, 0.75);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 1px solid rgba(255, 255, 255, 0.06);
-    box-shadow: 
-      0 8px 32px -4px rgba(0, 0, 0, 0.5),
-      inset 0 1px 1px 0 rgba(255, 255, 255, 0.05);
-  }
-
-  /* ── Glow Effects ── */
-  .glow-electric, .glow-cyan {
-    box-shadow: var(--glow-cyan);
-  }
-  .glow-emerald {
-    box-shadow: var(--glow-emerald);
-  }
-  .glow-rose {
-    box-shadow: var(--glow-rose);
-  }
-
-  /* ── Entrance Animations ── */
-  @keyframes fadeSlideUp {
-    from {
-      opacity: 0;
-      transform: translateY(12px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-  @keyframes fadeIn {
-    from { opacity: 0; }
-    to   { opacity: 1; }
-  }
-  @keyframes pulseRing {
-    0%   { transform: scale(1); opacity: 0.8; }
-    100% { transform: scale(2.4); opacity: 0; }
-  }
-  @keyframes shimmer {
-    0%   { background-position: -400px 0; }
-    100% { background-position: 400px 0; }
-  }
-
-  .animate-fade-slide-up {
-    animation: fadeSlideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
-  }
-  .animate-fade-in {
-    animation: fadeIn 0.3s ease both;
-  }
-  .animate-delay-100 { animation-delay: 100ms; }
-  .animate-delay-150 { animation-delay: 150ms; }
-  .animate-delay-200 { animation-delay: 200ms; }
-  .animate-delay-250 { animation-delay: 250ms; }
-  .animate-delay-300 { animation-delay: 300ms; }
-  .animate-delay-400 { animation-delay: 400ms; }
-
-  /* ── Live Pulse Ring ── */
-  .live-indicator {
-    position: relative;
-    display: inline-flex;
-  }
-  .live-indicator::after {
-    content: '';
-    position: absolute;
-    inset: -3px;
-    border-radius: 50%;
-    background: currentColor;
-    animation: pulseRing 2s cubic-bezier(0.2, 0.8, 0.2, 1) infinite;
-    opacity: 0;
-  }
-
-  /* ── Shimmer Skeleton ── */
-  .skeleton {
-    background: linear-gradient(90deg, #101626 25%, #182236 50%, #101626 75%);
-    background-size: 400px 100%;
-    animation: shimmer 1.5s ease-in-out infinite;
-  }
-
-  /* ── Precision Card Hover ── */
-  .card-hover {
-    transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease;
-  }
-  .card-hover:hover {
-    transform: translateY(-2px);
-    box-shadow: 
-      0 12px 36px -6px rgba(0, 0, 0, 0.6),
-      0 0 24px rgba(6, 182, 212, 0.12),
-      inset 0 1px 0 0 rgba(255, 255, 255, 0.08);
-    border-color: rgba(6, 182, 212, 0.35);
-  }
-
-  /* ── Interactive Button Press ── */
-  .btn-press {
-    transition: transform 0.1s ease, box-shadow 0.1s ease, filter 0.1s ease;
-  }
-  .btn-press:active {
-    transform: scale(0.97);
-  }
-
-  /* ── Glowing Input Focus Ring ── */
-  .input-field {
-    transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
-  }
-  .input-field:focus {
-    border-color: #06b6d4;
-    box-shadow: 0 0 0 2px rgba(6, 182, 212, 0.2);
-    outline: none;
-  }
-
-  /* ── Cyber Security Alert Banners ── */
-  .alert-critical {
-    background: linear-gradient(135deg, rgba(244,63,94,0.12), rgba(244,63,94,0.03));
-    border: 1px solid rgba(244,63,94,0.3);
-    box-shadow: 0 4px 20px -2px rgba(244,63,94,0.1);
-  }
-  .alert-success {
-    background: linear-gradient(135deg, rgba(16,185,129,0.12), rgba(16,185,129,0.03));
-    border: 1px solid rgba(16,185,129,0.3);
-    box-shadow: 0 4px 20px -2px rgba(16,185,129,0.1);
-  }
-  .alert-warning {
-    background: linear-gradient(135deg, rgba(245,158,11,0.12), rgba(245,158,11,0.03));
-    border: 1px solid rgba(245,158,11,0.3);
-    box-shadow: 0 4px 20px -2px rgba(245,158,11,0.1);
-  }
-  .alert-info {
-    background: linear-gradient(135deg, rgba(6,182,212,0.12), rgba(6,182,212,0.03));
-    border: 1px solid rgba(6,182,212,0.3);
-    box-shadow: 0 4px 20px -2px rgba(6,182,212,0.1);
-  }
-
-  /* ── Code Block Container ── */
-  .code-block {
-    background: #090c14;
-    border: 1px solid #1a2233;
-    border-radius: 8px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px;
-    line-height: 1.6;
-    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.4);
-  }
-
-  /* ── Table Row Hover ── */
-  .table-row-hover {
-    transition: background-color 0.15s ease;
-  }
-  .table-row-hover:hover {
-    background-color: rgba(6, 182, 212, 0.04);
-  }
-
-  /* ── Precision Neon Border Accent ── */
-  .neon-card {
-    position: relative;
-    background: #0f1422;
-    border: 1px solid #1f2c44;
-    box-shadow: 
-      0 10px 30px -10px rgba(0, 0, 0, 0.7),
-      inset 0 1px 1px 0 rgba(255, 255, 255, 0.05);
-  }
-
-  /* ── Hexagonal Cyber Geometry ── */
-  .brand-hex {
-    clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
-  }
-
-  /* ── Aegis Cyber Reticle & Scanner Animations ── */
-  @keyframes aegisRadarSpin {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
-  }
-
-  @keyframes aegisRadarCounterSpin {
-    from { transform: rotate(360deg); }
-    to { transform: rotate(0deg); }
-  }
-
-  @keyframes aegisLaserScan {
-    0% { transform: translateY(-100%); opacity: 0; }
-    30% { opacity: 0.8; }
-    70% { opacity: 0.8; }
-    100% { transform: translateY(100%); opacity: 0; }
-  }
-
-  .aegis-radar-spin {
-    animation: aegisRadarSpin 10s linear infinite;
-  }
-
-  .aegis-radar-counter-spin {
-    animation: aegisRadarCounterSpin 14s linear infinite;
-  }
-
-  .aegis-laser-scan {
-    background: linear-gradient(180deg, transparent 0%, rgba(6, 182, 212, 0.4) 50%, rgba(20, 184, 166, 0.8) 100%);
-    animation: aegisLaserScan 1.6s ease-in-out infinite;
-  }
-
-  /* ── Coordinated Dashboard Staggered Entrance ── */
-  @keyframes aegisRevealSlideUp {
-    0% {
-      opacity: 0;
-      transform: translateY(16px);
-    }
-    100% {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
-  @keyframes aegisRevealSlideDown {
-    0% {
-      opacity: 0;
-      transform: translateY(-12px);
-    }
-    100% {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
-  @keyframes aegisRevealSlideRight {
-    0% {
-      opacity: 0;
-      transform: translateX(-16px);
-    }
-    100% {
-      opacity: 1;
-      transform: translateX(0);
-    }
-  }
-
-  @keyframes aegisBorderSweep {
-    0% {
-      background-position: -200% 0;
-    }
-    100% {
-      background-position: 200% 0;
-    }
-  }
-
-  .aegis-reveal-header {
-    animation: aegisRevealSlideDown 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
-  }
-
-  .aegis-reveal-sidebar {
-    animation: aegisRevealSlideRight 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
-  }
-
-  .aegis-stagger-1 { animation: aegisRevealSlideUp 0.45s cubic-bezier(0.16, 1, 0.3, 1) 0.05s both; }
-  .aegis-stagger-2 { animation: aegisRevealSlideUp 0.45s cubic-bezier(0.16, 1, 0.3, 1) 0.12s both; }
-  .aegis-stagger-3 { animation: aegisRevealSlideUp 0.45s cubic-bezier(0.16, 1, 0.3, 1) 0.18s both; }
-  .aegis-stagger-4 { animation: aegisRevealSlideUp 0.45s cubic-bezier(0.16, 1, 0.3, 1) 0.24s both; }
-  .aegis-stagger-5 { animation: aegisRevealSlideUp 0.45s cubic-bezier(0.16, 1, 0.3, 1) 0.30s both; }
-  .aegis-stagger-6 { animation: aegisRevealSlideUp 0.45s cubic-bezier(0.16, 1, 0.3, 1) 0.36s both; }
-
-  /* ── Hairline Border Sweep Effect on Initial Entry ── */
-  .aegis-border-sweep {
-    position: relative;
-  }
-  .aegis-border-sweep::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    padding: 1px;
-    background: linear-gradient(90deg, transparent, rgba(6, 182, 212, 0.7), transparent);
-    background-size: 200% 100%;
-    animation: aegisBorderSweep 1.6s ease-out 1;
-    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-    -webkit-mask-composite: xor;
-    mask-composite: exclude;
-    pointer-events: none;
-  }
-
-  /* ── Accessibility: Reduced Motion ── */
-  @media (prefers-reduced-motion: reduce) {
-    .aegis-radar-spin,
-    .aegis-radar-counter-spin,
-    .aegis-laser-scan,
-    .aegis-reveal-header,
-    .aegis-reveal-sidebar,
-    .aegis-stagger-1,
-    .aegis-stagger-2,
-    .aegis-stagger-3,
-    .aegis-stagger-4,
-    .aegis-stagger-5,
-    .aegis-stagger-6,
-    .aegis-border-sweep::after {
-      animation: none !important;
-      transform: none !important;
-      opacity: 1 !important;
-    }
-  }
+:root {
+  --bg-main: #f1f3f5;
+  --bg-workspace: #f8fafc;
+  --bg-sidebar: #131722;
+  --sidebar-text: #cbd5e1;
+  --sidebar-muted: #64748b;
+  --sidebar-active: #1e293b;
+  --primary: #2563eb;
+  --primary-dark: #1d4ed8;
+  --secondary: #0d9488;
+  --border-subtle: #e2e8f0;
+  --border-strong: #cbd5e1;
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #64748b;
+  --success: #16a34a;
+  --warning: #d97706;
+  --danger: #dc2626;
 }
 
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  color: #0f172a;
+  background-color: #f1f3f5;
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+  height: 100vh;
+  width: 100vw;
+  user-select: none;
+}
+
+#root {
+  height: 100vh;
+  width: 100vw;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+code, pre, .font-mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+/* Custom scrollbars for technical desktop feel */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* React Flow styling custom overrides for crisp engineering canvas */
+.react-flow__background {
+  background-color: #f8fafc;
+}
+.react-flow__handle {
+  width: 8px !important;
+  height: 8px !important;
+  border-radius: 2px !important;
+  background-color: #0284c7 !important;
+  border: 1px solid #ffffff !important;
+}
+.react-flow__handle:hover {
+  background-color: #0369a1 !important;
+  transform: scale(1.2);
+}
+.react-flow__edge-path {
+  stroke: #64748b;
+  stroke-width: 2;
+}
+.react-flow__edge.selected .react-flow__edge-path {
+  stroke: #2563eb;
+  stroke-width: 3;
+}
+.react-flow__edge.animated .react-flow__edge-path {
+  stroke: #0284c7;
+  stroke-width: 2.5;
+  stroke-dasharray: 5;
+  animation: dashdraw 0.5s linear infinite;
+}
+@keyframes dashdraw {
+  from {
+    stroke-dashoffset: 10;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}

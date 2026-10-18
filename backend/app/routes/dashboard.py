@@ -1,90 +1,55 @@
-"""Overview Dashboard API Routes."""
-import os
+"""Dashboard Operational Overview API Routes."""
 from flask import Blueprint, jsonify
 from ..database.db import query_db
-from ..security.certificates import inspect_current_certificate, CERT_PATH
 
 dashboard_bp = Blueprint("dashboard", __name__, url_prefix="/api/dashboard")
 
 @dashboard_bp.route("/stats", methods=["GET"])
-def get_dashboard_stats():
-    """Returns aggregated live statistics directly from the database."""
+def get_dashboard_metrics():
+    """Returns genuine operational and security metrics aggregated from the database."""
     # 1. Total devices
-    tot_devices_row = query_db("SELECT COUNT(*) as count FROM devices", one=True)
-    total_devices = tot_devices_row["count"] if tot_devices_row else 0
+    tot_dev = query_db("SELECT COUNT(*) as cnt FROM devices", one=True)["cnt"]
+    auth_dev = query_db("SELECT COUNT(*) as cnt FROM devices WHERE trust_status = 'Trusted'", one=True)["cnt"]
 
-    # 2. Authorized devices
-    auth_devices_row = query_db("SELECT COUNT(*) as count FROM devices WHERE status = 'Authorized'", one=True)
-    authorized_devices = auth_devices_row["count"] if auth_devices_row else 0
+    # 2. Total simulation sessions
+    tot_sess = query_db("SELECT COUNT(*) as cnt FROM simulation_sessions", one=True)["cnt"]
 
-    # 3. Messages processed
-    msgs_row = query_db("SELECT COUNT(*) as count FROM simulation_records", one=True)
-    messages_processed = msgs_row["count"] if msgs_row else 0
+    # 3. Message outcomes
+    delivered_row = query_db("SELECT COUNT(*) as cnt FROM messages WHERE status = 'Delivered'", one=True)
+    delivered = delivered_row["cnt"] if delivered_row else 0
 
-    # 4. Rejected access requests
-    rejected_row = query_db("SELECT COUNT(*) as count FROM simulation_records WHERE status = 'REJECTED'", one=True)
-    rejected_requests = rejected_row["count"] if rejected_row else 0
+    rejected_row = query_db("SELECT COUNT(*) as cnt FROM messages WHERE status = 'Rejected'", one=True)
+    rejected = rejected_row["cnt"] if rejected_row else 0
 
-    # 5. Integrity verification failures (tamper events in security_events)
-    integrity_failures_row = query_db(
-        "SELECT COUNT(*) as count FROM security_events WHERE event_type LIKE '%TAMPER%' OR event_type = 'SIGNATURE_REJECTED' OR event_type LIKE '%INTEGRITY%'",
-        one=True
-    )
-    integrity_failures = integrity_failures_row["count"] if integrity_failures_row else 0
+    failed_row = query_db("SELECT COUNT(*) as cnt FROM messages WHERE status = 'Failed'", one=True)
+    failed = failed_row["cnt"] if failed_row else 0
 
-    # 6. Secure connection status
-    has_cert = os.path.exists(CERT_PATH)
-    cert_info = None
-    if has_cert:
-        try:
-            cert_info = inspect_current_certificate()
-        except Exception:
-            pass
+    total_msgs = delivered + rejected + failed
 
-    secure_connection_status = {
-        "tls_ready": has_cert,
-        "active_protocol": "TLS 1.3 / TLS 1.2" if has_cert else "AWAITING_X509_CERTIFICATE",
-        "certificate_installed": has_cert,
-        "cert_common_name": cert_info.get("subject_common_name") if cert_info else None,
-        "is_self_signed": cert_info.get("is_self_signed", True) if cert_info else True
-    }
+    # 4. Security test results pass rate
+    tot_tests = query_db("SELECT COUNT(*) as cnt FROM security_test_results", one=True)["cnt"]
+    passed_tests = query_db("SELECT COUNT(*) as cnt FROM security_test_results WHERE pass_fail = 'PASS'", one=True)["cnt"]
+    pass_rate = round((passed_tests / tot_tests * 100), 1) if tot_tests > 0 else 100.0
 
-    # 7. Recent security events (last 8)
-    recent_events = query_db("SELECT * FROM security_events ORDER BY id DESC LIMIT 8")
+    # 5. Recent security audit events
+    recent_events = query_db("SELECT id, timestamp, event_type, source_device, destination_device, security_result, decision, rejection_reason FROM audit_logs ORDER BY timestamp DESC LIMIT 6")
 
-    # 8. Chart data: distribution by device and status
-    chart_by_device = query_db("""
-        SELECT device_id,
-               SUM(CASE WHEN status = 'ACCEPTED' THEN 1 ELSE 0 END) as accepted,
-               SUM(CASE WHEN status = 'REJECTED' THEN 1 ELSE 0 END) as rejected,
-               COUNT(*) as total
-        FROM simulation_records
-        GROUP BY device_id
-        ORDER BY total DESC
-        LIMIT 6
-    """)
-
-    # Distribution by action
-    chart_by_action = query_db("""
-        SELECT action,
-               SUM(CASE WHEN status = 'ACCEPTED' THEN 1 ELSE 0 END) as accepted,
-               SUM(CASE WHEN status = 'REJECTED' THEN 1 ELSE 0 END) as rejected
-        FROM simulation_records
-        GROUP BY action
-        ORDER BY (accepted + rejected) DESC
-        LIMIT 6
-    """)
+    # 6. Active topology info
+    active_topo = query_db("SELECT id, name, description, updated_at FROM topologies WHERE is_default = 1 LIMIT 1", one=True)
 
     return jsonify({
         "success": True,
-        "total_devices": total_devices,
-        "authorized_devices": authorized_devices,
-        "messages_processed": messages_processed,
-        "rejected_requests": rejected_requests,
-        "integrity_failures": integrity_failures,
-        "secure_connection_status": secure_connection_status,
+        "total_devices": tot_dev,
+        "trusted_devices": auth_dev,
+        "total_sessions": tot_sess,
+        "messages_delivered": delivered,
+        "messages_rejected": rejected,
+        "messages_failed": failed,
+        "total_messages": total_msgs,
+        "security_tests_total": tot_tests,
+        "security_tests_passed": passed_tests,
+        "security_pass_rate_pct": pass_rate,
         "recent_events": recent_events,
-        "chart_by_device": chart_by_device,
-        "chart_by_action": chart_by_action,
-        "is_empty": (total_devices == 0 and messages_processed == 0 and len(recent_events) == 0)
+        "active_topology": active_topo,
+        "is_empty": (tot_dev == 0 and total_msgs == 0)
     })

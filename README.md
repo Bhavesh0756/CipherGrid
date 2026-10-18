@@ -1,113 +1,75 @@
-# Secure Industrial Control System Communication Simulator (Industrial SecureSim)
+# Secure Industrial Control System Communication Simulator
 
-A software-only cybersecurity simulation platform that demonstrates how virtual industrial devices (PLCs, RTUs, smart sensors, actuator controllers) communicate securely with a central SCADA monitoring server.
-
-This project implements and demonstrates concepts across all **four Network Security modules** through working cryptographic features, access control policy engines, and clearly labelled protocol simulations.
+An educational cybersecurity and industrial network simulation platform designed to model virtual SCADA/ICS environments, visualize hop-by-hop packet communication across Purdue Model levels, and demonstrate how cryptographic mechanisms and access control policies protect critical infrastructure messages.
 
 ---
 
-## 1. Project Overview & Architectural Alignment
+## 1. System Overview & Architecture
 
-In Industrial Control Systems (ICS / SCADA), security relies on defense-in-depth:
-- Device Admission & Identity (IEEE 802.1X / EAP-TLS)
-- Access Control & Authorization (RBAC, Principle of Least Privilege)
-- Cryptographic Message Security (AES-256-GCM AEAD, SHA-256 integrity, RSA-PSS signatures)
-- Transport Security (TLS 1.3 / 1.2 with mutual X.509 certificate validation)
-- Network-Layer Protection (IPsec AH & ESP encapsulation)
+The simulator is structured as a full-stack engineering workspace inspired by professional network simulation tools (such as Cisco Packet Tracer), with a restrained industrial engineering aesthetic (slate grey, off-white workspace, deep charcoal navigation, and muted industrial blue/teal accents).
 
 ```
-[ Virtual Industrial Device ]
-       │ (1. Telemetry / Command: Temp, Pressure, RPM)
-       ▼
-[ Security Admission & RBAC Policy Layer ]
-       │ ── Checks device status (Authorized / Suspended / Unauthorized)
-       │ ── Validates role permissions against requested action
-       ▼
-[ Cryptographic Engine ]
-       │ ── AES-256-GCM (Confidentiality & Polynomial Auth Tag)
-       │ ── SHA-256 Digest (Integrity verification)
-       │ ── RSA-PSS Digital Signature (Origin authentication & non-repudiation)
-       ▼
-[ Secure Transport Channel ]
-       │ ── TLS 1.3 Encrypted Socket (Port 8443)
-       │ ── Strict X.509 Certificate & Hostname Validation
-       ▼
-[ SCADA Central Monitoring Controller ]
-       │ ── Validates signature, verifies tag, decrypts payload
-       │ ── Records audit events in SQLite database
-       └── Renders live telemetry & alerts on Dashboard
+                      +------------------------------------------+
+                      |         REACT FLOW NETWORK CANVAS        |
+                      |  (Interactive Drag-and-Drop OT Topology) |
+                      +--------------------+---------------------+
+                                           |
+                              REST API (JSON / HTTP)
+                                           |
+                      +--------------------v---------------------+
+                      |         FLASK SIMULATION ENGINE          |
+                      |                                          |
+                      |  * Network Graph BFS Pathfinding         |
+                      |  * Industrial RBAC Admission Policy      |
+                      |  * AES-256-GCM AEAD Encryption Engine    |
+                      |  * SHA-256 Integrity Verification        |
+                      |  * RSA-PSS 2048-bit Digital Signatures   |
+                      |  * SQLite Event & Replay Cache           |
+                      +------------------------------------------+
 ```
 
----
-
-## 2. Curriculum Coverage: All 4 Network Security Modules
-
-### Module 1: Classical Cryptography & Fundamentals
-- **Caesar Cipher (Shift Cipher)**: Implements monoalphabetic substitution ($C = (P + k) \pmod{26}$) with an interactive shift slider.
-- **Columnar Transposition Cipher**: Implements permutation of characters using a keyword grid.
-- **Educational Notice**: Both algorithms are explicitly identified as educational demonstrations. Their limited key space (25 keys for Caesar) and vulnerability to frequency analysis and anagramming make them unsuited for modern industrial security.
-
-### Module 2: Modern Symmetric, Asymmetric, Hashing & PKI
-- **AES-256-GCM (Authenticated Encryption with Associated Data)**: Uses the Python `cryptography` library. Encrypts industrial messages using 256-bit keys and fresh, cryptographically secure 96-bit (12-byte) nonces generated per message (`os.urandom(12)`). Decryption verifies the 128-bit GHASH authentication tag; any tampering with ciphertext, nonce, or associated data causes decryption to fail immediately with an `InvalidTag` exception.
-- **SHA-256 Cryptographic Hashing**: Uses Python `hashlib`. Demonstrates one-way pre-image resistance and features an interactive **Avalanche Effect** comparator that calculates exact Hamming bit distance (showing that flipping a single character flips ~50% of the 256 bits).
-- **RSA-2048 Asymmetric Cryptography & Hybrid Encryption**: Generates RSA-2048 key pairs ($e=65537$) with PKCS#8 PEM public key export. Demonstrates modern **Key Encapsulation / Hybrid Envelope Encryption**: bulk industrial payloads are encrypted with AES-256-GCM, and the ephemeral 32-byte AES key is encrypted with RSA-OAEP (SHA-256).
-- **RSA-PSS Digital Signatures**: Implements Probabilistic Signature Scheme (PSS) with SHA-256 and MGF1. Proves message authenticity, integrity, and non-repudiation. Includes controlled wire-tampering simulation where modifying a single byte invalidates the signature.
-- **X.509 Digital Certificates**: Generates a self-signed X.509 certificate for `localhost` / `127.0.0.1` using `cryptography.x509`. Displays Subject, Issuer, Serial Number, Validity Dates, Key Usage, and SHA-256 fingerprint. Performs local certificate validation.
-- **Key Management**: Strict separation of public and private keys, safe key generation via OS CSPRNG, exclusion of keys/databases from Git via `.gitignore`, and warnings against frontend key storage.
-
-### Module 3: Access Control & Network Defense
-- **SCADA Role-Based Access Control (RBAC)**: Persisted in SQLite. Enforces device lifecycle states (`Authorized`, `Suspended`, `Unauthorized`, `Revoked`) and role permissions (`telemetry_node`, `operator`, `maintenance_supervisor`, `admin_controller`, `untrusted_sensor`).
-- **Principle of Least Privilege (PoLP)**: High-risk actions (`reboot_plc`, `emergency_trip`, `flash_firmware`) require elevated roles; unauthorized attempts are dropped and logged as critical security violations.
-- **Conceptual IEEE 802.1X / EAP-TLS Workflow**: Interactive 7-step visualization of port-based network access control between Supplicant (Virtual Device), Authenticator (ICS Switch), and Authentication Server (RADIUS / EAP-TLS).
-
-### Module 4: Transport & Network Layer Security
-- **Real Local TLS 1.3 Client-Server Demo**: Standalone Python scripts (`backend/tls_demo/server.py` and `backend/tls_demo/client.py`) using Python's standard `ssl` module. The server loads the X.509 certificate and listens on port 8443; the client strictly verifies the server certificate and hostname (`check_hostname=True`), negotiates TLS 1.3 (or 1.2), and exchanges encrypted telemetry.
-- **In-App Live TLS Socket Handshake Test**: Allows executing a real local socket TLS handshake from the browser dashboard and inspecting the negotiated protocol (`TLSv1.3`), cipher suite (`TLS_AES_256_GCM_SHA384`), and encrypted frames.
-- **IPsec Conceptual Simulator**: Visualizes OSI Layer 3 security, comparing Authentication Header (AH, Protocol 51 - integrity only) vs Encapsulating Security Payload (ESP, Protocol 50 - confidentiality + integrity) in both Transport Mode and Tunnel Mode.
-- **Wireshark Packet Inspection Guide**: Step-by-step tutorial for capturing and inspecting local loopback TLS handshakes and opaque Application Data packets on port 8443.
+### Key Modules:
+1. **Network Lab**: Interactive React Flow topology editor with custom industrial device nodes (Sensors, PLCs, SCADA Servers, HMIs, Gateways, Switches, Routers, Monitors, and Untrusted Probes), port wiring, hop-by-hop animated simulation playback, and live device inspection.
+2. **Device Inventory**: Purdue Model asset directory detailing IP addresses, hardware MACs, ISA-95 levels (Level 0 through 3.5), administrative online/offline state, and public keys.
+3. **Packet Inspector**: Wireshark-inspired simulation packet table and multi-pane packet dissector showing protocol state, routing metadata, cryptographic parameters, and hex/wire representations.
+4. **Security Center**: Technical analysis workbench featuring side-by-side comparative inspection (Plaintext vs AES-256-GCM AEAD vs Recovered payload, SHA-256 digests, RSA-PSS signatures) and an automated test runner for all 9 repeatable security scenarios.
+5. **Event Logs**: Persistent SQLite audit trail with status filters, search, pagination, and CSV export.
+6. **Lab Reports**: Printable engineering report generator with topology breakdowns, empirical test scenario results, and cryptographic mechanism conclusions.
+7. **Operational Telemetry Dashboard**: Purposeful overview displaying active device metrics, simulation sessions, delivery/rejection counters, pass rates, and recent audit records.
+8. **Settings**: Simulator parameters, presentation playback clock speed, cryptographic profile specifications, and factory starter reset.
 
 ---
 
-## 3. Real Implementation vs Conceptual Simulation Disclosures
+## 2. Technology Stack
 
-| Feature / Subsystem | Implementation Type | Technical Detail |
-|---|---|---|
-| Caesar & Columnar Transposition Ciphers | **Real Implementation** | Mathematical algorithms running in Python for educational analysis. |
-| AES-256-GCM AEAD & Tampering Detection | **Real Implementation** | Built with standard `cryptography.hazmat` library; enforces nonce uniqueness. |
-| SHA-256 Hashing & Avalanche Analyzer | **Real Implementation** | Standard `hashlib.sha256` with bit-level Hamming distance calculation. |
-| RSA-2048 Asymmetric Keypair & Hybrid Envelope | **Real Implementation** | Standard `cryptography.hazmat.primitives.asymmetric.rsa` & OAEP padding. |
-| RSA-PSS Digital Signatures | **Real Implementation** | Real PSS padding with MGF1 and SHA-256. |
-| X.509 Digital Certificates | **Real Implementation** | Generated with `cryptography.x509` and stored in `backend/certificates/`. |
-| Industrial RBAC & Policy Engine | **Real Implementation** | SQLite-backed evaluation engine with audit logging. |
-| Local TLS 1.3 Client & Server Socket Demo | **Real Implementation** | Real TLS communication using Python `ssl` module on port 8443. |
-| IEEE 802.1X / EAP-TLS Workflow | **Conceptual Simulation** | Conceptual model; does not require physical hardware switches. |
-| IPsec AH vs ESP Packet Simulator | **Conceptual Simulation** | Illustrates Layer 3 encapsulation without altering OS kernel tables. |
-| Wireshark Traffic Capture | **Optional Local Tool** | Practical instructions for local packet capture with Wireshark/Npcap. |
+### Backend
+- **Python 3.12+**
+- **Flask 3.1.0** & **Flask-CORS 6.0.0**
+- **Cryptography >= 43.0.0** (`AESGCM`, `RSAPSS`, `SHA256`, `MGF1`)
+- **SQLite 3** (Persistent local relational storage)
+- **Pytest >= 8.0.0**
 
----
-
-## 4. Technology Stack
-
-- **Frontend**: React 19, Vite, Tailwind CSS v4, Recharts, Lucide React icons.
-- **Backend**: Python 3.12, Flask, Flask-CORS, Python standard `cryptography` library, `hashlib`, `ssl`, `sqlite3`.
-- **Database**: SQLite (`backend/app/database/securesim.db`), automatically created and seeded on first run.
+### Frontend
+- **React 19**
+- **Vite 8**
+- **TypeScript 5.8+**
+- **Tailwind CSS v4** with `@tailwindcss/vite`
+- **@xyflow/react** (React Flow 12)
+- **Lucide React** (Industrial iconography)
+- **Zustand 5** (Lightweight reactive store)
 
 ---
 
-## 5. Getting Started & Execution Instructions
+## 3. Getting Started & PowerShell Startup Commands
 
-### Prerequisites
-- Python 3.10+ (tested on Python 3.12)
-- Node.js 18+ and npm
+### Step 1: Install Dependencies
 
-### Installation
-
-1. **Install Backend Dependencies**:
+#### Backend Dependencies:
 ```powershell
 pip install -r backend/requirements.txt
 ```
 
-2. **Install Frontend Dependencies**:
+#### Frontend Dependencies:
 ```powershell
 cd frontend
 npm install
@@ -116,129 +78,137 @@ cd ..
 
 ---
 
-### Running the Application
+### Step 2: Run Automated Tests
 
-Open two terminal windows:
+#### Backend Pytest Suite (16 Automated Tests):
+```powershell
+python -m pytest backend/tests -v
+```
 
-#### Terminal 1 — Start Flask Backend Server:
+#### Frontend TypeScript & Production Build Verification:
+```powershell
+cd frontend
+npm run build
+cd ..
+```
+
+---
+
+### Step 3: Start the Application Services
+
+Open two PowerShell terminal windows:
+
+#### Terminal 1 — Start the Flask Backend (Port 5000):
 ```powershell
 python backend/run.py
 ```
-*The API server will run at `http://127.0.0.1:5000/api/health`.*
+*The backend API server will start at `http://127.0.0.1:5000` with the health check available at `http://127.0.0.1:5000/api/health`.*
 
-#### Terminal 2 — Start React Frontend:
+#### Terminal 2 — Start the Vite Frontend (Port 5173):
 ```powershell
 cd frontend
 npm run dev
 ```
-*Open your browser at `http://localhost:5173` to access the Industrial SecureSim dashboard.*
+*The frontend user interface will be served at `http://127.0.0.1:5173`.*
 
 ---
 
-### Running Automated Security Tests
+## 4. Cryptographic Implementation Details
 
-Execute the complete pytest suite to verify all cryptographic and access control features:
-```powershell
-python -m pytest backend/tests/test_securesim.py -v
-```
-*(All 16 automated tests covering Caesar, Transposition, AES-GCM, Tampering Detection, SHA-256, RSA, RSA-PSS, X.509, RBAC, and Live TLS sockets will execute and pass).*
-
----
-
-### Running the Standalone TLS 1.3 Client & Server
-
-To demonstrate standalone TLS outside the web interface:
-
-1. In Terminal 1, start the TLS server:
-```powershell
-python backend/tls_demo/server.py
-```
-
-2. In Terminal 2, run the TLS client:
-```powershell
-python backend/tls_demo/client.py
-```
-
-*The client validates the server certificate and hostname, negotiates TLS 1.3, and exchanges encrypted industrial commands.*
+- **AES-256-GCM (AEAD)**: Payload confidentiality with a fresh 96-bit cryptographically secure random nonce (`os.urandom(12)`). Authenticates ciphertext and contextual Associated Data (`id`, `src`, `dst`, `type`, `ts`) with a 128-bit MAC tag.
+- **SHA-256 Message Digest**: Canonical key-value serialization hashed via SHA-256 for mathematical data integrity verification.
+- **RSA-PSS Digital Signatures**: 2048-bit RSA keys with Probabilistic Signature Scheme (PSS), MGF1 mask generation, and SHA-256 digests. Private keys are securely retained on the backend; public keys are distributed across endpoints.
+- **Industrial RBAC & Admission Control**: Principle of Least Privilege enforcement based on device role (Sensor, Controller, SCADA, Operator, Gateway, Switch, Router, Monitor, Untrusted), Purdue zone authorization, and message type whitelist.
+- **Replay Protection**: Unique deterministic message sequence identifiers tracked in SQLite storage to prevent re-transmission and replay attacks.
 
 ---
 
-## 6. Project Structure
+## 5. Security Test Scenarios
+
+The simulator features 9 repeatable security scenarios with calculated Pass/Fail status:
+
+| # | Scenario Name | Test Objective | Defense Mechanism Tested | Expected Result |
+|---|---------------|----------------|--------------------------|-----------------|
+| 1 | **Normal Secure Communication** | Deliver authorized telemetry | AES-GCM + RSA-PSS + RBAC | Delivered (PASS) |
+| 2 | **Message Tampering** | Detect payload alteration in transit | AEAD 128-bit MAC Tag & SHA-256 | Rejected (PASS) |
+| 3 | **Invalid Digital Signature** | Detect forged or corrupted signature | RSA-PSS Signature Verification | Rejected (PASS) |
+| 4 | **Unauthorized Device** | Prevent untrusted node injection | Industrial Admission & RBAC Policy | Rejected (PASS) |
+| 5 | **Replay Attempt** | Block duplicate message retransmission | SQLite Sequence & Nonce Cache | Rejected (PASS) |
+| 6 | **Invalid AES-GCM Tag** | Detect corrupt or forged MAC tag | GCM Authentication Verification | Rejected (PASS) |
+| 7 | **Missing Network Path** | Detect broken physical link / topology | Network Graph BFS Pathfinder | Failed (PASS) |
+| 8 | **Disabled Destination** | Reject packet to offline node | Administrative Status Validator | Failed (PASS) |
+| 9 | **Recovery After Failure** | Verify clean recovery after rejection | State Cleanup & Normal Pipeline | Delivered (PASS) |
+
+---
+
+## 6. Directory Structure
 
 ```
-industrial-securesim/
-  backend/
-    app/
-      database/
-        __init__.py
-        db.py               # SQLite connection manager & seed runner
-        schema.sql          # Tables: devices, roles, security_events, simulation_records
-      routes/
-        __init__.py
-        dashboard.py        # Live metrics & chart data from SQLite
-        devices.py          # Device CRUD & multi-layer simulation endpoints
-        crypto.py           # Endpoints for Caesar, AES-GCM, RSA, SHA-256, PSS, X.509
-        logs.py             # Filterable audit log retrieval & purge
-        tls.py              # In-process live TLS socket test runner & IPsec spec
-      security/
-        __init__.py
-        classical.py        # Caesar & Columnar Transposition ciphers
-        symmetric.py        # AES-256-GCM AEAD & tampering verification
-        asymmetric.py       # RSA-2048 keygen & Hybrid Envelope (RSA-OAEP + AES-GCM)
-        hash_util.py        # SHA-256 hashing & bit-level avalanche analyzer
-        signatures.py       # RSA-PSS digital signatures (SHA-256, MGF1)
-        certificates.py     # X.509 self-signed cert generation & inspection
-        rbac.py             # ICS Role-Based Access Control policy engine
-      services/
-        __init__.py
-        device_service.py   # Multi-layer cryptographic message simulation
-        crypto_service.py   # Orchestrator for cryptography lab operations
-        log_service.py      # Safe SQLite audit logging (redacts secrets)
-      __init__.py           # Flask application factory with CORS & Blueprints
-    certificates/           # Directory storing generated local X.509 certificates
-    tls_demo/
-      server.py             # Standalone Python TLS 1.3 / 1.2 server
-      client.py             # Standalone Python TLS client with strict cert verification
-    tests/
-      test_securesim.py     # Pytest test suite covering all 4 modules
-    requirements.txt        # Backend dependencies
-    run.py                  # Backend server entrypoint
-    .env.example            # Environment configuration template
-  frontend/
-    src/
-      components/
-        Badge.jsx           # Monospace cybersecurity status/severity badges
-        CodeBlock.jsx       # Monospace formatted viewer with copy-to-clipboard
-        CommunicationFlow.jsx # Visual pipeline: Device → Security → Server
-        StatCard.jsx        # Metric cards with accent borders and icons
-      layouts/
-        DashboardLayout.jsx # Dark navy responsive sidebar & status header
-      pages/
-        OverviewDashboard.jsx    # Live metrics, Recharts charts, events feed
-        IndustrialDevices.jsx    # Virtual device CRUD, status toggle, simulation
-        CryptographyLab.jsx      # Modules 1 & 2 interactive cryptographic workbench
-        AccessControl.jsx        # RBAC matrix, policy tester, conceptual 802.1X
-        SecureCommunication.jsx  # Live TLS demo, standalone scripts, IPsec, Wireshark
-        SecurityEventLogs.jsx    # Searchable, filterable audit log table
-        ProjectInformation.jsx   # Complete curriculum documentation & disclosures
-      services/
-        api.js              # REST API client connecting React to Flask
-      App.jsx               # Navigation switcher
-      main.jsx              # React DOM entrypoint
-      index.css             # Tailwind CSS & cybersecurity theme design tokens
-    package.json
-    index.html
-    vite.config.js
-  .gitignore
-  README.md
+Secure Industrial Control System Communication Simulator/
+├── backend/
+│   ├── app/
+│   │   ├── database/
+│   │   │   ├── db.py               # SQLite connection & schema seeding
+│   │   │   └── schema.sql          # DDL tables & indexes
+│   │   ├── routes/
+│   │   │   ├── dashboard.py        # /api/dashboard/stats
+│   │   │   ├── devices.py          # /api/devices CRUD
+│   │   │   ├── events.py           # /api/events & packet stream
+│   │   │   ├── messages.py         # /api/messages/send
+│   │   │   ├── reports.py          # /api/reports/lab-report
+│   │   │   ├── security.py         # /api/security/scenarios & verify
+│   │   │   └── topology.py         # /api/topology & connections
+│   │   ├── security/
+│   │   │   ├── access_control.py   # Industrial RBAC admission policy
+│   │   │   └── crypto_engine.py    # AES-GCM, SHA-256, RSA-PSS
+│   │   ├── simulation/
+│   │   │   ├── engine.py           # Hop-by-hop packet simulation engine
+│   │   │   ├── pathfinder.py       # Graph BFS routing algorithm
+│   │   │   └── scenarios.py        # 9 repeatable security scenarios
+│   │   └── __init__.py             # Flask application factory & CORS
+│   ├── tests/
+│   │   └── test_simulator.py       # 16 Pytest test cases
+│   ├── requirements.txt            # Python dependencies
+│   └── run.py                      # Flask entrypoint
+├── frontend/
+│   ├── src/
+│   │   ├── components/
+│   │   │   ├── Layout/
+│   │   │   │   ├── Sidebar.tsx     # Deep charcoal module navigation
+│   │   │   │   └── Topbar.tsx      # Application title & core status
+│   │   │   └── NetworkLab/
+│   │   │       ├── DeviceInspector.tsx      # Selected node configuration panel
+│   │   │       ├── DevicePalette.tsx        # Draggable virtual device toolbox
+│   │   │       ├── IndustrialNode.tsx       # Custom React Flow OT node
+│   │   │       ├── MessageSimulatorModal.tsx# Packet formulation & attack injection
+│   │   │       └── SimulationControls.tsx   # Step playback & speed controls
+│   │   ├── pages/
+│   │   │   ├── DeviceInventory.tsx   # Purdue asset directory
+│   │   │   ├── EventLogs.tsx         # SQLite audit log viewer & CSV export
+│   │   │   ├── LabReports.tsx        # Printable lab report & findings
+│   │   │   ├── NetworkLab.tsx        # Interactive React Flow workspace
+│   │   │   ├── OverviewDashboard.tsx # Operational telemetry dashboard
+│   │   │   ├── PacketInspector.tsx   # Multi-pane packet dissector
+│   │   │   ├── SecurityCenter.tsx    # Cryptographic workbench & scenarios
+│   │   │   └── Settings.tsx          # Simulator parameters & factory reset
+│   │   ├── services/
+│   │   │   └── api.ts                # Typed REST client
+│   │   ├── store/
+│   │   │   └── useSimulatorStore.ts  # Zustand simulation state store
+│   │   ├── types/
+│   │   │   └── index.ts              # TypeScript interface definitions
+│   │   ├── App.tsx                   # Main workspace shell
+│   │   ├── index.css                 # Industrial engineering styling
+│   │   └── main.tsx                  # React entrypoint
+│   ├── index.html                    # HTML shell
+│   ├── package.json                  # Frontend dependencies
+│   ├── tsconfig.json                 # TypeScript project configuration
+│   └── vite.config.ts                # Vite config & API reverse proxy
+└── README.md                         # Project documentation
 ```
 
 ---
 
-## 7. Security Best Practices Observed
+## 7. Educational Disclaimer
 
-- **No Homemade Cryptography**: All modern cryptographic operations (AES-GCM, RSA, RSA-PSS, X.509, SHA-256) rely on the Python `cryptography` package and `hashlib`.
-- **Strict Nonce Handling**: Every AES-GCM encryption draws a unique 96-bit nonce via `os.urandom(12)`.
-- **Key Secrecy**: Private keys are maintained server-side and excluded from public API responses.
-- **Audit Sanitization**: The logging service strips and redacts private keys, raw secrets, and sensitive tokens prior to SQLite insertion.
-- **Git Hygiene**: Private keys (`*.pem`, `*.key`), SQLite databases (`*.db`), virtual environments, and `.env` files are excluded in `.gitignore`.
+This simulator is designed exclusively for cybersecurity education, ICS protocol research, and academic laboratory demonstrations. All virtual devices, IP addresses, interfaces, and packet streams represent simulated software models executing within the local Python engine. No connections are made to physical operational technology (OT) equipment or real-world industrial control networks.
