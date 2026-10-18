@@ -64,17 +64,17 @@ const NetworkLabContent: React.FC = () => {
     fetchTopology();
   }, [fetchTopology]);
 
-  // Gentle initial fit ONLY once on first load with strict minZoom constraint so nodes never shrink
+  // Initial fit view with generous padding so all nodes are beautifully framed and visible
   const initialFitDone = useRef(false);
   useEffect(() => {
     if (devices.length > 0 && !initialFitDone.current) {
       initialFitDone.current = true;
       setTimeout(() => {
-        fitView({ padding: 0.12, minZoom: 0.85, maxZoom: 1.0 });
+        fitView({ padding: 0.18, duration: 200 });
         setTimeout(() => {
           setZoomLevel(Math.round(getZoom() * 100));
-        }, 150);
-      }, 100);
+        }, 220);
+      }, 200);
     }
   }, [devices.length, fitView, getZoom]);
 
@@ -291,7 +291,7 @@ const NetworkLabContent: React.FC = () => {
   };
 
   const handleFitView = () => {
-    fitView({ padding: 0.12, minZoom: 0.85, maxZoom: 1.05, duration: 250 });
+    fitView({ padding: 0.16, minZoom: 0.65, maxZoom: 1.0, duration: 250 });
     setTimeout(() => {
       setZoomLevel(Math.round(getZoom() * 100));
     }, 300);
@@ -422,10 +422,10 @@ const NetworkLabContent: React.FC = () => {
               onDragOver={onDragOver}
               onDrop={onDrop}
               nodeTypes={nodeTypes}
-              defaultViewport={{ x: 30, y: 30, zoom: 0.95 }}
+              defaultViewport={{ x: 10, y: 10, zoom: 0.8 }}
               snapToGrid
               snapGrid={[16, 16]}
-              minZoom={0.65}
+              minZoom={0.5}
               maxZoom={1.5}
             >
               <Background
@@ -433,27 +433,6 @@ const NetworkLabContent: React.FC = () => {
                 gap={24}
                 size={1.5}
                 color="#cbd5e1"
-              />
-              <MiniMap
-                position="top-right"
-                nodeColor={(node: any) => {
-                  const type = node.data?.device?.device_type;
-                  if (type === 'PLC') return '#2563eb';
-                  if (type === 'SCADA Server') return '#9333ea';
-                  if (type === 'Ethernet Switch') return '#3b82f6';
-                  if (type === 'Monitoring Server') return '#10b981';
-                  if (type === 'Operator Workstation') return '#f59e0b';
-                  if (type === 'Untrusted Device') return '#e11d48';
-                  return '#64748b';
-                }}
-                maskColor="rgba(243, 246, 250, 0.75)"
-                style={{
-                  top: 12,
-                  right: 12,
-                  width: 96,
-                  height: 60,
-                }}
-                className="!bg-white/90 !backdrop-blur-xs !border !border-slate-200 !rounded-lg !shadow-xs"
               />
             </ReactFlow>
           </div>

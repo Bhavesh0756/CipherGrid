@@ -154,41 +154,43 @@ export const SimulationControls: React.FC = () => {
     return true;
   });
 
+  const [isLogsExpanded, setIsLogsExpanded] = useState<boolean>(true);
+
   return (
     <div className="bg-white border-t border-slate-200 select-none shrink-0 flex flex-col z-20 shadow-xs">
-      {/* ─── Top Toolbar: Simulation Control ─── */}
-      <div className="px-5 py-2 border-b border-slate-200 flex flex-wrap items-center justify-between gap-3 min-h-[46px]">
+      {/* ─── Top Toolbar: Simulation Control (Sleek Single Row) ─── */}
+      <div className="h-12 px-4 border-b border-slate-200/80 flex items-center justify-between gap-3 bg-white">
         {/* Left: Section Header */}
-        <div className="flex items-center gap-2.5 shrink-0">
-          <div className="w-7 h-7 rounded-lg bg-blue-50 border border-blue-200/80 flex items-center justify-center text-blue-600 shadow-2xs">
-            <Settings className="w-3.5 h-3.5" />
+        <div className="flex items-center gap-2 shrink-0">
+          <div className="w-6 h-6 rounded-md bg-blue-50 border border-blue-200/80 flex items-center justify-center text-blue-600 shadow-2xs">
+            <Settings className="w-3 h-3" />
           </div>
-          <div>
+          <div className="flex items-baseline gap-1.5">
             <h3 className="text-xs font-bold text-slate-900 tracking-tight leading-tight">
               Simulation Control
             </h3>
-            <p className="text-[10px] text-slate-400">
-              Send test messages between devices
-            </p>
+            <span className="text-[10px] text-slate-400 hidden xl:inline">
+              · Send test messages
+            </span>
           </div>
         </div>
 
-        {/* Center / Right: Action Buttons and Dropdowns */}
-        <div className="flex flex-wrap items-center gap-3">
+        {/* Center: Action Buttons and Dropdowns in a single clean row */}
+        <div className="flex items-center gap-2 min-w-0">
           {/* Action Buttons */}
           <div className="flex items-center gap-1.5 shrink-0">
             <button
               onClick={handleSimulate}
               disabled={isSimulating}
-              className="flex items-center gap-1.5 px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 disabled:bg-slate-300 text-white rounded-lg text-xs font-semibold shadow-xs transition-all cursor-pointer"
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 disabled:bg-slate-300 text-white rounded-lg text-xs font-semibold shadow-xs transition-all cursor-pointer shrink-0"
             >
               <Play className="w-3 h-3 fill-current" />
-              <span>{isSimulating ? 'Simulating…' : 'Simulate Message'}</span>
+              <span>{isSimulating ? 'Simulating…' : 'Simulate'}</span>
             </button>
 
             <button
               onClick={handleReset}
-              className="flex items-center gap-1 px-2.5 py-1.5 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 rounded-lg text-xs font-medium transition-all shadow-2xs cursor-pointer"
+              className="flex items-center gap-1 px-2.5 py-1.5 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 rounded-lg text-xs font-medium transition-all shadow-2xs cursor-pointer shrink-0"
               title="Reset simulation playback"
             >
               <RotateCcw className="w-3 h-3 text-slate-500" />
@@ -196,18 +198,18 @@ export const SimulationControls: React.FC = () => {
             </button>
           </div>
 
-          <div className="h-4 w-px bg-slate-200 hidden sm:block" />
+          <div className="h-4 w-px bg-slate-200 shrink-0" />
 
           {/* Source Device */}
-          <div className="flex items-center gap-1.5">
-            <span className="text-[11px] font-semibold text-slate-600 shrink-0">
-              Source Device:
+          <div className="flex items-center gap-1 shrink-0">
+            <span className="text-[11px] font-medium text-slate-500 shrink-0 hidden lg:inline">
+              From:
             </span>
             <div className="relative">
               <select
                 value={sourceId}
                 onChange={(e) => setSourceId(e.target.value)}
-                className="appearance-none pl-2.5 pr-7 py-1 text-xs font-medium bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:border-blue-500 cursor-pointer w-44 truncate shadow-2xs"
+                className="appearance-none pl-2 pr-6 py-1 text-xs font-medium bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:border-blue-500 cursor-pointer w-36 truncate shadow-2xs"
               >
                 {devices.map((d) => (
                   <option key={d.id} value={d.id}>
@@ -219,18 +221,18 @@ export const SimulationControls: React.FC = () => {
             </div>
           </div>
 
-          <ArrowRight className="w-3.5 h-3.5 text-blue-600 shrink-0 hidden sm:block" />
+          <ArrowRight className="w-3.5 h-3.5 text-blue-600 shrink-0" />
 
           {/* Destination Device */}
-          <div className="flex items-center gap-1.5">
-            <span className="text-[11px] font-semibold text-slate-600 shrink-0">
-              Destination Device:
+          <div className="flex items-center gap-1 shrink-0">
+            <span className="text-[11px] font-medium text-slate-500 shrink-0 hidden lg:inline">
+              To:
             </span>
             <div className="relative">
               <select
                 value={destId}
                 onChange={(e) => setDestId(e.target.value)}
-                className="appearance-none pl-2.5 pr-7 py-1 text-xs font-medium bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:border-blue-500 cursor-pointer w-44 truncate shadow-2xs"
+                className="appearance-none pl-2 pr-6 py-1 text-xs font-medium bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:border-blue-500 cursor-pointer w-36 truncate shadow-2xs"
               >
                 {devices.map((d) => (
                   <option key={d.id} value={d.id}>
@@ -243,15 +245,15 @@ export const SimulationControls: React.FC = () => {
           </div>
 
           {/* Message Type */}
-          <div className="flex items-center gap-1.5">
-            <span className="text-[11px] font-semibold text-slate-600 shrink-0">
-              Message Type:
+          <div className="flex items-center gap-1 shrink-0">
+            <span className="text-[11px] font-medium text-slate-500 shrink-0 hidden lg:inline">
+              Msg:
             </span>
             <div className="relative">
               <select
                 value={messageType}
                 onChange={(e) => setMessageType(e.target.value as MessageType)}
-                className="appearance-none pl-2.5 pr-7 py-1 text-xs font-medium bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:border-blue-500 cursor-pointer w-44 truncate shadow-2xs"
+                className="appearance-none pl-2 pr-6 py-1 text-xs font-medium bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:border-blue-500 cursor-pointer w-40 truncate shadow-2xs"
               >
                 <option value="Sensor Reading">Read Status (Modbus)</option>
                 <option value="Device Status">Device Status</option>
@@ -262,12 +264,25 @@ export const SimulationControls: React.FC = () => {
             </div>
           </div>
         </div>
+
+        {/* Right: Toggle Logs Button */}
+        <div className="flex items-center gap-1 shrink-0">
+          <button
+            onClick={() => setIsLogsExpanded(!isLogsExpanded)}
+            className="flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-slate-600 hover:text-slate-900 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg transition-colors cursor-pointer"
+            title={isLogsExpanded ? 'Collapse Event Logs' : 'Expand Event Logs'}
+          >
+            <span>Logs</span>
+            <ChevronDown className={`w-3 h-3 transition-transform duration-200 ${isLogsExpanded ? 'rotate-180' : ''}`} />
+          </button>
+        </div>
       </div>
 
       {/* ─── Bottom Section: Event Logs Table ─── */}
-      <div className="flex flex-col">
-        {/* Table Header Tabs & Filter Bar */}
-        <div className="px-5 py-2 border-b border-slate-100 flex items-center justify-between text-xs font-medium bg-slate-50/50">
+      {isLogsExpanded && (
+        <div className="flex flex-col">
+          {/* Table Header Tabs & Filter Bar */}
+          <div className="px-5 py-2 border-b border-slate-100 flex items-center justify-between text-xs font-medium bg-slate-50/50">
           {/* Tabs */}
           <div className="flex items-center gap-5">
             <button
@@ -456,7 +471,8 @@ export const SimulationControls: React.FC = () => {
             </div>
           )}
         </div>
-      </div>
+        </div>
+      )}
     </div>
   );
 };
