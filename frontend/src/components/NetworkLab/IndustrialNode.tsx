@@ -124,7 +124,7 @@ export const IndustrialNode: React.FC<IndustrialNodeProps> = memo(({ data }) => 
   return (
     <div
       style={{ width: 240, height: 86, boxSizing: 'border-box' }}
-      className={`relative bg-white rounded-xl border transition-all duration-200 px-3 py-2.5 flex flex-col justify-between select-none ${borderClasses} ${shadowClasses} ${
+      className={`group relative bg-white rounded-xl border transition-all duration-200 px-3 py-2.5 flex flex-col justify-between select-none hover:-translate-y-0.5 hover:shadow-md ${borderClasses} ${shadowClasses} ${
         !device.is_enabled ? 'opacity-60' : ''
       }`}
     >

@@ -2,30 +2,30 @@
 
 /* ─── Design System: ICS Simulator ─── */
 :root {
-  /* Surface palette — warm neutrals instead of cold slate */
-  --surface-0: #fafaf9;
+  /* Surface palette — crisp cool slate matching reference mockup */
+  --surface-0: #f8fafc;
   --surface-1: #ffffff;
-  --surface-2: #f5f5f4;
-  --surface-3: #e7e5e4;
+  --surface-2: #f1f5f9;
+  --surface-3: #e2e8f0;
   --surface-raised: #ffffff;
-  --surface-overlay: rgba(28, 25, 23, 0.5);
+  --surface-overlay: rgba(15, 23, 42, 0.5);
 
-  /* Sidebar — deep charcoal, not pure black */
-  --sidebar-bg: #1c1917;
-  --sidebar-hover: #292524;
-  --sidebar-text: #a8a29e;
-  --sidebar-text-active: #fafaf9;
+  /* Sidebar — deep midnight navy */
+  --sidebar-bg: #0a0f1d;
+  --sidebar-hover: #131c33;
+  --sidebar-text: #94a3b8;
+  --sidebar-text-active: #ffffff;
 
   /* Text hierarchy */
-  --text-primary: #1c1917;
-  --text-secondary: #57534e;
-  --text-tertiary: #78716c;
-  --text-muted: #a8a29e;
+  --text-primary: #0f172a;
+  --text-secondary: #334155;
+  --text-tertiary: #64748b;
+  --text-muted: #94a3b8;
 
-  /* Borders — subtle warm grays */
-  --border-default: #e7e5e4;
-  --border-subtle: #f5f5f4;
-  --border-strong: #d6d3d1;
+  /* Borders — subtle cool grays */
+  --border-default: #e2e8f0;
+  --border-subtle: #f1f5f9;
+  --border-strong: #cbd5e1;
 
   /* Module accent colors — each module has a distinct identity */
   --mod-network: #0891b2;       /* Cyan 600 — topology, flows */
@@ -95,13 +95,13 @@
 
 
 html {
-  background-color: #fafaf9;
+  background-color: #f8fafc;
 }
 
 body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   color: var(--text-primary);
-  background-color: #fafaf9;
+  background-color: #f8fafc;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow: hidden;
