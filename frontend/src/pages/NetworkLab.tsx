@@ -101,6 +101,8 @@ const NetworkLabContent: React.FC = () => {
         id: d.id,
         type: 'industrialDevice',
         position: { x: d.position_x, y: d.position_y },
+        width: 240,
+        height: 86,
         data: { device: d, isSelected, isHighlighted, isActiveHop, isSource, isDestination },
       };
     });
@@ -120,6 +122,23 @@ const NetworkLabContent: React.FC = () => {
         }
       }
 
+      const srcDev = devices.find((d) => d.id === c.source_id);
+      const dstDev = devices.find((d) => d.id === c.target_id);
+      let edgeColor = '#94a3b8';
+      if (inPath) {
+        edgeColor = '#2563eb';
+      } else if (srcDev?.device_type === 'PLC' || dstDev?.device_type === 'PLC') {
+        edgeColor = '#3b82f6';
+      } else if (srcDev?.device_type === 'SCADA Server' || dstDev?.device_type === 'SCADA Server') {
+        edgeColor = '#8b5cf6';
+      } else if (srcDev?.device_type === 'Monitoring Server' || dstDev?.device_type === 'Monitoring Server') {
+        edgeColor = '#10b981';
+      } else if (srcDev?.device_type === 'Operator Workstation' || dstDev?.device_type === 'Operator Workstation') {
+        edgeColor = '#f59e0b';
+      } else if (srcDev?.device_type === 'Untrusted Device' || dstDev?.device_type === 'Untrusted Device') {
+        edgeColor = '#e11d48';
+      }
+
       return {
         id: c.id,
         source: c.source_id,
@@ -129,12 +148,12 @@ const NetworkLabContent: React.FC = () => {
         type: 'default', // smooth bezier curve
         animated: inPath,
         style: {
-          stroke: inPath ? '#2563eb' : '#94a3b8',
-          strokeWidth: inPath ? 2.5 : 1.5,
+          stroke: edgeColor,
+          strokeWidth: inPath ? 2.5 : 1.75,
         },
         markerEnd: {
           type: MarkerType.ArrowClosed,
-          color: inPath ? '#2563eb' : '#94a3b8',
+          color: edgeColor,
           width: 12,
           height: 12,
         },
@@ -151,11 +170,11 @@ const NetworkLabContent: React.FC = () => {
           stroke: '#cbd5e1',
           strokeWidth: 1,
         },
-        labelBgPadding: [5, 2] as [number, number],
+        labelBgPadding: [6, 2] as [number, number],
         labelBgBorderRadius: 9999,
       };
     });
-  }, [connections, highlightedPath]);
+  }, [connections, highlightedPath, devices]);
 
   const onNodeDragStop = useCallback(
     (_: any, node: Node) => {
@@ -416,7 +435,7 @@ const NetworkLabContent: React.FC = () => {
                 color="#cbd5e1"
               />
               <MiniMap
-                position="bottom-right"
+                position="top-right"
                 nodeColor={(node: any) => {
                   const type = node.data?.device?.device_type;
                   if (type === 'PLC') return '#2563eb';
@@ -429,12 +448,12 @@ const NetworkLabContent: React.FC = () => {
                 }}
                 maskColor="rgba(243, 246, 250, 0.75)"
                 style={{
-                  bottom: 12,
+                  top: 12,
                   right: 12,
-                  width: 115,
-                  height: 70,
+                  width: 96,
+                  height: 60,
                 }}
-                className="!bg-white !border !border-slate-200 !rounded-lg !shadow-sm"
+                className="!bg-white/90 !backdrop-blur-xs !border !border-slate-200 !rounded-lg !shadow-xs"
               />
             </ReactFlow>
           </div>

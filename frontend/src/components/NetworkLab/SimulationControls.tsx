@@ -157,7 +157,7 @@ export const SimulationControls: React.FC = () => {
   return (
     <div className="bg-white border-t border-slate-200 select-none shrink-0 flex flex-col z-20 shadow-xs">
       {/* ─── Top Toolbar: Simulation Control ─── */}
-      <div className="px-5 py-2.5 border-b border-slate-200 flex flex-wrap items-center justify-between gap-3 min-h-[50px]">
+      <div className="px-5 py-2 border-b border-slate-200 flex flex-wrap items-center justify-between gap-3 min-h-[46px]">
         {/* Left: Section Header */}
         <div className="flex items-center gap-2.5 shrink-0">
           <div className="w-7 h-7 rounded-lg bg-blue-50 border border-blue-200/80 flex items-center justify-center text-blue-600 shadow-2xs">
@@ -174,13 +174,13 @@ export const SimulationControls: React.FC = () => {
         </div>
 
         {/* Center / Right: Action Buttons and Dropdowns */}
-        <div className="flex flex-wrap items-center gap-2.5">
+        <div className="flex flex-wrap items-center gap-3">
           {/* Action Buttons */}
           <div className="flex items-center gap-1.5 shrink-0">
             <button
               onClick={handleSimulate}
               disabled={isSimulating}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 disabled:bg-slate-300 text-white rounded-lg text-xs font-semibold shadow-xs transition-all cursor-pointer"
+              className="flex items-center gap-1.5 px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 disabled:bg-slate-300 text-white rounded-lg text-xs font-semibold shadow-xs transition-all cursor-pointer"
             >
               <Play className="w-3 h-3 fill-current" />
               <span>{isSimulating ? 'Simulating…' : 'Simulate Message'}</span>
@@ -201,17 +201,17 @@ export const SimulationControls: React.FC = () => {
           {/* Source Device */}
           <div className="flex items-center gap-1.5">
             <span className="text-[11px] font-semibold text-slate-600 shrink-0">
-              Source:
+              Source Device:
             </span>
             <div className="relative">
               <select
                 value={sourceId}
                 onChange={(e) => setSourceId(e.target.value)}
-                className="appearance-none pl-2.5 pr-7 py-1 text-xs font-medium bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:border-blue-500 cursor-pointer w-40 truncate"
+                className="appearance-none pl-2.5 pr-7 py-1 text-xs font-medium bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:border-blue-500 cursor-pointer w-44 truncate shadow-2xs"
               >
                 {devices.map((d) => (
                   <option key={d.id} value={d.id}>
-                    {d.name}
+                    {d.name.replace(/\s+PLC$/i, '')}
                   </option>
                 ))}
               </select>
@@ -224,17 +224,17 @@ export const SimulationControls: React.FC = () => {
           {/* Destination Device */}
           <div className="flex items-center gap-1.5">
             <span className="text-[11px] font-semibold text-slate-600 shrink-0">
-              Destination:
+              Destination Device:
             </span>
             <div className="relative">
               <select
                 value={destId}
                 onChange={(e) => setDestId(e.target.value)}
-                className="appearance-none pl-2.5 pr-7 py-1 text-xs font-medium bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:border-blue-500 cursor-pointer w-40 truncate"
+                className="appearance-none pl-2.5 pr-7 py-1 text-xs font-medium bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:border-blue-500 cursor-pointer w-44 truncate shadow-2xs"
               >
                 {devices.map((d) => (
                   <option key={d.id} value={d.id}>
-                    {d.name}
+                    {d.name.replace(/\s+PLC$/i, '')}
                   </option>
                 ))}
               </select>
@@ -245,13 +245,13 @@ export const SimulationControls: React.FC = () => {
           {/* Message Type */}
           <div className="flex items-center gap-1.5">
             <span className="text-[11px] font-semibold text-slate-600 shrink-0">
-              Message:
+              Message Type:
             </span>
             <div className="relative">
               <select
                 value={messageType}
                 onChange={(e) => setMessageType(e.target.value as MessageType)}
-                className="appearance-none pl-2.5 pr-7 py-1 text-xs font-medium bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:border-blue-500 cursor-pointer w-44 truncate"
+                className="appearance-none pl-2.5 pr-7 py-1 text-xs font-medium bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:border-blue-500 cursor-pointer w-44 truncate shadow-2xs"
               >
                 <option value="Sensor Reading">Read Status (Modbus)</option>
                 <option value="Device Status">Device Status</option>
@@ -331,7 +331,7 @@ export const SimulationControls: React.FC = () => {
         </div>
 
         {/* Table Body with explicit column widths */}
-        <div className="h-36 overflow-y-auto">
+        <div className="h-32 overflow-y-auto">
           {activeTab === 'logs' && (
             <table className="w-full text-left border-collapse text-xs">
               <thead className="sticky top-0 bg-white shadow-2xs z-10">

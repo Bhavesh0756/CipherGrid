@@ -175,9 +175,9 @@ export const DeviceInspector: React.FC<DeviceInspectorProps> = ({ device, onClos
   const labelClass = 'block text-[11px] font-semibold text-slate-600 mb-0.5';
 
   return (
-    <aside className="w-[290px] bg-white border-l border-slate-200 flex flex-col h-full select-text shrink-0 z-10 overflow-hidden">
+    <aside className="w-[300px] bg-white border-l border-slate-200 flex flex-col h-full select-text shrink-0 z-10 overflow-hidden">
       {/* Top Header */}
-      <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between shrink-0">
+      <div className="h-11 px-4 border-b border-slate-100 flex items-center justify-between shrink-0">
         <h2 className="text-xs font-bold text-slate-900 tracking-tight">
           Node Details
         </h2>
@@ -192,11 +192,11 @@ export const DeviceInspector: React.FC<DeviceInspectorProps> = ({ device, onClos
 
       {/* Device Overview Banner */}
       <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between shrink-0">
-        <div className="flex items-center gap-2.5 min-w-0">
-          <div className="w-9 h-9 rounded-lg bg-slate-900 text-white flex items-center justify-center shrink-0 shadow-xs">
+        <div className="flex items-center gap-2.5 min-w-0 flex-1">
+          <div className="w-8 h-8 rounded-lg bg-slate-900 text-white flex items-center justify-center shrink-0 shadow-xs">
             {getDeviceIcon(device.device_type)}
           </div>
-          <div className="min-w-0">
+          <div className="min-w-0 flex-1">
             <h3
               className="text-xs font-bold text-slate-900 truncate leading-snug"
               title={device.name}
@@ -210,7 +210,7 @@ export const DeviceInspector: React.FC<DeviceInspectorProps> = ({ device, onClos
         </div>
 
         {/* Status Pill */}
-        <div className="shrink-0 ml-1">
+        <div className="shrink-0 ml-2">
           {device.trust_status === 'Trusted' && (
             <span className="text-[9.5px] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
               Trusted
@@ -230,10 +230,10 @@ export const DeviceInspector: React.FC<DeviceInspectorProps> = ({ device, onClos
       </div>
 
       {/* Tabs */}
-      <div className="flex border-b border-slate-200 px-3 text-xs font-medium shrink-0 justify-between">
+      <div className="flex border-b border-slate-200 px-4 text-xs font-medium shrink-0 gap-6">
         <button
           onClick={() => setActiveTab('overview')}
-          className={`py-2 px-1 border-b-2 text-[11.5px] transition-all cursor-pointer ${
+          className={`py-2 border-b-2 text-[11.5px] transition-all cursor-pointer ${
             activeTab === 'overview'
               ? 'border-blue-600 text-blue-600 font-bold'
               : 'border-transparent text-slate-500 hover:text-slate-800'
@@ -243,7 +243,7 @@ export const DeviceInspector: React.FC<DeviceInspectorProps> = ({ device, onClos
         </button>
         <button
           onClick={() => setActiveTab('ports')}
-          className={`py-2 px-1 border-b-2 text-[11.5px] transition-all cursor-pointer ${
+          className={`py-2 border-b-2 text-[11.5px] transition-all cursor-pointer ${
             activeTab === 'ports'
               ? 'border-blue-600 text-blue-600 font-bold'
               : 'border-transparent text-slate-500 hover:text-slate-800'
@@ -253,7 +253,7 @@ export const DeviceInspector: React.FC<DeviceInspectorProps> = ({ device, onClos
         </button>
         <button
           onClick={() => setActiveTab('configuration')}
-          className={`py-2 px-1 border-b-2 text-[11.5px] transition-all cursor-pointer ${
+          className={`py-2 border-b-2 text-[11.5px] transition-all cursor-pointer ${
             activeTab === 'configuration'
               ? 'border-blue-600 text-blue-600 font-bold'
               : 'border-transparent text-slate-500 hover:text-slate-800'

@@ -104,7 +104,7 @@ export const IndustrialNode: React.FC<IndustrialNodeProps> = memo(({ data }) => 
   const isTrusted = device.trust_status === 'Trusted';
   const isUntrusted = device.trust_status === 'Untrusted';
 
-  // Normalize display name to match reference (e.g. "Turbine Loop Controller PLC" -> "Turbine Loop Controller")
+  // Clean display name
   const displayName = device.name.replace(/\s+PLC$/i, '').trim();
 
   let borderClasses = `border-l-4 ${config.borderAccent} border-slate-200`;
@@ -123,21 +123,22 @@ export const IndustrialNode: React.FC<IndustrialNodeProps> = memo(({ data }) => 
 
   return (
     <div
-      className={`relative w-[245px] bg-white rounded-xl border transition-all duration-200 p-3 select-none ${borderClasses} ${shadowClasses} ${
+      style={{ width: 240, height: 86, boxSizing: 'border-box' }}
+      className={`relative bg-white rounded-xl border transition-all duration-200 px-3 py-2.5 flex flex-col justify-between select-none ${borderClasses} ${shadowClasses} ${
         !device.is_enabled ? 'opacity-60' : ''
       }`}
     >
-      {/* Handles on all 4 sides with clean subtle dots */}
+      {/* Port handles on all 4 sides */}
       <Handle type="target" position={Position.Top} id="t" />
       <Handle type="source" position={Position.Bottom} id="b" />
       <Handle type="target" position={Position.Left} id="l" />
       <Handle type="source" position={Position.Right} id="r" />
 
       {/* Top row: Icon, Name, Type, Trust Status Badge */}
-      <div className="flex items-start justify-between gap-2">
+      <div className="flex items-center justify-between gap-2 min-w-0">
         <div className="flex items-center gap-2.5 min-w-0 flex-1">
           <div
-            className={`w-8 h-8 rounded-lg flex items-center justify-center border shadow-2xs shrink-0 ${config.iconBg}`}
+            className={`w-7 h-7 rounded-lg flex items-center justify-center border shadow-2xs shrink-0 ${config.iconBg}`}
           >
             {config.icon}
           </div>
@@ -158,29 +159,29 @@ export const IndustrialNode: React.FC<IndustrialNodeProps> = memo(({ data }) => 
         {/* Status Pill */}
         <div className="shrink-0">
           {isTrusted && (
-            <span className="text-[9.5px] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+            <span className="text-[9px] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
               Trusted
             </span>
           )}
           {isUntrusted && (
-            <span className="text-[9.5px] font-semibold px-2 py-0.5 rounded-full bg-rose-50 text-rose-700 border border-rose-200">
+            <span className="text-[9px] font-semibold px-2 py-0.5 rounded-full bg-rose-50 text-rose-700 border border-rose-200">
               Untrusted
             </span>
           )}
           {device.trust_status === 'Quarantined' && (
-            <span className="text-[9.5px] font-semibold px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200">
+            <span className="text-[9px] font-semibold px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200">
               Quarantined
             </span>
           )}
         </div>
       </div>
 
-      {/* Bottom row: IP address and Purdue Level */}
-      <div className="mt-2.5 pt-2 border-t border-slate-100 flex items-center justify-between text-[11px]">
+      {/* Bottom row: IP address and Purdue Level completely inside the card border */}
+      <div className="pt-1.5 border-t border-slate-100 flex items-center justify-between text-[10.5px]">
         <span className="font-mono text-slate-700 font-medium">
           {device.ip_address}
         </span>
-        <span className="text-slate-500 font-medium text-[10.5px]">
+        <span className="text-slate-500 font-medium text-[10px]">
           {device.purdue_level}
         </span>
       </div>
@@ -201,3 +202,4 @@ export const IndustrialNode: React.FC<IndustrialNodeProps> = memo(({ data }) => 
 });
 
 IndustrialNode.displayName = 'IndustrialNode';
+
