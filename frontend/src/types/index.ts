@@ -24,6 +24,7 @@ export type DeviceRole =
 
 export type TrustStatus = 'Trusted' | 'Untrusted' | 'Quarantined';
 
+/** ISA-95 / Purdue Enterprise Reference Architecture levels */
 export type PurdueLevel = 'Level 0' | 'Level 1' | 'Level 2' | 'Level 3' | 'Level 3.5' | 'Untrusted';
 
 export interface Device {
