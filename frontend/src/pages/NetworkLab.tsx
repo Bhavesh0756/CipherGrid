@@ -1,3 +1,6 @@
+/**
+ * NetworkLab - Interactive OT topology canvas powered by React Flow.
+ */
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Background,
