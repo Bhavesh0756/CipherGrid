@@ -1,4 +1,8 @@
 """Industrial Role-Based Access Control (RBAC) and Device Admission Engine."""
+# Access Control Specification:
+# - Role Hierarchy: Engineer (L3/L4) > Operator (L2/L3) > Automated PLC Agent (L1) > Field Sensor (L0).
+# - Enforcement: Validates source role privilege against target device Purdue security perimeter.
+
 import json
 from typing import Dict, Any, Tuple
 
