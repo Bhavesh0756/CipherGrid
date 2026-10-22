@@ -1,4 +1,9 @@
 """Network Topology Configuration and Persistence API Routes."""
+# API Route Documentation:
+# - GET /api/topology: Retrieves node-link graph data for canvas rendering.
+# - POST /api/topology/link: Establishes bidirectional communication channel between industrial devices.
+# - DELETE /api/topology/link: Simulates physical fiber/Ethernet link failure or air-gap severance.
+
 import json
 import uuid
 from datetime import datetime, timezone
