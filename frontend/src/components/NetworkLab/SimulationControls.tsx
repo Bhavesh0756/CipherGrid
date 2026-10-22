@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   AlertTriangle,
   ArrowRight,
@@ -13,6 +13,7 @@ import {
   XCircle,
   Zap,
 } from 'lucide-react';
+import { api } from '../../services/api';
 import { useSimulatorStore } from '../../store/useSimulatorStore';
 import { MessageType } from '../../types';
 
@@ -81,8 +82,9 @@ export const SimulationControls: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'logs' | 'trace' | 'results'>('logs');
   const [filterType, setFilterType] = useState<string>('all');
   const [cleared, setCleared] = useState(false);
+  const [dbEvents, setDbEvents] = useState<DisplayLogEvent[]>([]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (devices.length >= 2) {
       if (!devices.some((d) => d.id === sourceId)) {
         setSourceId(devices[0].id);
@@ -92,6 +94,55 @@ export const SimulationControls: React.FC = () => {
       }
     }
   }, [devices, sourceId, destId]);
+
+  // Load real packet stream events from SQLite database when idle
+  useEffect(() => {
+    const fetchRecentDbEvents = async () => {
+      try {
+        const res = await api.getPacketEvents(25);
+        if (res.events && res.events.length > 0) {
+          const mapped: DisplayLogEvent[] = res.events.map((evt: any, idx: number) => {
+            const srcDev = devices.find((d) => d.id === evt.source_device);
+            const dstDev = devices.find((d) => d.id === evt.destination_device);
+            const srcLabel = srcDev ? `${srcDev.name} (${srcDev.ip_address})` : (evt.source_device || 'Unknown');
+            const dstLabel = dstDev ? `${dstDev.name} (${dstDev.ip_address})` : (evt.destination_device || 'Unknown');
+
+            const secStatus = (evt.security_status || '').toLowerCase();
+            const isRejected =
+              evt.packet_state === 'Rejected' ||
+              evt.packet_state === 'Failed' ||
+              secStatus.includes('mismatch') ||
+              secStatus.includes('invalid') ||
+              secStatus.includes('violation') ||
+              secStatus.includes('attack') ||
+              secStatus.includes('failed') ||
+              secStatus.includes('denied') ||
+              secStatus.includes('unavailable');
+
+            const isOk = !isRejected;
+
+            const timeStr = evt.timestamp
+              ? new Date(evt.timestamp).toLocaleTimeString('en-US', { hour12: false })
+              : `00:00:0${idx}`;
+
+            return {
+              id: String(evt.id || idx),
+              time: timeStr,
+              type: isOk ? 'Info' : 'Warning',
+              source: srcLabel,
+              destination: dstLabel,
+              message: `${evt.protocol || 'SCADA Telemetry'} [${evt.packet_state}]`,
+              status: isOk ? 'Accepted' : 'Rejected',
+            };
+          });
+          setDbEvents(mapped);
+        }
+      } catch {
+        // ignore
+      }
+    };
+    fetchRecentDbEvents();
+  }, [devices, simulationEvents.length]);
 
   const handleSimulate = async () => {
     if (sourceId === destId) {
@@ -122,7 +173,20 @@ export const SimulationControls: React.FC = () => {
     const dstDev = devices.find((d) => d.id === evt.destination_id);
     const srcLabel = srcDev ? `${srcDev.name} (${srcDev.ip_address})` : evt.source_id;
     const dstLabel = dstDev ? `${dstDev.name} (${dstDev.ip_address})` : evt.destination_id;
-    const isOk = evt.packet_state === 'Delivered' || evt.security_status === 'VALID' || evt.security_status === 'PASSED';
+
+    const secStatus = (evt.security_status || '').toLowerCase();
+    const isRejected =
+      evt.packet_state === 'Rejected' ||
+      evt.packet_state === 'Failed' ||
+      secStatus.includes('mismatch') ||
+      secStatus.includes('invalid') ||
+      secStatus.includes('violation') ||
+      secStatus.includes('attack') ||
+      secStatus.includes('failed') ||
+      secStatus.includes('denied') ||
+      secStatus.includes('unavailable');
+
+    const isOk = !isRejected;
 
     const timeStr = evt.event_time
       ? new Date(evt.event_time).toLocaleTimeString('en-US', { hour12: false })
@@ -143,6 +207,8 @@ export const SimulationControls: React.FC = () => {
     ? []
     : realEvents.length > 0
     ? realEvents
+    : dbEvents.length > 0
+    ? dbEvents
     : DEFAULT_SAMPLE_EVENTS;
 
   const filteredEvents = displayEvents.filter((evt) => {

@@ -198,19 +198,55 @@ export const PacketInspector: React.FC = () => {
                       <td className="py-2 px-4 text-slate-400">{ev.message_type}</td>
                       <td className="py-2 px-4">{getStateBadge(ev.packet_state)}</td>
                       <td className="py-2 px-4">
-                        {ev.security_status === 'VERIFIED' || ev.security_status === 'ACCEPTED' ? (
-                          <span className="text-emerald-400 font-bold flex items-center gap-1">
-                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                            VERIFIED
-                          </span>
-                        ) : ev.security_status === 'DISABLED' ? (
-                          <span className="text-slate-500">DISABLED</span>
-                        ) : (
-                          <span className="text-rose-400 font-bold flex items-center gap-1">
-                            <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
-                            {ev.security_status}
-                          </span>
-                        )}
+                        {(() => {
+                          const secStatus = (ev.security_status || '').toLowerCase();
+                          const isFailed =
+                            ev.packet_state === 'Rejected' ||
+                            ev.packet_state === 'Failed' ||
+                            secStatus.includes('mismatch') ||
+                            secStatus.includes('invalid') ||
+                            secStatus.includes('violation') ||
+                            secStatus.includes('attack') ||
+                            secStatus.includes('failed') ||
+                            secStatus.includes('denied') ||
+                            secStatus.includes('unavailable');
+
+                          const isVerified =
+                            secStatus.includes('verified') ||
+                            secStatus.includes('accepted') ||
+                            secStatus.includes('valid') ||
+                            secStatus.includes('passed') ||
+                            secStatus.includes('authenticated');
+
+                          if (isFailed) {
+                            return (
+                              <span className="text-rose-400 font-bold flex items-center gap-1">
+                                <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
+                                {ev.security_status || 'REJECTED'}
+                              </span>
+                            );
+                          }
+
+                          if (isVerified || ev.packet_state === 'Delivered') {
+                            return (
+                              <span className="text-emerald-400 font-bold flex items-center gap-1">
+                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                                VERIFIED
+                              </span>
+                            );
+                          }
+
+                          if (secStatus.includes('disabled')) {
+                            return <span className="text-slate-500">DISABLED</span>;
+                          }
+
+                          return (
+                            <span className="text-blue-400 font-medium flex items-center gap-1">
+                              <span className="w-1.5 h-1.5 rounded-full bg-blue-400" />
+                              {ev.security_status || 'AUTHENTICATED'}
+                            </span>
+                          );
+                        })()}
                       </td>
                     </tr>
                   );
