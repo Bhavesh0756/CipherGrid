@@ -1,4 +1,7 @@
 import sqlite3
+# Database Architecture Notes:
+# - SQLite connection factory with WAL (Write-Ahead Logging) mode for concurrent reader access.
+# - Row factories return dictionary-like Row instances for streamlined serialization.
 import os
 import json
 import secrets
