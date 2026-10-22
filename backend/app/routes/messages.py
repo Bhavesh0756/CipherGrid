@@ -1,4 +1,8 @@
 """Industrial Message Simulator API Routes."""
+# API Route Documentation:
+# - POST /api/messages/simulate: Dispatches single synthetic SCADA message through the security pipeline.
+# - POST /api/messages/batch: Dispatches concurrent multi-packet industrial communication bursts.
+
 import json
 from flask import Blueprint, request, jsonify
 from ..simulation.engine import simulate_industrial_message
