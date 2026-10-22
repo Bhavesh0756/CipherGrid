@@ -25,6 +25,7 @@ import {
   Minus,
   MousePointer,
   Plus,
+  Scissors,
   Settings,
   SlidersHorizontal,
   Trash2,
@@ -57,6 +58,7 @@ const NetworkLabContent: React.FC = () => {
     setSelectedDevice,
     setDevicePosition,
     createDevice,
+    deleteDevice,
     addConnection,
     deleteConnection,
     fetchTopology,
@@ -72,7 +74,8 @@ const NetworkLabContent: React.FC = () => {
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
   const { fitView, zoomIn, zoomOut, getZoom, screenToFlowPosition } = useReactFlow();
 
-  const [activeTool, setActiveTool] = useState<'select' | 'connect'>('select');
+  const [activeTool, setActiveTool] = useState<'select' | 'connect' | 'slice'>('select');
+
   const [zoomLevel, setZoomLevel] = useState<number>(95);
 
   useEffect(() => {
@@ -234,20 +237,23 @@ const NetworkLabContent: React.FC = () => {
           edgeColor,
           sourceDeviceName: srcDev?.name,
           targetDeviceName: dstDev?.name,
+          isSliceMode: activeTool === 'slice',
+          onDelete: deleteConnection,
         },
         style: {
-          stroke: isActiveHop ? (isTampered ? '#f43f5e' : '#10b981') : edgeColor,
-          strokeWidth: isActiveHop ? 3 : inPath ? 2.2 : 1.7,
+          stroke: activeTool === 'slice' ? '#f43f5e' : isActiveHop ? (isTampered ? '#f43f5e' : '#10b981') : edgeColor,
+          strokeWidth: activeTool === 'slice' ? 3 : isActiveHop ? 3 : inPath ? 2.2 : 1.7,
         },
         markerEnd: {
           type: MarkerType.ArrowClosed,
-          color: isActiveHop ? (isTampered ? '#f43f5e' : '#10b981') : edgeColor,
+          color: activeTool === 'slice' ? '#f43f5e' : isActiveHop ? (isTampered ? '#f43f5e' : '#10b981') : edgeColor,
           width: 12,
           height: 12,
         },
       };
     });
-  }, [connections, highlightedPath, activeHopId, playbackState, selectedEvent, lastResult, devices]);
+  }, [connections, highlightedPath, activeHopId, playbackState, selectedEvent, lastResult, devices, activeTool, deleteConnection]);
+
 
 
   const onNodeDragStop = useCallback(
@@ -286,6 +292,16 @@ const NetworkLabContent: React.FC = () => {
     },
     [deleteConnection]
   );
+
+  const onEdgeClick = useCallback(
+    (_: any, edge: Edge) => {
+      if (activeTool === 'slice') {
+        deleteConnection(edge.id);
+      }
+    },
+    [activeTool, deleteConnection]
+  );
+
 
   const onDragOver = useCallback((event: React.DragEvent) => {
     event.preventDefault();
@@ -424,12 +440,26 @@ const NetworkLabContent: React.FC = () => {
                 <Link2 className="w-3.5 h-3.5" />
               </button>
 
+              {/* Slice / Cut Path tool */}
+              <button
+                onClick={() => setActiveTool((prev) => (prev === 'slice' ? 'select' : 'slice'))}
+                className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border transition-all cursor-pointer text-xs font-semibold ${
+                  activeTool === 'slice'
+                    ? 'bg-rose-600 border-rose-500 text-white shadow-md shadow-rose-950/60 ring-2 ring-rose-400 animate-pulse'
+                    : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-rose-400 hover:bg-slate-800'
+                }`}
+                title="Slice Path Tool — Click on any connection wire to cut it"
+              >
+                <Scissors className="w-3.5 h-3.5" />
+                <span className="text-[10px] hidden sm:inline">Slice Path</span>
+              </button>
+
               {/* Delete / Clear button */}
               <button
                 onClick={() => {
                   if (selectedDevice) {
                     if (window.confirm(`Delete ${selectedDevice.name}?`)) {
-                      deleteConnection(selectedDevice.id);
+                      deleteDevice(selectedDevice.id);
                       setSelectedDevice(null);
                     }
                   }
@@ -483,11 +513,25 @@ const NetworkLabContent: React.FC = () => {
 
           {/* React Flow Container */}
           <div className="flex-1 w-full h-full relative bg-[#090d16]">
+            {activeTool === 'slice' && (
+              <div className="absolute top-3 left-1/2 -translate-x-1/2 z-20 px-4 py-1.5 rounded-full bg-rose-950/95 border border-rose-500 text-rose-200 font-mono text-[11px] flex items-center gap-2.5 shadow-2xl shadow-rose-950/90 backdrop-blur-md animate-bounce">
+                <Scissors className="w-4 h-4 text-rose-400 animate-pulse" />
+                <span>SLICE MODE ACTIVE — Click on any connection wire to cut & delete it</span>
+                <button
+                  onClick={() => setActiveTool('select')}
+                  className="ml-2 px-2 py-0.5 rounded bg-rose-900 hover:bg-rose-800 text-white text-[10px] cursor-pointer"
+                >
+                  Done
+                </button>
+              </div>
+            )}
+
             <ReactFlow
               nodes={nodes}
               edges={edges}
               onNodeDragStop={onNodeDragStop}
               onNodeClick={onNodeClick}
+              onEdgeClick={onEdgeClick}
               onPaneClick={onPaneClick}
               onConnect={onConnect}
               onEdgesChange={onEdgesChange}

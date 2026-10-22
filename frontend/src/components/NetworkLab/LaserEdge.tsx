@@ -1,5 +1,6 @@
-import React, { memo } from 'react';
+import React, { memo, useState } from 'react';
 import { BaseEdge, EdgeLabelRenderer, EdgeProps, getSmoothStepPath } from '@xyflow/react';
+import { Scissors, X } from 'lucide-react';
 
 export interface LaserEdgeData {
   isActive?: boolean;
@@ -9,7 +10,10 @@ export interface LaserEdgeData {
   edgeColor?: string;
   sourceDeviceName?: string;
   targetDeviceName?: string;
+  isSliceMode?: boolean;
+  onDelete?: (id: string) => void;
 }
+
 
 export const LaserEdge: React.FC<EdgeProps> = memo(({
   id,
@@ -43,13 +47,19 @@ export const LaserEdge: React.FC<EdgeProps> = memo(({
 
   const isAccepted = status === 'accepted';
   const isTampered = status === 'tampered';
+  const isSliceMode = Boolean(edgeData.isSliceMode);
+  const [isHovered, setIsHovered] = useState(false);
 
   // Determine conduit coloring
   let conduitStroke = edgeColor;
   let conduitWidth = 1.8;
   let conduitOpacity = 0.6;
 
-  if (isActive) {
+  if (isSliceMode) {
+    conduitStroke = '#f43f5e';
+    conduitWidth = 2.8;
+    conduitOpacity = 0.95;
+  } else if (isActive) {
     conduitStroke = isTampered ? '#f43f5e' : '#10b981';
     conduitWidth = 3;
     conduitOpacity = 1;
@@ -58,6 +68,7 @@ export const LaserEdge: React.FC<EdgeProps> = memo(({
     conduitWidth = 2.2;
     conduitOpacity = 0.85;
   }
+
 
   // Unique SVG filter ID per edge to avoid collisions
   const filterId = `laser-glow-${id}`;
@@ -119,6 +130,26 @@ export const LaserEdge: React.FC<EdgeProps> = memo(({
           transition: 'stroke 0.3s ease, stroke-width 0.3s ease',
         }}
       />
+
+      {/* Slicing / Cut Hit-Area overlay for easy click & slice */}
+      <path
+        d={edgePath}
+        fill="none"
+        stroke={isSliceMode ? 'rgba(244, 63, 94, 0.3)' : 'transparent'}
+        strokeWidth={isSliceMode ? 24 : 12}
+        style={{
+          cursor: isSliceMode ? 'crosshair' : 'pointer',
+          pointerEvents: 'all',
+        }}
+        onClick={(e) => {
+          if (isSliceMode) {
+            e.stopPropagation();
+            edgeData.onDelete?.(id);
+          }
+        }}
+        className={isSliceMode ? 'hover:stroke-rose-500/60 transition-colors cursor-crosshair' : ''}
+      />
+
 
       {/* 2. Active Neon Laser Beam & Glowing Plasma Overlay */}
       {isActive && (
@@ -241,7 +272,19 @@ export const LaserEdge: React.FC<EdgeProps> = memo(({
           }}
           className="nodrag nopan"
         >
-          {isActive ? (
+          {isSliceMode ? (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                edgeData.onDelete?.(id);
+              }}
+              className="px-2 py-0.5 rounded-full text-[9px] font-mono font-bold tracking-wider shadow-lg flex items-center gap-1 transition-all transform hover:scale-110 bg-rose-600 hover:bg-rose-500 text-white border border-rose-400 shadow-rose-950/80 cursor-pointer animate-pulse"
+              title="Slice & Delete this connection path"
+            >
+              <Scissors className="w-3 h-3 text-white" />
+              <span>CUT</span>
+            </button>
+          ) : isActive ? (
             <div
               className={`px-2 py-0.5 rounded-full text-[9px] font-mono font-bold tracking-wider shadow-lg flex items-center gap-1.5 transition-all transform scale-105 ${
                 isTampered
@@ -258,13 +301,27 @@ export const LaserEdge: React.FC<EdgeProps> = memo(({
             </div>
           ) : (
             <div
-              className={`px-1.5 py-0.5 rounded-full text-[8.5px] font-mono transition-all border ${
+              onMouseEnter={() => setIsHovered(true)}
+              onMouseLeave={() => setIsHovered(false)}
+              className={`group px-1.5 py-0.5 rounded-full text-[8.5px] font-mono transition-all border flex items-center gap-1 ${
                 inPath
                   ? 'bg-blue-950/90 text-blue-300 border-blue-500/60 shadow-sm'
                   : 'bg-slate-900/90 text-slate-400 border-slate-800'
               }`}
             >
-              {latency}ms
+              <span>{latency}ms</span>
+              {edgeData.onDelete && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    edgeData.onDelete?.(id);
+                  }}
+                  className="opacity-0 group-hover:opacity-100 text-slate-400 hover:text-rose-400 hover:bg-rose-950/60 p-0.5 rounded transition-all cursor-pointer"
+                  title="Cut connection"
+                >
+                  <X className="w-2.5 h-2.5" />
+                </button>
+              )}
             </div>
           )}
         </div>

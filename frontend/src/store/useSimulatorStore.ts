@@ -226,20 +226,43 @@ export const useSimulatorStore = create<SimulatorStore>((set, get) => {
 
     createDevice: async (newDev) => {
       try {
+        const fullNewDevice: Device = {
+          id: newDev.id || `dev_${Date.now()}`,
+          name: newDev.name || 'New Device',
+          device_type: newDev.device_type || 'PLC',
+          ip_address: newDev.ip_address || '192.168.1.50',
+          mac_address: newDev.mac_address || `00:1A:2B:3C:4D:${Math.floor(Math.random() * 90 + 10)}`,
+          role: newDev.role || 'Controller',
+          trust_status: newDev.trust_status || 'Trusted',
+          purdue_level: newDev.purdue_level || 'Level 1',
+          is_enabled: newDev.is_enabled !== false,
+          allowed_actions: newDev.allowed_actions || ['Sensor Reading', 'Device Status'],
+          position_x: newDev.position_x ?? 250,
+          position_y: newDev.position_y ?? 250,
+        };
+
         await api.createDevice({
-          id: newDev.id,
-          name: newDev.name,
-          type: newDev.device_type,
-          ip_address: newDev.ip_address,
-          mac_address: newDev.mac_address,
-          role: newDev.role,
-          trust_status: newDev.trust_status,
-          enabled: newDev.is_enabled,
-          allowed_actions: newDev.allowed_actions,
-          x_pos: newDev.position_x,
-          y_pos: newDev.position_y,
+          id: fullNewDevice.id,
+          name: fullNewDevice.name,
+          type: fullNewDevice.device_type,
+          ip_address: fullNewDevice.ip_address,
+          mac_address: fullNewDevice.mac_address,
+          role: fullNewDevice.role,
+          trust_status: fullNewDevice.trust_status,
+          enabled: fullNewDevice.is_enabled,
+          allowed_actions: fullNewDevice.allowed_actions,
+          x_pos: fullNewDevice.position_x,
+          y_pos: fullNewDevice.position_y,
         });
-        await get().fetchTopology();
+
+        // Add to local state preserving all existing positions & connections
+        set((state) => ({
+          devices: [...state.devices, fullNewDevice],
+          selectedDevice: fullNewDevice,
+        }));
+
+        // Persist the combined topology to SQLite so existing devices & paths never reset
+        await get().saveTopology();
       } catch (err: any) {
         set({ error: err.message });
       }
@@ -255,6 +278,7 @@ export const useSimulatorStore = create<SimulatorStore>((set, get) => {
           ),
           selectedDevice: state.selectedDevice?.id === id ? null : state.selectedDevice,
         }));
+        await get().saveTopology();
       } catch (err: any) {
         set({ error: err.message });
       }
@@ -266,6 +290,8 @@ export const useSimulatorStore = create<SimulatorStore>((set, get) => {
           d.id === id ? { ...d, position_x: x, position_y: y } : d
         ),
       }));
+      // Auto-save position to backend so dragging is permanently saved
+      api.updateDevice(id, { x_pos: x, y_pos: y }).catch(() => {});
     },
 
     addConnection: (conn) => {
@@ -290,16 +316,17 @@ export const useSimulatorStore = create<SimulatorStore>((set, get) => {
       set((state) => ({
         connections: [...state.connections, newConn],
       }));
+      get().saveTopology();
     },
 
     deleteConnection: (id) => {
       set((state) => ({
         connections: state.connections.filter((c) => c.id !== id),
       }));
+      get().saveTopology();
     },
 
     saveTopology: async () => {
-      set({ isLoading: true, error: null });
       try {
         const { devices, connections } = get();
         const nodes = devices.map((d) => ({
@@ -314,6 +341,7 @@ export const useSimulatorStore = create<SimulatorStore>((set, get) => {
             role: d.role,
             trust_status: d.trust_status,
             enabled: d.is_enabled,
+            purdue_level: d.purdue_level,
           },
         }));
 
@@ -333,11 +361,11 @@ export const useSimulatorStore = create<SimulatorStore>((set, get) => {
           nodes,
           edges,
         });
-        set({ isLoading: false });
       } catch (err: any) {
-        set({ error: err.message, isLoading: false });
+        console.error('Failed to auto-save topology:', err);
       }
     },
+
 
     resetTopology: async () => {
       set({ isLoading: true, error: null });
