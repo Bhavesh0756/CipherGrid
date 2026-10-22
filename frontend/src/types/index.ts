@@ -1,4 +1,13 @@
 // TypeScript type definitions for Secure Industrial Control System Communication Simulator
+/**
+ * Purdue Model for Control Hierarchy (ISA-95 / IEC 62443 standard):
+ * Level 4: Enterprise Network (ERP, Business Planning)
+ * Level 3: Operations & Supervisory (SCADA Servers, Historian, Engineering Workstations)
+ * Level 2: Control Systems (HMI Panels, Supervisory Controllers)
+ * Level 1: Basic Control (PLCs, RTUs, Safety Instrumented Systems)
+ * Level 0: Physical Process (Sensors, Actuators, Motors, Valves)
+ */
+
 
 export type DeviceType =
   | 'Sensor'
