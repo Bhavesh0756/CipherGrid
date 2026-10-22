@@ -75,6 +75,7 @@ const NetworkLabContent: React.FC = () => {
   const { fitView, zoomIn, zoomOut, getZoom, screenToFlowPosition } = useReactFlow();
 
   const [activeTool, setActiveTool] = useState<'select' | 'connect' | 'slice'>('select');
+  const [isPaletteOpen, setIsPaletteOpen] = useState(false);
 
   const [zoomLevel, setZoomLevel] = useState<number>(95);
 
@@ -380,15 +381,33 @@ const NetworkLabContent: React.FC = () => {
     <div className="flex-1 flex flex-col h-full overflow-hidden bg-[#060913]">
       {/* ─── Top Main Workspace Area: Left Palette | Center Canvas | Right Node Details ─── */}
       <div className="flex-1 flex overflow-hidden relative min-h-0">
-        {/* Left: Device Palette */}
-        <DevicePalette onAddDevice={handleAddFromPalette} />
+        {/* Left: Device Palette (Opens on demand) */}
+        {isPaletteOpen && (
+          <DevicePalette
+            onAddDevice={handleAddFromPalette}
+            onClose={() => setIsPaletteOpen(false)}
+          />
+        )}
 
         {/* Center: Topology Canvas */}
         <div ref={reactFlowWrapper} className="flex-1 h-full w-full relative flex flex-col min-w-0 bg-[#060913]">
           {/* Canvas Top Bar */}
           <div className="h-11 bg-[#0d121f] border-b border-slate-800 px-4 flex items-center justify-between shrink-0 z-10">
-            {/* Left title and subtitle */}
-            <div className="flex items-center gap-2">
+            {/* Left title, ADD button, and subtitle */}
+            <div className="flex items-center gap-2.5">
+              <button
+                onClick={() => setIsPaletteOpen((prev) => !prev)}
+                className={`flex items-center gap-1.5 px-3 py-1 rounded-lg border font-mono text-xs font-bold transition-all cursor-pointer shadow-md ${
+                  isPaletteOpen
+                    ? 'bg-blue-600 border-blue-400 text-white shadow-blue-900/50 ring-1 ring-blue-400'
+                    : 'bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 border-blue-400/50 text-white shadow-blue-950/60'
+                }`}
+                title="Toggle Device Palette"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>ADD DEVICE</span>
+              </button>
+
               <div className="w-6 h-6 rounded-md bg-blue-950/40 border border-blue-800/40 flex items-center justify-center text-blue-400">
                 <Zap className="w-3 h-3" />
               </div>
@@ -402,6 +421,7 @@ const NetworkLabContent: React.FC = () => {
                 </p>
               </div>
             </div>
+
 
             {/* Right Tools Bar */}
             <div className="flex items-center gap-1.5 font-mono">
@@ -504,6 +524,20 @@ const NetworkLabContent: React.FC = () => {
 
           {/* React Flow Container */}
           <div className="flex-1 w-full h-full relative bg-[#090d16]">
+            {/* Side Floating ADD Button when Palette is closed */}
+            {!isPaletteOpen && (
+              <button
+                onClick={() => setIsPaletteOpen(true)}
+                className="absolute left-0 top-1/2 -translate-y-1/2 z-20 bg-[#0d121f]/95 hover:bg-blue-600 border border-l-0 border-slate-700 hover:border-blue-500 text-slate-300 hover:text-white py-3.5 px-2 rounded-r-xl shadow-2xl flex flex-col items-center gap-2 cursor-pointer transition-all group backdrop-blur-md"
+                title="Open Device Palette"
+              >
+                <Plus className="w-4 h-4 text-blue-400 group-hover:text-white transition-colors" />
+                <span className="[writing-mode:vertical-lr] text-[9.5px] font-mono font-bold tracking-widest text-slate-300 group-hover:text-white">
+                  ADD DEVICE
+                </span>
+              </button>
+            )}
+
             {activeTool === 'slice' && (
               <div className="absolute top-3 left-1/2 -translate-x-1/2 z-20 px-4 py-1.5 rounded-full bg-rose-950/95 border border-rose-500 text-rose-200 font-mono text-[11px] flex items-center gap-2.5 shadow-2xl shadow-rose-950/90 backdrop-blur-md animate-bounce">
                 <Scissors className="w-4 h-4 text-rose-400 animate-pulse" />

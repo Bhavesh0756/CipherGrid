@@ -125,9 +125,10 @@ const CATEGORIES: ('FIELD DEVICES' | 'NETWORK DEVICES' | 'SUPERVISORY' | 'EXTERN
 
 interface DevicePaletteProps {
   onAddDevice: (item: PaletteItem) => void;
+  onClose?: () => void;
 }
 
-export const DevicePalette: React.FC<DevicePaletteProps> = ({ onAddDevice }) => {
+export const DevicePalette: React.FC<DevicePaletteProps> = ({ onAddDevice, onClose }) => {
   const [searchQuery, setSearchQuery] = useState('');
 
   const onDragStart = (event: React.DragEvent, item: PaletteItem) => {
@@ -148,20 +149,32 @@ export const DevicePalette: React.FC<DevicePaletteProps> = ({ onAddDevice }) => 
   });
 
   return (
-    <aside className="w-[245px] bg-[#080d1a] border-r border-slate-800/80 flex flex-col h-full select-none shrink-0 z-10">
+    <aside className="w-[245px] bg-[#080d1a] border-r border-slate-800/80 flex flex-col h-full select-none shrink-0 z-10 shadow-2xl">
       {/* Header & Search */}
       <div className="p-3.5 border-b border-slate-800/80 bg-[#060913]/90 flex flex-col shrink-0">
         <div className="flex items-center justify-between">
-          <h2 className="text-[13px] font-bold text-white tracking-tight leading-tight font-display">
-            Device Palette
-          </h2>
-          <span className="text-[10px] font-mono text-slate-300 bg-slate-800 border border-slate-700 px-1.5 py-0.5 rounded-md font-medium">
-            {filteredItems.length}
-          </span>
+          <div className="flex items-center gap-2">
+            <h2 className="text-[13px] font-bold text-white tracking-tight leading-tight font-display">
+              Device Palette
+            </h2>
+            <span className="text-[10px] font-mono text-slate-300 bg-slate-800 border border-slate-700 px-1.5 py-0.5 rounded-md font-medium">
+              {filteredItems.length}
+            </span>
+          </div>
+          {onClose && (
+            <button
+              onClick={onClose}
+              className="p-1 rounded-md text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
+              title="Close Device Palette"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          )}
         </div>
         <p className="text-[10.5px] text-slate-400 mt-0.5">
           Drag to canvas or click to add
         </p>
+
 
         {/* Cyber Search Bar */}
         <div className="mt-2.5 flex items-center gap-2 px-2.5 h-8 bg-slate-900/90 border border-slate-800 rounded-lg text-slate-200 focus-within:border-blue-500/60 focus-within:ring-1 focus-within:ring-blue-500/20 transition-all shadow-inner">
