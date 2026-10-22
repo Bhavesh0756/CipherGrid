@@ -12,6 +12,7 @@ import type {
   SimulationEvent,
 } from '../types';
 
+/** Navigation section identifiers for primary OT simulation workspace views */
 export type SectionType =
   | 'network-lab'
   | 'device-inventory'
