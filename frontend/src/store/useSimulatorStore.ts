@@ -1,4 +1,8 @@
 import { create } from 'zustand';
+/**
+ * Global Simulator State Store (Zustand)
+ * Manages active devices, network topologies, simulation speed, real-time message queues, and user interface modes.
+ */
 import { api } from '../services/api';
 import type {
   AuditLog,
