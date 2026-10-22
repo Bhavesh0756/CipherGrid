@@ -9,6 +9,7 @@ messages_bp = Blueprint("messages", __name__, url_prefix="/api/messages")
 @messages_bp.route("/send", methods=["POST"])
 def send_message():
     """Dispatches a message across the simulated industrial network with selected security profile."""
+    # Parse dispatch payload parameters and simulation security flags
     data = request.get_json() or {}
     sender_id = data.get("sender_id")
     receiver_id = data.get("receiver_id")
