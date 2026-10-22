@@ -30,8 +30,8 @@ const PALETTE_ITEMS: PaletteItem[] = [
   {
     type: 'Sensor',
     label: 'Telemetry Sensor',
-    icon: <Thermometer className="w-3.5 h-3.5 text-amber-400" />,
-    iconBg: 'bg-amber-500/15 text-amber-400 border-amber-500/30',
+    icon: <Thermometer className="w-3.5 h-3.5 text-slate-300" />,
+    iconBg: 'bg-[#161B26] text-slate-300 border-[#222B3C]',
     defaultPurdue: 'Level 0',
     role: 'Sensor',
     category: 'FIELD DEVICES',
@@ -40,7 +40,7 @@ const PALETTE_ITEMS: PaletteItem[] = [
     type: 'PLC',
     label: 'Industrial PLC',
     icon: <Cpu className="w-3.5 h-3.5 text-blue-400" />,
-    iconBg: 'bg-blue-500/15 text-blue-400 border-blue-500/30',
+    iconBg: 'bg-[#161B26] text-blue-400 border-[#222B3C]',
     defaultPurdue: 'Level 1',
     role: 'Controller',
     category: 'FIELD DEVICES',
@@ -48,8 +48,8 @@ const PALETTE_ITEMS: PaletteItem[] = [
   {
     type: 'SCADA Server',
     label: 'SCADA Server',
-    icon: <HardDrive className="w-3.5 h-3.5 text-purple-400" />,
-    iconBg: 'bg-purple-500/15 text-purple-400 border-purple-500/30',
+    icon: <HardDrive className="w-3.5 h-3.5 text-blue-400" />,
+    iconBg: 'bg-[#161B26] text-blue-400 border-[#222B3C]',
     defaultPurdue: 'Level 2',
     role: 'SCADA',
     category: 'FIELD DEVICES',
@@ -57,8 +57,8 @@ const PALETTE_ITEMS: PaletteItem[] = [
   {
     type: 'Operator Workstation',
     label: 'HMI Workstation',
-    icon: <Laptop className="w-3.5 h-3.5 text-indigo-400" />,
-    iconBg: 'bg-indigo-500/15 text-indigo-400 border-indigo-500/30',
+    icon: <Laptop className="w-3.5 h-3.5 text-slate-300" />,
+    iconBg: 'bg-[#161B26] text-slate-300 border-[#222B3C]',
     defaultPurdue: 'Level 2',
     role: 'Operator',
     category: 'FIELD DEVICES',
@@ -68,8 +68,8 @@ const PALETTE_ITEMS: PaletteItem[] = [
   {
     type: 'Industrial Gateway',
     label: 'Secured Gateway',
-    icon: <Network className="w-3.5 h-3.5 text-emerald-400" />,
-    iconBg: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30',
+    icon: <Network className="w-3.5 h-3.5 text-blue-400" />,
+    iconBg: 'bg-[#161B26] text-blue-400 border-[#222B3C]',
     defaultPurdue: 'Level 3',
     role: 'Gateway',
     category: 'NETWORK DEVICES',
@@ -78,7 +78,7 @@ const PALETTE_ITEMS: PaletteItem[] = [
     type: 'Ethernet Switch',
     label: 'OT Core Switch',
     icon: <Layers className="w-3.5 h-3.5 text-blue-400" />,
-    iconBg: 'bg-blue-500/15 text-blue-400 border-blue-500/30',
+    iconBg: 'bg-[#161B26] text-blue-400 border-[#222B3C]',
     defaultPurdue: 'Level 1',
     role: 'Switch',
     category: 'NETWORK DEVICES',
@@ -86,8 +86,8 @@ const PALETTE_ITEMS: PaletteItem[] = [
   {
     type: 'Router',
     label: 'Industrial Router',
-    icon: <RouterIcon className="w-3.5 h-3.5 text-sky-400" />,
-    iconBg: 'bg-sky-500/15 text-sky-400 border-sky-500/30',
+    icon: <RouterIcon className="w-3.5 h-3.5 text-blue-400" />,
+    iconBg: 'bg-[#161B26] text-blue-400 border-[#222B3C]',
     defaultPurdue: 'Level 3',
     role: 'Router',
     category: 'NETWORK DEVICES',
@@ -98,7 +98,7 @@ const PALETTE_ITEMS: PaletteItem[] = [
     type: 'Monitoring Server',
     label: 'Audit SIEM Server',
     icon: <Eye className="w-3.5 h-3.5 text-emerald-400" />,
-    iconBg: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30',
+    iconBg: 'bg-[#161B26] text-emerald-400 border-[#222B3C]',
     defaultPurdue: 'Level 3',
     role: 'Monitor',
     category: 'SUPERVISORY',
@@ -109,7 +109,7 @@ const PALETTE_ITEMS: PaletteItem[] = [
     type: 'Untrusted Device',
     label: 'Rogue Probe (MITM)',
     icon: <ShieldAlert className="w-3.5 h-3.5 text-rose-400" />,
-    iconBg: 'bg-rose-500/15 text-rose-400 border-rose-500/30',
+    iconBg: 'bg-[#161B26] text-rose-400 border-[#222B3C]',
     defaultPurdue: 'Untrusted',
     role: 'Untrusted',
     category: 'EXTERNAL',
@@ -149,22 +149,22 @@ export const DevicePalette: React.FC<DevicePaletteProps> = ({ onAddDevice, onClo
   });
 
   return (
-    <aside className="w-[245px] bg-[#080d1a] border-r border-slate-800/80 flex flex-col h-full select-none shrink-0 z-10 shadow-2xl">
+    <aside className="w-[245px] bg-[#0D1017] border-r border-[#1E2430] flex flex-col h-full select-none shrink-0 z-10 shadow-2xl">
       {/* Header & Search */}
-      <div className="p-3.5 border-b border-slate-800/80 bg-[#060913]/90 flex flex-col shrink-0">
+      <div className="p-3.5 border-b border-[#1E2430] bg-[#090A0F] flex flex-col shrink-0">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <h2 className="text-[13px] font-bold text-white tracking-tight leading-tight font-display">
               Device Palette
             </h2>
-            <span className="text-[10px] font-mono text-slate-300 bg-slate-800 border border-slate-700 px-1.5 py-0.5 rounded-md font-medium">
+            <span className="text-[10px] font-mono text-slate-300 bg-[#161B26] border border-[#222B3C] px-1.5 py-0.5 rounded-md font-medium">
               {filteredItems.length}
             </span>
           </div>
           {onClose && (
             <button
               onClick={onClose}
-              className="p-1 rounded-md text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
+              className="p-1 rounded-md text-slate-400 hover:text-white hover:bg-[#161B26] transition-colors cursor-pointer"
               title="Close Device Palette"
             >
               <X className="w-3.5 h-3.5" />
@@ -177,7 +177,7 @@ export const DevicePalette: React.FC<DevicePaletteProps> = ({ onAddDevice, onClo
 
 
         {/* Cyber Search Bar */}
-        <div className="mt-2.5 flex items-center gap-2 px-2.5 h-8 bg-slate-900/90 border border-slate-800 rounded-lg text-slate-200 focus-within:border-blue-500/60 focus-within:ring-1 focus-within:ring-blue-500/20 transition-all shadow-inner">
+        <div className="mt-2.5 flex items-center gap-2 px-2.5 h-8 bg-[#141824] border border-[#1E2430] rounded-lg text-slate-200 focus-within:border-blue-500/60 focus-within:ring-1 focus-within:ring-blue-500/20 transition-all shadow-inner">
           <Search className="w-3.5 h-3.5 text-slate-500 shrink-0 pointer-events-none" />
           <input
             type="text"
@@ -208,7 +208,7 @@ export const DevicePalette: React.FC<DevicePaletteProps> = ({ onAddDevice, onClo
             <div key={cat} className="space-y-1.5">
               <div className="px-1 flex items-center justify-between text-[9.5px] font-mono font-bold text-slate-400 tracking-[0.14em] uppercase select-none">
                 <span>{cat}</span>
-                <span className="text-[9px] font-mono text-slate-400 bg-slate-800/80 px-1.5 py-0.2 rounded border border-slate-700/50">
+                <span className="text-[9px] font-mono text-slate-400 bg-[#161B26] px-1.5 py-0.2 rounded border border-[#222B3C]">
                   {items.length}
                 </span>
               </div>
@@ -220,7 +220,7 @@ export const DevicePalette: React.FC<DevicePaletteProps> = ({ onAddDevice, onClo
                     draggable
                     onDragStart={(e) => onDragStart(e, item)}
                     onClick={() => onAddDevice(item)}
-                    className="group relative flex items-center justify-between p-2 rounded-xl bg-slate-900/60 hover:bg-slate-800/80 border border-slate-800/80 hover:border-slate-700 transition-colors duration-150 cursor-grab active:cursor-grabbing shadow-sm"
+                    className="group relative flex items-center justify-between p-2 rounded-xl bg-[#10131A] hover:bg-[#141824] border border-[#1E2430] hover:border-slate-600/70 transition-colors duration-150 cursor-grab active:cursor-grabbing shadow-sm"
                     title={`Click or drag to add ${item.label}`}
                   >
                     <div className="flex items-center gap-2.5 min-w-0">

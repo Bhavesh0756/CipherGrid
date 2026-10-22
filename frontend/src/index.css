@@ -114,14 +114,14 @@ code, pre, .font-mono {
   background: #334155;
 }
 
-/* ─── React Flow Canvas Overrides (Clean Matte Architecture) ─── */
+/* ─── React Flow Canvas Overrides (Linear Slate & Ice Blue) ─── */
 .react-flow__background {
-  background-color: #090d16 !important;
+  background-color: #090a0f !important;
 }
 
 .react-flow__background pattern circle {
-  fill: #1e293b !important;
-  opacity: 0.6 !important;
+  fill: #1e2430 !important;
+  opacity: 0.55 !important;
 }
 
 .react-flow__node {
@@ -131,13 +131,13 @@ code, pre, .font-mono {
   padding: 0 !important;
 }
 
-/* Clean, non-neon, subtle node handles: hidden by default, visible on hover */
+/* Clean, subtle node handles: hidden by default, ice blue on hover */
 .react-flow__handle {
   width: 7px !important;
   height: 7px !important;
   border-radius: 50% !important;
-  background-color: #64748b !important;
-  border: 1.5px solid #090d16 !important;
+  background-color: #475569 !important;
+  border: 1.5px solid #090a0f !important;
   box-shadow: none !important;
   opacity: 0 !important;
   transition: transform 0.15s ease, opacity 0.15s ease, background-color 0.15s ease !important;

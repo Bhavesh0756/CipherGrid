@@ -28,14 +28,14 @@ interface DeviceInspectorProps {
 
 const getDeviceIcon = (type: DeviceType) => {
   switch (type) {
-    case 'Sensor': return <Thermometer className="w-5 h-5 text-amber-400" />;
+    case 'Sensor': return <Thermometer className="w-5 h-5 text-blue-400" />;
     case 'PLC': return <Cpu className="w-5 h-5 text-blue-400" />;
-    case 'SCADA Server': return <HardDrive className="w-5 h-5 text-purple-400" />;
-    case 'Operator Workstation': return <Laptop className="w-5 h-5 text-amber-400" />;
-    case 'Industrial Gateway': return <Network className="w-5 h-5 text-emerald-400" />;
-    case 'Ethernet Switch': return <Layers className="w-5 h-5 text-cyan-400" />;
-    case 'Router': return <RouterIcon className="w-5 h-5 text-cyan-400" />;
-    case 'Monitoring Server': return <Eye className="w-5 h-5 text-emerald-400" />;
+    case 'SCADA Server': return <HardDrive className="w-5 h-5 text-blue-400" />;
+    case 'Operator Workstation': return <Laptop className="w-5 h-5 text-slate-300" />;
+    case 'Industrial Gateway': return <Network className="w-5 h-5 text-blue-400" />;
+    case 'Ethernet Switch': return <Layers className="w-5 h-5 text-slate-300" />;
+    case 'Router': return <RouterIcon className="w-5 h-5 text-slate-300" />;
+    case 'Monitoring Server': return <Eye className="w-5 h-5 text-blue-400" />;
     case 'Untrusted Device': return <ShieldAlert className="w-5 h-5 text-rose-400" />;
     default: return <Activity className="w-5 h-5 text-slate-400" />;
   }
@@ -170,15 +170,15 @@ export const DeviceInspector: React.FC<DeviceInspectorProps> = ({ device, onClos
   };
 
   const inputClass =
-    'w-full px-2.5 py-1.5 border border-slate-700/80 rounded-lg text-xs bg-slate-900 text-slate-100 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 transition-colors font-mono';
+    'w-full px-2.5 py-1.5 border border-[#1E2430] rounded-lg text-xs bg-[#141824] text-slate-100 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 transition-colors font-mono';
   const selectClass =
-    'w-full px-2 py-1.5 border border-slate-700/80 rounded-lg text-xs bg-slate-900 text-slate-100 focus:outline-none focus:border-blue-500 transition-colors font-mono';
+    'w-full px-2 py-1.5 border border-[#1E2430] rounded-lg text-xs bg-[#141824] text-slate-100 focus:outline-none focus:border-blue-500 transition-colors font-mono';
   const labelClass = 'block text-[10px] font-mono font-bold text-slate-400 mb-1 uppercase tracking-wider';
 
   return (
-    <aside className="w-[310px] bg-[#080d1a] border-l border-slate-800/80 flex flex-col h-full select-text shrink-0 z-10 overflow-hidden shadow-2xl">
+    <aside className="w-[310px] bg-[#0D1017] border-l border-[#1E2430] flex flex-col h-full select-text shrink-0 z-10 overflow-hidden shadow-2xl">
       {/* Top Header */}
-      <div className="h-12 px-4 border-b border-slate-800/80 flex items-center justify-between shrink-0 bg-[#060913]/90">
+      <div className="h-12 px-4 border-b border-[#1E2430] flex items-center justify-between shrink-0 bg-[#090A0F]">
         <div className="flex items-center gap-2">
           <div className="w-2 h-2 rounded-xs bg-blue-500" />
           <h2 className="text-xs font-bold text-white tracking-tight font-display uppercase">
@@ -187,7 +187,7 @@ export const DeviceInspector: React.FC<DeviceInspectorProps> = ({ device, onClos
         </div>
         <button
           onClick={onClose}
-          className="p-1 rounded-md text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
+          className="p-1 rounded-md text-slate-400 hover:text-white hover:bg-[#161B26] transition-colors cursor-pointer"
           title="Close inspector"
         >
           <X className="w-3.5 h-3.5" />
@@ -195,9 +195,9 @@ export const DeviceInspector: React.FC<DeviceInspectorProps> = ({ device, onClos
       </div>
 
       {/* Device Overview Banner */}
-      <div className="px-4 py-3.5 border-b border-slate-800/80 flex items-center justify-between shrink-0 bg-slate-900/40">
+      <div className="px-4 py-3.5 border-b border-[#1E2430] flex items-center justify-between shrink-0 bg-[#10131A]">
         <div className="flex items-center gap-3 min-w-0 flex-1">
-          <div className="w-9 h-9 rounded-xl bg-slate-900 border border-slate-700/80 flex items-center justify-center shrink-0 shadow-inner">
+          <div className="w-9 h-9 rounded-xl bg-[#161B26] border border-[#222B3C] flex items-center justify-center shrink-0 shadow-inner">
             {getDeviceIcon(device.device_type)}
           </div>
           <div className="min-w-0 flex-1">
@@ -218,8 +218,8 @@ export const DeviceInspector: React.FC<DeviceInspectorProps> = ({ device, onClos
           <span
             className={`text-[9.5px] font-mono font-bold px-2 py-0.5 rounded-full ${
               device.trust_status === 'Trusted'
-                ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
-                : 'bg-rose-500/15 text-rose-400 border border-rose-500/30'
+                ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
             }`}
           >
             {device.trust_status.toUpperCase()}
@@ -228,7 +228,7 @@ export const DeviceInspector: React.FC<DeviceInspectorProps> = ({ device, onClos
       </div>
 
       {/* Tabs */}
-      <div className="flex border-b border-slate-800/80 px-4 text-xs font-medium shrink-0 gap-6 bg-[#060913]/50">
+      <div className="flex border-b border-[#1E2430] px-4 text-xs font-medium shrink-0 gap-6 bg-[#090A0F]">
         <button
           onClick={() => setActiveTab('overview')}
           className={`py-2 border-b-2 text-[11px] font-mono transition-all cursor-pointer ${
@@ -266,45 +266,45 @@ export const DeviceInspector: React.FC<DeviceInspectorProps> = ({ device, onClos
         {activeTab === 'overview' && (
           <div className="space-y-3.5">
             <div className="space-y-2">
-              <div className="flex items-center justify-between py-1 border-b border-slate-800/60">
+              <div className="flex items-center justify-between py-1 border-b border-[#1E2430]/60">
                 <span className="text-slate-400 text-[11px] shrink-0">IP Address</span>
                 <span className="font-mono text-slate-200 font-medium text-[11px] ml-2 text-right">
                   {device.ip_address}
                 </span>
               </div>
 
-              <div className="flex items-center justify-between py-1 border-b border-slate-800/60">
+              <div className="flex items-center justify-between py-1 border-b border-[#1E2430]/60">
                 <span className="text-slate-400 text-[11px] shrink-0">Purdue Level</span>
-                <span className="px-2 py-0.5 rounded text-[10px] font-mono font-medium bg-slate-800 text-slate-300 border border-slate-700">
+                <span className="px-2 py-0.5 rounded text-[10px] font-mono font-medium bg-[#141824] text-slate-300 border border-[#1E2430]">
                   {device.purdue_level}
                 </span>
               </div>
 
-              <div className="flex items-center justify-between py-1 border-b border-slate-800/60">
+              <div className="flex items-center justify-between py-1 border-b border-[#1E2430]/60">
                 <span className="text-slate-400 text-[11px] shrink-0">MAC Hardware</span>
                 <span className="font-mono text-slate-300 text-[10.5px] ml-2 text-right">
                   {device.mac_address || '00:1B:44:11:3A:B7'}
                 </span>
               </div>
 
-              <div className="flex items-center justify-between py-1 border-b border-slate-800/60">
+              <div className="flex items-center justify-between py-1 border-b border-[#1E2430]/60">
                 <span className="text-slate-400 text-[11px] shrink-0">Hardware OEM</span>
                 <span className="text-slate-200 text-[11px] ml-2 text-right font-medium">{manufacturer}</span>
               </div>
 
-              <div className="flex items-center justify-between py-1 border-b border-slate-800/60">
+              <div className="flex items-center justify-between py-1 border-b border-[#1E2430]/60">
                 <span className="text-slate-400 text-[11px] shrink-0">Chassis Model</span>
                 <span className="text-slate-200 text-[11px] ml-2 text-right font-medium">{model}</span>
               </div>
             </div>
 
             {/* Public Key Fingerprint */}
-            <div className="p-2.5 bg-slate-900/90 border border-slate-800 rounded-lg">
+            <div className="p-2.5 bg-[#10131A] border border-[#1E2430] rounded-lg">
               <div className="flex items-center gap-1.5 text-blue-400 text-[10px] font-mono font-medium uppercase mb-1">
                 <Key className="w-3 h-3" />
                 <span>RSA-2048 Public Key</span>
               </div>
-              <div className="font-mono text-[9.5px] text-slate-400 break-all leading-tight bg-[#060913] p-1.5 rounded border border-slate-800">
+              <div className="font-mono text-[9.5px] text-slate-400 break-all leading-tight bg-[#090A0F] p-1.5 rounded border border-[#1E2430]">
                 {device.public_key_pem ? device.public_key_pem.slice(0, 72) + '...' : 'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA...'}
               </div>
             </div>
@@ -314,7 +314,7 @@ export const DeviceInspector: React.FC<DeviceInspectorProps> = ({ device, onClos
               <span className="block text-slate-400 font-mono text-[10px] uppercase mb-1">
                 Operational Role
               </span>
-              <div className="p-2.5 bg-slate-900/70 border border-slate-800 rounded-lg text-slate-300 text-[11px] leading-relaxed">
+              <div className="p-2.5 bg-[#10131A] border border-[#1E2430] rounded-lg text-slate-300 text-[11px] leading-relaxed">
                 {description}
               </div>
             </div>
@@ -327,7 +327,7 @@ export const DeviceInspector: React.FC<DeviceInspectorProps> = ({ device, onClos
               Active Virtual Conduits
             </div>
             {deviceConnections.length === 0 ? (
-              <div className="p-4 text-center text-slate-500 italic bg-slate-900/40 rounded-lg border border-dashed border-slate-800 text-xs font-mono">
+              <div className="p-4 text-center text-slate-500 italic bg-[#10131A]/40 rounded-lg border border-dashed border-[#1E2430] text-xs font-mono">
                 No active links to this node.
               </div>
             ) : (
@@ -338,7 +338,7 @@ export const DeviceInspector: React.FC<DeviceInspectorProps> = ({ device, onClos
                   return (
                     <div
                       key={c.id}
-                      className="p-2.5 bg-slate-900/90 border border-slate-800 rounded-lg flex items-center justify-between"
+                      className="p-2.5 bg-[#10131A] border border-[#1E2430] rounded-lg flex items-center justify-between"
                     >
                       <div className="min-w-0 pr-2">
                         <div className="font-semibold text-slate-200 text-xs truncate">
@@ -348,7 +348,7 @@ export const DeviceInspector: React.FC<DeviceInspectorProps> = ({ device, onClos
                           Port: {port || 'eth0'}
                         </div>
                       </div>
-                      <span className="px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700 text-[10px] font-mono shrink-0">
+                      <span className="px-2 py-0.5 rounded bg-[#141824] text-slate-300 border border-[#1E2430] text-[10px] font-mono shrink-0">
                         {c.latency_ms} ms
                       </span>
                     </div>
@@ -362,12 +362,12 @@ export const DeviceInspector: React.FC<DeviceInspectorProps> = ({ device, onClos
         {activeTab === 'configuration' && (
           <form onSubmit={handleSave} className="space-y-3">
             {errorMessage && (
-              <div className="p-2 bg-rose-500/15 border border-rose-500/40 text-rose-300 rounded-lg text-[11px] font-mono">
+              <div className="p-2 bg-rose-500/10 border border-rose-500/30 text-rose-300 rounded-lg text-[11px] font-mono">
                 {errorMessage}
               </div>
             )}
             {saveSuccess && (
-              <div className="p-2 bg-emerald-500/15 border border-emerald-500/40 text-emerald-300 rounded-lg text-[11px] font-mono">
+              <div className="p-2 bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 rounded-lg text-[11px] font-mono">
                 Updated successfully!
               </div>
             )}
@@ -455,7 +455,7 @@ export const DeviceInspector: React.FC<DeviceInspectorProps> = ({ device, onClos
             </div>
 
             {/* Status toggle */}
-            <div className="flex items-center justify-between pt-2 border-t border-slate-800/80">
+            <div className="flex items-center justify-between pt-2 border-t border-[#1E2430]">
               <div className="flex items-center gap-2">
                 <Power className={`w-3.5 h-3.5 ${formData.is_enabled ? 'text-emerald-400' : 'text-slate-500'}`} />
                 <span className="text-[11px] font-mono text-slate-300">Administrative Link</span>
@@ -465,8 +465,8 @@ export const DeviceInspector: React.FC<DeviceInspectorProps> = ({ device, onClos
                 onClick={() => setFormData({ ...formData, is_enabled: !formData.is_enabled })}
                 className={`px-2.5 py-0.5 rounded text-[10px] font-mono font-bold transition-all cursor-pointer ${
                   formData.is_enabled
-                    ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
-                    : 'bg-slate-800 text-slate-400 border border-slate-700'
+                    ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                    : 'bg-[#141824] text-slate-400 border border-[#1E2430]'
                 }`}
               >
                 {formData.is_enabled ? 'ONLINE' : 'OFFLINE'}
@@ -474,7 +474,7 @@ export const DeviceInspector: React.FC<DeviceInspectorProps> = ({ device, onClos
             </div>
 
             {/* Save & Delete */}
-            <div className="pt-2 border-t border-slate-800/80 flex gap-2">
+            <div className="pt-2 border-t border-[#1E2430] flex gap-2">
               <button
                 type="submit"
                 className="flex-1 flex items-center justify-center gap-1.5 bg-blue-600 hover:bg-blue-500 text-white font-medium py-1.5 rounded-lg transition-colors text-xs shadow-sm cursor-pointer"
@@ -485,7 +485,7 @@ export const DeviceInspector: React.FC<DeviceInspectorProps> = ({ device, onClos
               <button
                 type="button"
                 onClick={handleDelete}
-                className="p-1.5 border border-rose-500/30 text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors cursor-pointer"
+                className="p-1.5 border border-rose-500/20 text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors cursor-pointer"
                 title="Delete device"
               >
                 <Trash2 className="w-3.5 h-3.5" />

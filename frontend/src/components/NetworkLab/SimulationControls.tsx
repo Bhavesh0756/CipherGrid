@@ -168,15 +168,15 @@ export const SimulationControls: React.FC = () => {
   });
 
   return (
-    <div className="bg-[#080d1a] border-t border-slate-800/80 select-none shrink-0 flex flex-col z-20 shadow-2xl backdrop-blur-md">
+    <div className="bg-[#0D1017] border-t border-[#1E2430] select-none shrink-0 flex flex-col z-20 shadow-2xl backdrop-blur-md">
       {/* ─── Top Console Header Bar ─── */}
-      <div className="h-10 px-4 border-b border-slate-800/80 flex items-center justify-between gap-3 bg-[#060913]/90">
+      <div className="h-10 px-4 border-b border-[#1E2430] flex items-center justify-between gap-3 bg-[#090A0F]">
         {/* Left: Tab Switcher & Console Title */}
         <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2 pr-3 border-r border-slate-800/80 text-slate-400 font-mono text-xs">
+          <div className="flex items-center gap-2 pr-3 border-r border-[#1E2430] text-slate-400 font-mono text-xs">
             <Terminal className="w-3.5 h-3.5 text-blue-400" />
             <span className="font-bold text-white font-display tracking-tight text-xs">CONSOLE</span>
-            <span className="text-[10px] px-1.5 py-0.2 rounded bg-slate-800 text-slate-400 font-mono">
+            <span className="text-[10px] px-1.5 py-0.2 rounded bg-[#141824] text-slate-400 font-mono border border-[#1E2430]">
               {displayedEvents.length}
             </span>
           </div>
@@ -231,7 +231,7 @@ export const SimulationControls: React.FC = () => {
             <select
               value={filterType}
               onChange={(e) => setFilterType(e.target.value)}
-              className="appearance-none pl-2 pr-6 py-0.5 text-xs font-mono bg-slate-900 border border-slate-800 rounded-md text-slate-300 focus:outline-none focus:border-blue-500 cursor-pointer"
+              className="appearance-none pl-2 pr-6 py-0.5 text-xs font-mono bg-[#141824] border border-[#1E2430] rounded-md text-slate-300 focus:outline-none focus:border-blue-500 cursor-pointer"
             >
               <option value="all">All Events</option>
               <option value="info">Info</option>
@@ -245,7 +245,7 @@ export const SimulationControls: React.FC = () => {
           {/* Reset */}
           <button
             onClick={handleReset}
-            className="flex items-center gap-1 px-2.5 py-0.5 text-xs font-mono text-slate-400 hover:text-white bg-slate-900/90 hover:bg-slate-800 border border-slate-800 rounded-md transition-colors cursor-pointer"
+            className="flex items-center gap-1 px-2.5 py-0.5 text-xs font-mono text-slate-400 hover:text-white bg-[#141824] hover:bg-[#1A2030] border border-[#1E2430] rounded-md transition-colors cursor-pointer"
             title="Reset simulation state"
           >
             <RotateCcw className="w-3 h-3 text-slate-400" />
@@ -255,7 +255,7 @@ export const SimulationControls: React.FC = () => {
           {/* Clear */}
           <button
             onClick={() => setCleared(true)}
-            className="flex items-center gap-1 px-2.5 py-0.5 text-xs font-mono text-rose-400 hover:text-rose-300 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 rounded-md transition-colors cursor-pointer"
+            className="flex items-center gap-1 px-2.5 py-0.5 text-xs font-mono text-rose-400 hover:text-rose-300 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 rounded-md transition-colors cursor-pointer"
             title="Clear console view"
           >
             <Trash2 className="w-3 h-3" />
@@ -265,7 +265,7 @@ export const SimulationControls: React.FC = () => {
           {/* Toggle Expand/Collapse */}
           <button
             onClick={() => setIsLogsExpanded(!isLogsExpanded)}
-            className="flex items-center gap-1 px-2 py-0.5 text-xs font-mono text-slate-400 hover:text-white bg-slate-900 border border-slate-800 rounded-md transition-colors cursor-pointer"
+            className="flex items-center gap-1 px-2 py-0.5 text-xs font-mono text-slate-400 hover:text-white bg-[#141824] border border-[#1E2430] rounded-md transition-colors cursor-pointer"
             title={isLogsExpanded ? 'Collapse Console' : 'Expand Console'}
           >
             <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${isLogsExpanded ? 'rotate-180' : ''}`} />
@@ -276,12 +276,12 @@ export const SimulationControls: React.FC = () => {
 
       {/* ─── Bottom Section: Event Logs Console ─── */}
       {isLogsExpanded && (
-        <div className="flex flex-col bg-[#070b14]">
+        <div className="flex flex-col bg-[#0B0E14]">
           {/* Console Body */}
           <div className="h-40 overflow-y-auto font-mono text-xs">
             {activeTab === 'logs' && (
               <table className="w-full text-left border-collapse">
-                <thead className="sticky top-0 bg-[#0b101f] text-slate-400 font-semibold text-[10px] tracking-wider uppercase border-b border-slate-800/80">
+                <thead className="sticky top-0 bg-[#0E121A] text-slate-400 font-semibold text-[10px] tracking-wider uppercase border-b border-[#1E2430]">
                   <tr>
                     <th className="py-1 px-5 w-20">Time</th>
                     <th className="py-1 px-3 w-20">Level</th>
@@ -291,7 +291,7 @@ export const SimulationControls: React.FC = () => {
                     <th className="py-1 px-5 w-24 text-right">Status</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-800/40">
+                <tbody className="divide-y divide-[#1E2430]/60">
                   {filteredEvents.length === 0 ? (
                     <tr>
                       <td colSpan={6} className="py-6 text-center text-slate-400 italic">
@@ -302,13 +302,13 @@ export const SimulationControls: React.FC = () => {
                     filteredEvents.map((evt) => (
                       <tr
                         key={evt.id}
-                        className="hover:bg-slate-800/40 transition-colors text-slate-300 h-7"
+                        className="hover:bg-[#141824]/60 transition-colors text-slate-300 h-7"
                       >
                         <td className="py-1 px-5 font-mono text-[10px] text-slate-400">
                           {evt.time}
                         </td>
                         <td className="py-1 px-3">
-                          <span className={`inline-flex items-center gap-1 text-[10px] font-bold ${evt.type === 'Info' ? 'text-cyan-400' : 'text-amber-400'}`}>
+                          <span className={`inline-flex items-center gap-1 text-[10px] font-bold ${evt.type === 'Info' ? 'text-blue-400' : 'text-amber-400/90'}`}>
                             {evt.type}
                           </span>
                         </td>
@@ -325,8 +325,8 @@ export const SimulationControls: React.FC = () => {
                           <span
                             className={`inline-flex items-center px-1.5 py-0.5 rounded text-[9.5px] font-bold font-mono ${
                               evt.status === 'Accepted'
-                                ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
-                                : 'bg-rose-500/15 text-rose-400 border border-rose-500/30'
+                                ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                                : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
                             }`}
                           >
                             {evt.status}
@@ -351,7 +351,7 @@ export const SimulationControls: React.FC = () => {
                       const isLast = idx === lastResult.path.length - 1;
                       return (
                         <React.Fragment key={nodeId}>
-                          <div className="px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-slate-200 text-xs shrink-0 flex items-center gap-2">
+                          <div className="px-3 py-1.5 rounded-lg bg-[#10131A] border border-[#1E2430] text-slate-200 text-xs shrink-0 flex items-center gap-2">
                             <span className="w-2 h-2 rounded-full bg-blue-500" />
                             <span className="font-semibold text-white">{dev ? dev.name : nodeId}</span>
                             <span className="text-[10px] text-slate-400 font-mono">({dev?.ip_address || 'Purdue L' + (idx + 1)})</span>
@@ -375,27 +375,27 @@ export const SimulationControls: React.FC = () => {
               <div className="p-4 font-mono text-xs space-y-3">
                 {lastResult ? (
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                    <div className="p-2.5 rounded-lg bg-slate-900 border border-slate-800">
+                    <div className="p-2.5 rounded-lg bg-[#10131A] border border-[#1E2430]">
                       <div className="text-slate-400 text-[10px] uppercase font-bold">Delivery Decision</div>
                       <div className={`text-sm font-bold mt-1 ${lastResult.delivered ? 'text-emerald-400' : 'text-rose-400'}`}>
                         {lastResult.status || (lastResult.delivered ? 'Delivered' : 'Failed')}
                       </div>
                     </div>
-                    <div className="p-2.5 rounded-lg bg-slate-900 border border-slate-800">
+                    <div className="p-2.5 rounded-lg bg-[#10131A] border border-[#1E2430]">
                       <div className="text-slate-400 text-[10px] uppercase font-bold">Message ID</div>
                       <div className="text-xs font-semibold text-white mt-1 truncate">
                         {lastResult.message_id || 'N/A'}
                       </div>
                     </div>
-                    <div className="p-2.5 rounded-lg bg-slate-900 border border-slate-800">
+                    <div className="p-2.5 rounded-lg bg-[#10131A] border border-[#1E2430]">
                       <div className="text-slate-400 text-[10px] uppercase font-bold">Total Hops</div>
-                      <div className="text-sm font-bold text-cyan-400 mt-1">
+                      <div className="text-sm font-bold text-blue-400 mt-1">
                         {lastResult.path?.length || 0}
                       </div>
                     </div>
-                    <div className="p-2.5 rounded-lg bg-slate-900 border border-slate-800">
+                    <div className="p-2.5 rounded-lg bg-[#10131A] border border-[#1E2430]">
                       <div className="text-slate-400 text-[10px] uppercase font-bold">Cumulative Latency</div>
-                      <div className="text-sm font-bold text-amber-400 mt-1">
+                      <div className="text-sm font-bold text-slate-300 mt-1">
                         {lastResult.total_latency_ms ? `${lastResult.total_latency_ms} ms` : '2.0 ms'}
                       </div>
                     </div>

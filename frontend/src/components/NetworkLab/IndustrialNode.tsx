@@ -32,64 +32,34 @@ const DEVICE_CONFIG: Record<
   DeviceType,
   {
     icon: React.ReactNode;
-    iconBg: string;
-    borderAccent: string;
-    levelColor: string;
   }
 > = {
   'Sensor': {
-    icon: <Thermometer className="w-4 h-4 text-amber-400" />,
-    iconBg: 'bg-amber-950/40 text-amber-400 border-amber-800/40',
-    borderAccent: 'border-l-amber-500',
-    levelColor: 'text-amber-300/90 bg-amber-950/30 border-amber-800/40',
+    icon: <Thermometer className="w-3.5 h-3.5 text-slate-300" />,
   },
   'PLC': {
-    icon: <Cpu className="w-4 h-4 text-blue-400" />,
-    iconBg: 'bg-blue-950/40 text-blue-400 border-blue-800/40',
-    borderAccent: 'border-l-blue-500',
-    levelColor: 'text-blue-300/90 bg-blue-950/30 border-blue-800/40',
+    icon: <Cpu className="w-3.5 h-3.5 text-blue-400" />,
   },
   'SCADA Server': {
-    icon: <HardDrive className="w-4 h-4 text-purple-400" />,
-    iconBg: 'bg-purple-950/40 text-purple-400 border-purple-800/40',
-    borderAccent: 'border-l-purple-500',
-    levelColor: 'text-purple-300/90 bg-purple-950/30 border-purple-800/40',
+    icon: <HardDrive className="w-3.5 h-3.5 text-blue-400" />,
   },
   'Operator Workstation': {
-    icon: <Laptop className="w-4 h-4 text-amber-400" />,
-    iconBg: 'bg-amber-950/40 text-amber-400 border-amber-800/40',
-    borderAccent: 'border-l-amber-500',
-    levelColor: 'text-amber-300/90 bg-amber-950/30 border-amber-800/40',
+    icon: <Laptop className="w-3.5 h-3.5 text-slate-300" />,
   },
   'Industrial Gateway': {
-    icon: <Network className="w-4 h-4 text-emerald-400" />,
-    iconBg: 'bg-emerald-950/40 text-emerald-400 border-emerald-800/40',
-    borderAccent: 'border-l-emerald-500',
-    levelColor: 'text-emerald-300/90 bg-emerald-950/30 border-emerald-800/40',
+    icon: <Network className="w-3.5 h-3.5 text-blue-400" />,
   },
   'Ethernet Switch': {
-    icon: <Layers className="w-4 h-4 text-blue-400" />,
-    iconBg: 'bg-blue-950/40 text-blue-400 border-blue-800/40',
-    borderAccent: 'border-l-blue-500',
-    levelColor: 'text-blue-300/90 bg-blue-950/30 border-blue-800/40',
+    icon: <Layers className="w-3.5 h-3.5 text-blue-400" />,
   },
   'Router': {
-    icon: <RouterIcon className="w-4 h-4 text-sky-400" />,
-    iconBg: 'bg-sky-950/40 text-sky-400 border-sky-800/40',
-    borderAccent: 'border-l-sky-500',
-    levelColor: 'text-sky-300/90 bg-sky-950/30 border-sky-800/40',
+    icon: <RouterIcon className="w-3.5 h-3.5 text-blue-400" />,
   },
   'Monitoring Server': {
-    icon: <Eye className="w-4 h-4 text-emerald-400" />,
-    iconBg: 'bg-emerald-950/40 text-emerald-400 border-emerald-800/40',
-    borderAccent: 'border-l-emerald-500',
-    levelColor: 'text-emerald-300/90 bg-emerald-950/30 border-emerald-800/40',
+    icon: <Eye className="w-3.5 h-3.5 text-emerald-400" />,
   },
   'Untrusted Device': {
-    icon: <ShieldAlert className="w-4 h-4 text-rose-400" />,
-    iconBg: 'bg-rose-950/40 text-rose-400 border-rose-800/40',
-    borderAccent: 'border-l-rose-500',
-    levelColor: 'text-rose-300/90 bg-rose-950/30 border-rose-800/40',
+    icon: <ShieldAlert className="w-3.5 h-3.5 text-rose-400" />,
   },
 };
 
@@ -104,47 +74,43 @@ export const IndustrialNode: React.FC<IndustrialNodeProps> = memo(({ data }) => 
     laserStatus = 'idle',
     isSimulating = false,
   } = data;
-  const config =
-    DEVICE_CONFIG[device.device_type] || {
-      icon: <Activity className="w-4 h-4 text-slate-400" />,
-      iconBg: 'bg-slate-800 text-slate-400 border-slate-700',
-      borderAccent: 'border-l-slate-500',
-      levelColor: 'text-slate-400 bg-slate-800 border-slate-700',
-    };
+
+  const config = DEVICE_CONFIG[device.device_type] || {
+    icon: <Activity className="w-3.5 h-3.5 text-slate-400" />,
+  };
 
   const isTrusted = device.trust_status === 'Trusted';
   const isUntrusted = device.trust_status === 'Untrusted';
-
   const displayName = device.name.replace(/\s+PLC$/i, '').trim();
 
-  // Subtle clean border styles or energetic laser resonance
-  let borderClasses = `border-l-4 ${config.borderAccent} border-slate-800`;
+  // Linear Slate & Ice Blue: Calm, matte 1px hairline borders with subtle focus states
+  let borderClasses = 'border-[#1E2430] hover:border-slate-600/80';
   let ringClasses = '';
 
   if (isActiveHop && isSimulating) {
     if (laserStatus === 'tampered') {
-      borderClasses = 'border-l-4 border-l-rose-500 border-rose-500';
-      ringClasses = 'ring-2 ring-rose-500/80 node-laser-tampered';
+      borderClasses = 'border-rose-500/80 bg-[#161218]';
+      ringClasses = 'ring-1 ring-rose-500/60 shadow-lg shadow-rose-950/40';
     } else {
-      borderClasses = 'border-l-4 border-l-emerald-400 border-emerald-500';
-      ringClasses = 'ring-2 ring-emerald-500/80 node-laser-accepted';
+      borderClasses = 'border-blue-500/90 bg-[#101724]';
+      ringClasses = 'ring-1 ring-blue-500/60 shadow-lg shadow-blue-950/40';
     }
   } else if (isActiveHop) {
-    borderClasses = 'border-l-4 border-l-blue-400 border-blue-500';
-    ringClasses = 'ring-2 ring-blue-500/60 node-active-hop';
+    borderClasses = 'border-blue-500/80 bg-[#101724]';
+    ringClasses = 'ring-1 ring-blue-500/50';
   } else if (isSelected) {
-    borderClasses = 'border-l-4 border-l-blue-500 border-slate-600';
+    borderClasses = 'border-blue-500 shadow-md shadow-blue-950/40';
     ringClasses = 'ring-1 ring-blue-500/50';
   } else if (isHighlighted) {
-    borderClasses = `border-l-4 ${config.borderAccent} border-blue-500/60`;
-    ringClasses = 'ring-1 ring-blue-500/30';
+    borderClasses = 'border-blue-500/50';
+    ringClasses = 'ring-1 ring-blue-500/20';
   }
 
   return (
     <div
-      style={{ width: 240, height: 86, boxSizing: 'border-box' }}
-      className={`group relative bg-[#0e1422] rounded-xl border transition-all duration-150 px-3 py-2 flex flex-col justify-between select-none shadow-md shadow-black/40 ${borderClasses} ${ringClasses} ${
-        !device.is_enabled ? 'opacity-40 grayscale' : ''
+      style={{ width: 236, height: 82, boxSizing: 'border-box' }}
+      className={`group relative bg-[#10131A] rounded-xl border transition-all duration-150 px-3 py-2 flex flex-col justify-between select-none shadow-md shadow-black/40 ${borderClasses} ${ringClasses} ${
+        !device.is_enabled ? 'opacity-35 grayscale' : ''
       }`}
     >
       {/* Port handles on all 4 sides */}
@@ -156,9 +122,7 @@ export const IndustrialNode: React.FC<IndustrialNodeProps> = memo(({ data }) => 
       {/* Top row: Icon, Name, Type, Trust Status Badge */}
       <div className="flex items-center justify-between gap-2 min-w-0">
         <div className="flex items-center gap-2.5 min-w-0 flex-1">
-          <div
-            className={`w-7 h-7 rounded-lg flex items-center justify-center border shrink-0 ${config.iconBg}`}
-          >
+          <div className="w-6 h-6 rounded-lg flex items-center justify-center bg-[#161B26] border border-[#222B3C] shrink-0">
             {config.icon}
           </div>
 
@@ -181,38 +145,38 @@ export const IndustrialNode: React.FC<IndustrialNodeProps> = memo(({ data }) => 
             <span
               className={`text-[8.5px] font-mono font-bold px-1.5 py-0.5 rounded-full border flex items-center gap-1 ${
                 laserStatus === 'tampered'
-                  ? 'bg-rose-950/90 text-rose-300 border-rose-500 animate-pulse'
-                  : 'bg-emerald-950/90 text-emerald-300 border-emerald-500 animate-pulse'
+                  ? 'bg-rose-500/10 text-rose-300 border-rose-500/40 animate-pulse'
+                  : 'bg-blue-500/10 text-blue-300 border-blue-500/40 animate-pulse'
               }`}
             >
               <span
                 className={`w-1.5 h-1.5 rounded-full ${
-                  laserStatus === 'tampered' ? 'bg-rose-400 animate-ping' : 'bg-emerald-400'
+                  laserStatus === 'tampered' ? 'bg-rose-400' : 'bg-blue-400'
                 }`}
               />
-              {laserStatus === 'tampered' ? 'TAMPER' : 'LASER'}
+              {laserStatus === 'tampered' ? 'DROP' : 'PACKET'}
             </span>
           ) : (
             <>
               <span
                 className={`w-1.5 h-1.5 rounded-full ${
                   device.is_enabled && isTrusted
-                    ? 'bg-emerald-500'
+                    ? 'bg-emerald-400'
                     : isUntrusted
-                    ? 'bg-rose-500'
-                    : 'bg-amber-500'
+                    ? 'bg-rose-400'
+                    : 'bg-slate-500'
                 }`}
               />
               <span
-                className={`text-[9px] font-mono font-medium px-1.5 py-0.2 rounded border ${
+                className={`text-[8.5px] font-mono font-medium px-1.5 py-0.2 rounded border ${
                   isTrusted
-                    ? 'bg-emerald-950/40 text-emerald-400 border-emerald-800/40'
+                    ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/20'
                     : isUntrusted
-                    ? 'bg-rose-950/40 text-rose-400 border-rose-800/40'
-                    : 'bg-amber-950/40 text-amber-400 border-amber-800/40'
+                    ? 'bg-rose-500/10 text-rose-300 border-rose-500/20'
+                    : 'bg-slate-800 text-slate-400 border-slate-700'
                 }`}
               >
-                {isTrusted ? 'TRUST' : isUntrusted ? 'ROGUE' : 'STANDBY'}
+                {isTrusted ? 'TRUST' : isUntrusted ? 'ROGUE' : 'OFF'}
               </span>
             </>
           )}
@@ -220,23 +184,23 @@ export const IndustrialNode: React.FC<IndustrialNodeProps> = memo(({ data }) => 
       </div>
 
       {/* Bottom row: IP address and Purdue Level */}
-      <div className="pt-1.5 border-t border-slate-800/80 flex items-center justify-between text-[10.5px]">
-        <span className="font-mono text-slate-300 font-medium text-[11px] tracking-tight">
+      <div className="pt-1.5 border-t border-[#1E2430] flex items-center justify-between text-[10.5px]">
+        <span className="font-mono text-slate-400 font-medium text-[10.5px] tracking-tight">
           {device.ip_address}
         </span>
-        <span className={`font-mono text-[9px] px-1.5 py-0.2 rounded border ${config.levelColor}`}>
+        <span className="font-mono text-[9px] px-1.5 py-0.2 rounded bg-[#161B26] border border-[#222B3C] text-slate-400">
           {device.purdue_level}
         </span>
       </div>
 
       {/* Source / Destination flags */}
       {isSource && (
-        <div className="absolute -top-2.5 left-3 bg-blue-600 text-white text-[8px] font-mono font-bold px-1.5 py-0.5 rounded shadow-sm tracking-wider">
+        <div className="absolute -top-2.5 left-3 bg-blue-600 border border-blue-400 text-white text-[8px] font-mono font-bold px-1.5 py-0.5 rounded shadow-sm tracking-wider">
           SRC
         </div>
       )}
       {isDestination && (
-        <div className="absolute -top-2.5 right-3 bg-emerald-600 text-white text-[8px] font-mono font-bold px-1.5 py-0.5 rounded shadow-sm tracking-wider">
+        <div className="absolute -top-2.5 right-3 bg-blue-600 border border-blue-400 text-white text-[8px] font-mono font-bold px-1.5 py-0.5 rounded shadow-sm tracking-wider">
           DST
         </div>
       )}

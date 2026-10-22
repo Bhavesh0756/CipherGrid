@@ -102,9 +102,9 @@ export const LaserEdge: React.FC<EdgeProps> = memo(({
 
         {/* Linear gradient for laser beam */}
         <linearGradient id={`laser-grad-${id}`} gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stopColor={isTampered ? '#fb7185' : '#34d399'} stopOpacity="0.9" />
-          <stop offset="50%" stopColor={isTampered ? '#f43f5e' : '#06b6d4'} stopOpacity="1" />
-          <stop offset="100%" stopColor={isTampered ? '#e11d48' : '#10b981'} stopOpacity="0.9" />
+          <stop offset="0%" stopColor={isTampered ? '#fb7185' : '#93c5fd'} stopOpacity="0.9" />
+          <stop offset="50%" stopColor={isTampered ? '#f43f5e' : '#3b82f6'} stopOpacity="1" />
+          <stop offset="100%" stopColor={isTampered ? '#e11d48' : '#2563eb'} stopOpacity="0.9" />
         </linearGradient>
       </defs>
 
@@ -113,7 +113,7 @@ export const LaserEdge: React.FC<EdgeProps> = memo(({
         id={`${id}-conduit-base`}
         d={edgePath}
         fill="none"
-        stroke="#0b1120"
+        stroke="#090A0F"
         strokeWidth={conduitWidth + 4}
         strokeLinecap="round"
       />
@@ -288,16 +288,16 @@ export const LaserEdge: React.FC<EdgeProps> = memo(({
             <div
               className={`px-2 py-0.5 rounded-full text-[9px] font-mono font-bold tracking-wider shadow-lg flex items-center gap-1.5 transition-all transform scale-105 ${
                 isTampered
-                  ? 'bg-rose-950/95 text-rose-300 border border-rose-500 shadow-rose-950/80 animate-pulse'
-                  : 'bg-emerald-950/95 text-emerald-300 border border-emerald-500 shadow-emerald-950/80'
+                  ? 'bg-[#10131A] text-rose-300 border border-rose-500/50 shadow-rose-950/40 animate-pulse'
+                  : 'bg-[#10131A] text-blue-300 border border-blue-500/50 shadow-blue-950/40'
               }`}
             >
               <span
                 className={`w-1.5 h-1.5 rounded-full ${
-                  isTampered ? 'bg-rose-400 animate-ping' : 'bg-emerald-400 animate-pulse'
+                  isTampered ? 'bg-rose-400 animate-ping' : 'bg-blue-400 animate-pulse'
                 }`}
               />
-              <span>{isTampered ? 'TAMPER DROPPED' : 'LASER TRANSIT'}</span>
+              <span>{isTampered ? 'TAMPER DROPPED' : 'PACKET TRANSIT'}</span>
             </div>
           ) : (
             <div
@@ -305,8 +305,8 @@ export const LaserEdge: React.FC<EdgeProps> = memo(({
               onMouseLeave={() => setIsHovered(false)}
               className={`group px-1.5 py-0.5 rounded-full text-[8.5px] font-mono transition-all border flex items-center gap-1 ${
                 inPath
-                  ? 'bg-blue-950/90 text-blue-300 border-blue-500/60 shadow-sm'
-                  : 'bg-slate-900/90 text-slate-400 border-slate-800'
+                  ? 'bg-[#141824] text-blue-300 border-blue-500/40 shadow-sm'
+                  : 'bg-[#10131A] text-slate-400 border-[#1E2430]'
               }`}
             >
               <span>{latency}ms</span>
@@ -316,7 +316,7 @@ export const LaserEdge: React.FC<EdgeProps> = memo(({
                     e.stopPropagation();
                     edgeData.onDelete?.(id);
                   }}
-                  className="opacity-0 group-hover:opacity-100 text-slate-400 hover:text-rose-400 hover:bg-rose-950/60 p-0.5 rounded transition-all cursor-pointer"
+                  className="opacity-0 group-hover:opacity-100 text-slate-400 hover:text-rose-400 hover:bg-rose-950/40 p-0.5 rounded transition-all cursor-pointer"
                   title="Cut connection"
                 >
                   <X className="w-2.5 h-2.5" />
