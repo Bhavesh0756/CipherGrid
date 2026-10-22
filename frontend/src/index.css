@@ -287,3 +287,53 @@ code, pre, .font-mono {
   animation: cyberFloat 5s ease-in-out infinite;
 }
 
+@keyframes textShimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+@keyframes laserSweep {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes energyShockwave {
+  0% {
+    transform: scale(0.5);
+    opacity: 0.9;
+    border-color: rgba(34, 211, 238, 0.9);
+  }
+  50% {
+    opacity: 0.6;
+  }
+  100% {
+    transform: scale(3.2);
+    opacity: 0;
+    border-color: rgba(59, 130, 246, 0);
+  }
+}
+
+@keyframes quantumFloat {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  25% { transform: translateY(-4px) rotate(0.5deg); }
+  75% { transform: translateY(3px) rotate(-0.5deg); }
+}
+
+.animate-text-shimmer {
+  background: linear-gradient(90deg, #ffffff 0%, #38bdf8 30%, #a5f3fc 50%, #38bdf8 70%, #ffffff 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: textShimmer 4s linear infinite;
+}
+
+.animate-laser-sweep {
+  animation: laserSweep 3.5s linear infinite;
+}
+
+.animate-quantum-float {
+  animation: quantumFloat 6s ease-in-out infinite;
+}
+
+
