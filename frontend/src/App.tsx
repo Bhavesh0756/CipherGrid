@@ -42,19 +42,21 @@ export const App: React.FC = () => {
   };
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-[#f3f6fa] text-slate-800 font-sans">
+    <div className="flex h-screen w-screen overflow-hidden bg-[#070b14] text-slate-100 font-sans antialiased selection:bg-cyan-500/30 selection:text-white">
       {/* Sidebar spanning full height */}
       <Sidebar />
 
       {/* Main workspace container with Topbar and content */}
-      <div className="flex-1 flex flex-col overflow-hidden min-w-0">
+      <div className="flex-1 flex flex-col overflow-hidden min-w-0 bg-[#070b14]">
         <Topbar />
 
-        <main className="flex-1 flex flex-col overflow-hidden relative min-w-0">
+        <main className="flex-1 flex flex-col overflow-hidden relative min-w-0 bg-[#070b14]">
           {error && (
-            <div className="bg-rose-600 text-white px-4 py-1.5 text-xs flex items-center gap-2 z-30 shrink-0">
-              <span className="w-1.5 h-1.5 rounded-full bg-white/60" />
-              <span className="font-medium">{error}</span>
+            <div className="bg-rose-950/80 border-b border-rose-500/40 text-rose-200 px-4 py-2 text-xs flex items-center justify-between z-30 shrink-0 backdrop-blur-md">
+              <div className="flex items-center gap-2.5">
+                <span className="w-2 h-2 rounded-full bg-rose-500 animate-ping" />
+                <span className="font-mono font-medium">{error}</span>
+              </div>
             </div>
           )}
           {renderActiveSection()}

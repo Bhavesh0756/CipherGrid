@@ -8,8 +8,10 @@ import {
   Play,
   RotateCcw,
   Settings,
+  Terminal,
   Trash2,
   XCircle,
+  Zap,
 } from 'lucide-react';
 import { useSimulatorStore } from '../../store/useSimulatorStore';
 import { MessageType } from '../../types';
@@ -29,36 +31,36 @@ const DEFAULT_SAMPLE_EVENTS: DisplayLogEvent[] = [
     id: 'sample-1',
     time: '23:41:12',
     type: 'Info',
-    source: 'PLC (192.168.1.10)',
-    destination: 'SCADA (192.168.1.5)',
-    message: 'Read holding registers (0x03)',
+    source: 'PLC-01 (192.168.1.10)',
+    destination: 'SCADA-Server (192.168.1.5)',
+    message: 'Read holding registers [AES-256-GCM AEAD]',
     status: 'Accepted',
   },
   {
     id: 'sample-2',
     time: '23:41:10',
     type: 'Warning',
-    source: 'Workstation (192.168.1.50)',
-    destination: 'PLC (192.168.1.10)',
-    message: 'Unauthorized write attempt (0x06)',
+    source: 'Rogue-Probe (192.168.1.99)',
+    destination: 'PLC-01 (192.168.1.10)',
+    message: 'Unauthorized RBAC write command (0x06)',
     status: 'Rejected',
   },
   {
     id: 'sample-3',
     time: '23:41:08',
     type: 'Info',
-    source: 'Monitor (192.168.1.80)',
-    destination: 'Switch (192.168.1.2)',
-    message: 'Port status poll',
+    source: 'Audit-Monitor (192.168.1.80)',
+    destination: 'OT-Switch (192.168.1.2)',
+    message: 'Port status poll & telemetry heartbeat',
     status: 'Accepted',
   },
   {
     id: 'sample-4',
     time: '23:41:05',
     type: 'Info',
-    source: 'SCADA (192.168.1.5)',
-    destination: 'PLC (192.168.1.10)',
-    message: 'Read input registers (0x04)',
+    source: 'SCADA-Server (192.168.1.5)',
+    destination: 'PLC-01 (192.168.1.10)',
+    message: 'Digital signature verified [RSA-PSS 2048-bit]',
     status: 'Accepted',
   },
 ];
@@ -80,7 +82,6 @@ export const SimulationControls: React.FC = () => {
   const [filterType, setFilterType] = useState<string>('all');
   const [cleared, setCleared] = useState(false);
 
-  // Auto-set valid source/dest if available
   React.useEffect(() => {
     if (devices.length >= 2) {
       if (!devices.some((d) => d.id === sourceId)) {
@@ -116,7 +117,6 @@ export const SimulationControls: React.FC = () => {
     resetSimulationState();
   };
 
-  // Convert real simulation events into log format
   const realEvents: DisplayLogEvent[] = simulationEvents.map((evt, idx) => {
     const srcDev = devices.find((d) => d.id === evt.source_id);
     const dstDev = devices.find((d) => d.id === evt.destination_id);
@@ -157,45 +157,45 @@ export const SimulationControls: React.FC = () => {
   const [isLogsExpanded, setIsLogsExpanded] = useState<boolean>(true);
 
   return (
-    <div className="bg-white border-t border-slate-200 select-none shrink-0 flex flex-col z-20 shadow-xs">
-      {/* ─── Top Toolbar: Simulation Control (Sleek Single Row) ─── */}
-      <div className="h-12 px-4 border-b border-slate-200/80 flex items-center justify-between gap-3 bg-white">
+    <div className="bg-[#080d1a] border-t border-slate-800/80 select-none shrink-0 flex flex-col z-20 shadow-2xl backdrop-blur-md">
+      {/* ─── Top Toolbar: Simulation Control ─── */}
+      <div className="h-13 px-4 border-b border-slate-800/80 flex items-center justify-between gap-3 bg-[#060913]/90">
         {/* Left: Section Header */}
-        <div className="flex items-center gap-2 shrink-0">
-          <div className="w-6 h-6 rounded-md bg-blue-50 border border-blue-200/80 flex items-center justify-center text-blue-600 shadow-2xs">
-            <Settings className="w-3 h-3" />
+        <div className="flex items-center gap-2.5 shrink-0">
+          <div className="w-7 h-7 rounded-lg bg-blue-950/40 border border-blue-800/40 flex items-center justify-center text-blue-400">
+            <Zap className="w-3.5 h-3.5" />
           </div>
           <div className="flex items-baseline gap-1.5">
-            <h3 className="text-xs font-bold text-slate-900 tracking-tight leading-tight">
-              Simulation Control
+            <h3 className="text-xs font-bold text-white tracking-tight leading-tight font-display">
+              SIMULATION ENGINE
             </h3>
-            <span className="text-[10px] text-slate-400 hidden xl:inline">
-              · Send test messages
+            <span className="text-[10px] text-slate-400 font-mono hidden xl:inline">
+              · BFS Path & Crypto AEAD
             </span>
           </div>
         </div>
 
-        {/* Center: Reset button, Device dropdowns, and Simulate Message Button */}
+        {/* Center: Reset button, Device dropdowns, and Simulate Button */}
         <div className="flex items-center gap-3 min-w-0 flex-1 justify-center">
           <button
             onClick={handleReset}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-slate-50 active:bg-slate-100 border border-slate-200 text-slate-700 rounded-lg text-xs font-semibold transition-all shadow-2xs cursor-pointer shrink-0"
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-900/90 hover:bg-slate-800 border border-slate-700/80 text-slate-300 rounded-lg text-xs font-medium transition-all cursor-pointer shrink-0"
             title="Reset simulation state"
           >
-            <RotateCcw className="w-3.5 h-3.5 text-slate-500" />
+            <RotateCcw className="w-3.5 h-3.5 text-slate-400" />
             <span>Reset</span>
           </button>
 
           {/* Source Device */}
           <div className="flex flex-col">
-            <span className="text-[10px] font-semibold text-slate-500 mb-0.5">
-              Source Device
+            <span className="text-[9.5px] font-mono text-slate-400 mb-0.5">
+              SOURCE
             </span>
             <div className="relative">
               <select
                 value={sourceId}
                 onChange={(e) => setSourceId(e.target.value)}
-                className="appearance-none pl-2.5 pr-7 py-1.5 text-xs font-medium bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:border-blue-500 cursor-pointer w-48 truncate shadow-2xs"
+                className="appearance-none pl-2.5 pr-7 py-1 text-xs font-mono bg-slate-900 border border-slate-700 rounded-lg text-slate-100 focus:outline-none focus:border-blue-500 cursor-pointer w-44 truncate"
               >
                 {devices.map((d) => (
                   <option key={d.id} value={d.id}>
@@ -207,18 +207,18 @@ export const SimulationControls: React.FC = () => {
             </div>
           </div>
 
-          <ArrowRight className="w-4 h-4 text-blue-600 shrink-0 mt-3" />
+          <ArrowRight className="w-4 h-4 text-slate-500 shrink-0 mt-3" />
 
           {/* Destination Device */}
           <div className="flex flex-col">
-            <span className="text-[10px] font-semibold text-slate-500 mb-0.5">
-              Destination Device
+            <span className="text-[9.5px] font-mono text-slate-400 mb-0.5">
+              DESTINATION
             </span>
             <div className="relative">
               <select
                 value={destId}
                 onChange={(e) => setDestId(e.target.value)}
-                className="appearance-none pl-2.5 pr-7 py-1.5 text-xs font-medium bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:border-blue-500 cursor-pointer w-48 truncate shadow-2xs"
+                className="appearance-none pl-2.5 pr-7 py-1 text-xs font-mono bg-slate-900 border border-slate-700 rounded-lg text-slate-100 focus:outline-none focus:border-blue-500 cursor-pointer w-44 truncate"
               >
                 {devices.map((d) => (
                   <option key={d.id} value={d.id}>
@@ -232,247 +232,238 @@ export const SimulationControls: React.FC = () => {
 
           {/* Message Type */}
           <div className="flex flex-col">
-            <span className="text-[10px] font-semibold text-slate-500 mb-0.5">
-              Message Type
+            <span className="text-[9.5px] font-mono text-slate-400 mb-0.5">
+              PROTOCOL
             </span>
             <div className="relative">
               <select
                 value={messageType}
                 onChange={(e) => setMessageType(e.target.value as MessageType)}
-                className="appearance-none pl-2.5 pr-7 py-1.5 text-xs font-medium bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:border-blue-500 cursor-pointer w-44 truncate shadow-2xs"
+                className="appearance-none pl-2.5 pr-7 py-1 text-xs font-mono bg-slate-900 border border-slate-700 rounded-lg text-slate-100 focus:outline-none focus:border-blue-500 cursor-pointer w-44 truncate"
               >
-                <option value="Sensor Reading">Read Status (Modbus)</option>
+                <option value="Sensor Reading">Sensor Reading (Modbus 0x03)</option>
                 <option value="Device Status">Device Status</option>
-                <option value="Controller Command">Controller Command</option>
+                <option value="Controller Command">Controller Command (CIP)</option>
                 <option value="Alarm Notification">Alarm Notification</option>
               </select>
               <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
             </div>
           </div>
 
-          {/* Simulate Message Action Button */}
+          {/* Transmit Action Button */}
           <div className="flex flex-col justify-end mt-3">
             <button
               onClick={handleSimulate}
               disabled={isSimulating}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 disabled:bg-slate-300 text-white rounded-lg text-xs font-semibold shadow-sm shadow-blue-600/30 transition-all cursor-pointer shrink-0"
+              className="flex items-center gap-2 px-4 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-semibold shadow-sm transition-all cursor-pointer shrink-0 disabled:opacity-50"
             >
               <Play className="w-3.5 h-3.5 fill-current" />
-              <span>{isSimulating ? 'Simulating…' : 'Simulate Message'}</span>
+              <span>{isSimulating ? 'Transmitting…' : 'Transmit Packet'}</span>
             </button>
           </div>
         </div>
 
-        {/* Right: Toggle Logs Button */}
+        {/* Right: Toggle Logs */}
         <div className="flex items-center gap-1 shrink-0">
           <button
             onClick={() => setIsLogsExpanded(!isLogsExpanded)}
-            className="flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-slate-600 hover:text-slate-900 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg transition-colors cursor-pointer"
-            title={isLogsExpanded ? 'Collapse Event Logs' : 'Expand Event Logs'}
+            className="flex items-center gap-1 px-2.5 py-1 text-xs font-mono text-slate-400 hover:text-white bg-slate-900 border border-slate-800 rounded-lg transition-colors cursor-pointer"
+            title={isLogsExpanded ? 'Collapse Console' : 'Expand Console'}
           >
-            <span>Logs</span>
+            <Terminal className="w-3 h-3 text-slate-400" />
+            <span>CONSOLE</span>
             <ChevronDown className={`w-3 h-3 transition-transform duration-200 ${isLogsExpanded ? 'rotate-180' : ''}`} />
           </button>
         </div>
       </div>
 
-      {/* ─── Bottom Section: Event Logs Table ─── */}
+      {/* ─── Bottom Section: Event Logs Console ─── */}
       {isLogsExpanded && (
-        <div className="flex flex-col">
+        <div className="flex flex-col bg-[#070b14]">
           {/* Table Header Tabs & Filter Bar */}
-          <div className="px-5 py-2 border-b border-slate-100 flex items-center justify-between text-xs font-medium bg-slate-50/50">
-          {/* Tabs */}
-          <div className="flex items-center gap-5">
-            <button
-              onClick={() => setActiveTab('logs')}
-              className={`pb-0.5 border-b-2 text-[11.5px] transition-all cursor-pointer ${
-                activeTab === 'logs'
-                  ? 'border-blue-600 text-blue-600 font-bold'
-                  : 'border-transparent text-slate-500 hover:text-slate-800'
-              }`}
-            >
-              Event Logs
-            </button>
-            <button
-              onClick={() => setActiveTab('trace')}
-              className={`pb-0.5 border-b-2 text-[11.5px] transition-all cursor-pointer ${
-                activeTab === 'trace'
-                  ? 'border-blue-600 text-blue-600 font-bold'
-                  : 'border-transparent text-slate-500 hover:text-slate-800'
-              }`}
-            >
-              Packet Trace
-            </button>
-            <button
-              onClick={() => setActiveTab('results')}
-              className={`pb-0.5 border-b-2 text-[11.5px] transition-all cursor-pointer ${
-                activeTab === 'results'
-                  ? 'border-blue-600 text-blue-600 font-bold'
-                  : 'border-transparent text-slate-500 hover:text-slate-800'
-              }`}
-            >
-              Simulation Results
-            </button>
-          </div>
-
-          {/* Right: Filter & Clear Logs */}
-          <div className="flex items-center gap-2.5">
-            <div className="relative">
-              <select
-                value={filterType}
-                onChange={(e) => setFilterType(e.target.value)}
-                className="appearance-none pl-2.5 pr-6 py-0.5 text-xs font-medium bg-white border border-slate-200 rounded-md text-slate-700 focus:outline-none focus:border-blue-500 cursor-pointer"
+          <div className="px-5 py-2 border-b border-slate-800/80 flex items-center justify-between text-xs font-medium bg-[#0b101f]/90">
+            <div className="flex items-center gap-5">
+              <button
+                onClick={() => setActiveTab('logs')}
+                className={`pb-1 border-b-2 text-[11px] font-mono transition-all cursor-pointer ${
+                  activeTab === 'logs'
+                    ? 'border-blue-500 text-blue-400 font-semibold'
+                    : 'border-transparent text-slate-400 hover:text-slate-200'
+                }`}
               >
-                <option value="all">All Events</option>
-                <option value="info">Info Events</option>
-                <option value="warning">Warnings</option>
-                <option value="accepted">Accepted Only</option>
-                <option value="rejected">Rejected Only</option>
-              </select>
-              <ChevronDown className="w-3 h-3 text-slate-400 absolute right-1.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                SIMULATION EVENTS
+              </button>
+              <button
+                onClick={() => setActiveTab('trace')}
+                className={`pb-1 border-b-2 text-[11px] font-mono transition-all cursor-pointer ${
+                  activeTab === 'trace'
+                    ? 'border-blue-500 text-blue-400 font-semibold'
+                    : 'border-transparent text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                HOP TRACE
+              </button>
+              <button
+                onClick={() => setActiveTab('results')}
+                className={`pb-1 border-b-2 text-[11px] font-mono transition-all cursor-pointer ${
+                  activeTab === 'results'
+                    ? 'border-blue-500 text-blue-400 font-semibold'
+                    : 'border-transparent text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                SECURITY RESULTS
+              </button>
             </div>
 
-            <button
-              onClick={() => setCleared(true)}
-              className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded-lg transition-colors cursor-pointer shadow-2xs"
-              title="Clear event logs"
-            >
-              <Trash2 className="w-3.5 h-3.5" />
-              <span>Clear Logs</span>
-            </button>
-          </div>
-        </div>
+            {/* Filter & Clear */}
+            <div className="flex items-center gap-2.5">
+              <div className="relative">
+                <select
+                  value={filterType}
+                  onChange={(e) => setFilterType(e.target.value)}
+                  className="appearance-none pl-2.5 pr-6 py-0.5 text-xs font-mono bg-slate-900 border border-slate-800 rounded-md text-slate-300 focus:outline-none focus:border-cyan-400 cursor-pointer"
+                >
+                  <option value="all">All Events</option>
+                  <option value="info">Info</option>
+                  <option value="warning">Warnings</option>
+                  <option value="accepted">Accepted</option>
+                  <option value="rejected">Rejected</option>
+                </select>
+                <ChevronDown className="w-3 h-3 text-slate-500 absolute right-1.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              </div>
 
-        {/* Table Body with explicit column widths */}
-        <div className="h-32 overflow-y-auto">
-          {activeTab === 'logs' && (
-            <table className="w-full text-left border-collapse text-xs">
-              <thead className="sticky top-0 bg-white shadow-2xs z-10">
-                <tr className="border-b border-slate-100 text-slate-400 font-semibold text-[10.5px]">
-                  <th className="py-1.5 px-5 w-20">Time</th>
-                  <th className="py-1.5 px-3 w-24">Event Type</th>
-                  <th className="py-1.5 px-3 w-48">Source</th>
-                  <th className="py-1.5 px-3 w-48">Destination</th>
-                  <th className="py-1.5 px-3">Message</th>
-                  <th className="py-1.5 px-5 w-24 text-right">Status</th>
-                  <th className="py-1.5 px-3 w-10 text-center"></th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {filteredEvents.length === 0 ? (
+              <button
+                onClick={() => setCleared(true)}
+                className="flex items-center gap-1.5 px-2.5 py-0.5 text-xs font-mono text-rose-400 hover:text-rose-300 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 rounded-md transition-colors cursor-pointer"
+                title="Clear console"
+              >
+                <Trash2 className="w-3 h-3" />
+                <span>Clear</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Console Body */}
+          <div className="h-32 overflow-y-auto font-mono text-xs">
+            {activeTab === 'logs' && (
+              <table className="w-full text-left border-collapse">
+                <thead className="sticky top-0 bg-[#0b101f] text-slate-400 font-semibold text-[10px] tracking-wider uppercase border-b border-slate-800/80">
                   <tr>
-                    <td colSpan={7} className="py-6 text-center text-slate-400 italic">
-                      No event log records matching filter.
-                    </td>
+                    <th className="py-1 px-5 w-20">Time</th>
+                    <th className="py-1 px-3 w-20">Level</th>
+                    <th className="py-1 px-3 w-48">Source</th>
+                    <th className="py-1 px-3 w-48">Destination</th>
+                    <th className="py-1 px-3">Message Payload</th>
+                    <th className="py-1 px-5 w-24 text-right">Status</th>
                   </tr>
-                ) : (
-                  filteredEvents.map((evt) => (
-                    <tr
-                      key={evt.id}
-                      className="hover:bg-slate-50/70 transition-colors text-slate-700 h-8"
-                    >
-                      <td className="py-1 px-5 font-mono text-[10.5px] text-slate-400">
-                        {evt.time}
-                      </td>
-                      <td className="py-1 px-3">
-                        <span className="flex items-center gap-1 text-[11px] font-medium">
-                          {evt.type === 'Info' ? (
-                            <Info className="w-3 h-3 text-blue-500" />
-                          ) : (
-                            <AlertTriangle className="w-3 h-3 text-amber-500" />
-                          )}
-                          <span>{evt.type}</span>
-                        </span>
-                      </td>
-                      <td className="py-1 px-3 font-medium text-slate-800 text-[11px] truncate max-w-[180px]">
-                        {evt.source}
-                      </td>
-                      <td className="py-1 px-3 font-medium text-slate-800 text-[11px] truncate max-w-[180px]">
-                        {evt.destination}
-                      </td>
-                      <td className="py-1 px-3 text-slate-600 text-[11px] truncate max-w-sm">
-                        {evt.message}
-                      </td>
-                      <td className="py-1 px-5 text-right">
-                        <span
-                          className={`inline-block px-2 py-0.5 rounded-full text-[9.5px] font-semibold ${
-                            evt.status === 'Accepted'
-                              ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                              : 'bg-rose-50 text-rose-700 border border-rose-200'
-                          }`}
-                        >
-                          {evt.status}
-                        </span>
-                      </td>
-                      <td className="py-1 px-3 text-center text-slate-400 font-bold tracking-widest text-xs cursor-pointer hover:text-slate-700 select-none">
-                        ···
+                </thead>
+                <tbody className="divide-y divide-slate-800/40">
+                  {filteredEvents.length === 0 ? (
+                    <tr>
+                      <td colSpan={6} className="py-6 text-center text-slate-400 italic">
+                        No console events match the current filter.
                       </td>
                     </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          )}
+                  ) : (
+                    filteredEvents.map((evt) => (
+                      <tr
+                        key={evt.id}
+                        className="hover:bg-slate-800/40 transition-colors text-slate-300 h-7"
+                      >
+                        <td className="py-1 px-5 font-mono text-[10px] text-slate-400">
+                          {evt.time}
+                        </td>
+                        <td className="py-1 px-3">
+                          <span className={`inline-flex items-center gap-1 text-[10px] font-bold ${evt.type === 'Info' ? 'text-cyan-400' : 'text-amber-400'}`}>
+                            {evt.type}
+                          </span>
+                        </td>
+                        <td className="py-1 px-3 font-mono text-slate-200 text-[11px] truncate max-w-[180px]">
+                          {evt.source}
+                        </td>
+                        <td className="py-1 px-3 font-mono text-slate-200 text-[11px] truncate max-w-[180px]">
+                          {evt.destination}
+                        </td>
+                        <td className="py-1 px-3 text-slate-300 text-[11px] truncate max-w-sm">
+                          {evt.message}
+                        </td>
+                        <td className="py-1 px-5 text-right">
+                          <span
+                            className={`inline-block px-2 py-0.5 rounded text-[9.5px] font-mono font-bold ${
+                              evt.status === 'Accepted'
+                                ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
+                                : 'bg-rose-500/15 text-rose-400 border border-rose-500/30'
+                            }`}
+                          >
+                            {evt.status}
+                          </span>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            )}
 
-          {activeTab === 'trace' && (
-            <div className="p-3 text-slate-600 text-xs">
-              {simulationEvents.length === 0 ? (
-                <div className="py-4 text-center text-slate-400 italic">
-                  Run a simulation to view hop-by-hop cryptographic and network path traces.
-                </div>
-              ) : (
-                <div className="space-y-1.5">
-                  {simulationEvents.map((step, i) => (
-                    <div
-                      key={i}
-                      className="p-2 bg-slate-50 border border-slate-200 rounded-md flex items-center justify-between text-xs"
-                    >
-                      <div className="flex items-center gap-2">
-                        <span className="w-4 h-4 rounded-full bg-blue-100 text-blue-700 font-bold text-[9px] flex items-center justify-center">
-                          {i + 1}
+            {activeTab === 'trace' && (
+              <div className="p-3 text-slate-300">
+                {simulationEvents.length === 0 ? (
+                  <div className="py-4 text-center text-slate-400 italic">
+                    Transmit a packet to view hop-by-hop cryptographic and network path traces.
+                  </div>
+                ) : (
+                  <div className="space-y-1.5">
+                    {simulationEvents.map((step, i) => (
+                      <div
+                        key={i}
+                        className="p-2 bg-slate-900/80 border border-slate-800 rounded-md flex items-center justify-between text-xs"
+                      >
+                        <div className="flex items-center gap-2">
+                          <span className="w-4 h-4 rounded bg-cyan-500/20 text-cyan-300 font-bold text-[9px] flex items-center justify-center border border-cyan-500/40">
+                            {i + 1}
+                          </span>
+                          <span className="font-semibold text-white">
+                            {step.current_hop}
+                          </span>
+                          <span className="text-slate-400">·</span>
+                          <span className="text-slate-300">{step.explanation}</span>
+                        </div>
+                        <span className="font-mono text-[10px] text-cyan-400">
+                          {step.security_status}
                         </span>
-                        <span className="font-semibold text-slate-800">
-                          {step.current_hop}
-                        </span>
-                        <span className="text-slate-400">·</span>
-                        <span className="text-slate-600">{step.explanation}</span>
                       </div>
-                      <span className="font-mono text-[10px] text-slate-500">
-                        {step.security_status}
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {activeTab === 'results' && (
+              <div className="p-3 text-slate-300">
+                {lastResult ? (
+                  <div className="p-3 bg-slate-900/90 border border-slate-800 rounded-lg space-y-1.5">
+                    <div className="flex items-center gap-2 font-semibold">
+                      {lastResult.delivered ? (
+                        <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                      ) : (
+                        <XCircle className="w-4 h-4 text-rose-400" />
+                      )}
+                      <span className={lastResult.delivered ? 'text-emerald-400 text-xs font-mono font-bold' : 'text-rose-400 text-xs font-mono font-bold'}>
+                        {lastResult.delivered ? 'TRANSMISSION VERIFIED & DELIVERED (PASS)' : 'TRANSMISSION REJECTED BY SECURITY CONTROLS'}
                       </span>
                     </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-
-          {activeTab === 'results' && (
-            <div className="p-3 text-slate-600 text-xs">
-              {lastResult ? (
-                <div className="p-2.5 bg-slate-50 border border-slate-200 rounded-lg space-y-1.5">
-                  <div className="flex items-center gap-2 font-semibold">
-                    {lastResult.delivered ? (
-                      <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                    ) : (
-                      <XCircle className="w-4 h-4 text-rose-600" />
-                    )}
-                    <span className={lastResult.delivered ? 'text-emerald-700 text-xs' : 'text-rose-700 text-xs'}>
-                      {lastResult.delivered ? 'Message Transmission Delivered & Verified' : 'Transmission Rejected by Security Policy'}
-                    </span>
+                    <div className="text-[11px] text-slate-400 font-mono">
+                      Session: <span className="text-slate-200">{lastResult.session_id}</span> · Path: <span className="text-cyan-400">{(lastResult.path || []).join(' ➔ ')}</span>
+                    </div>
                   </div>
-                  <div className="text-[11px] text-slate-600 font-mono">
-                    Session: {lastResult.session_id} · Path: {(lastResult.path || []).join(' ➔ ')}
+                ) : (
+                  <div className="py-4 text-center text-slate-400 italic">
+                    No simulation run yet. Click Transmit Packet above.
                   </div>
-                </div>
-              ) : (
-                <div className="py-4 text-center text-slate-400 italic">
-                  No simulation results yet. Use the controls above to transmit a message.
-                </div>
-              )}
-            </div>
-          )}
-        </div>
+                )}
+              </div>
+            )}
+          </div>
         </div>
       )}
     </div>

@@ -1,114 +1,74 @@
 @import "tailwindcss";
 
-/* ─── Design System: ICS Simulator ─── */
+/* ─── CipherGrid Design System: Professional Dark Mode (Calm & Matte) ─── */
 :root {
-  /* Surface palette — crisp cool slate matching reference mockup */
-  --surface-0: #f8fafc;
-  --surface-1: #ffffff;
-  --surface-2: #f1f5f9;
-  --surface-3: #e2e8f0;
-  --surface-raised: #ffffff;
-  --surface-overlay: rgba(15, 23, 42, 0.5);
+  /* Surface palette — Matte dark slate, zero glare */
+  --surface-bg: #090d16;
+  --surface-0: #0d121f;
+  --surface-1: #131929;
+  --surface-2: #1a2236;
+  --surface-3: #242f49;
+  --surface-raised: #182033;
+  --surface-overlay: rgba(9, 13, 22, 0.8);
 
-  /* Sidebar — deep midnight navy */
-  --sidebar-bg: #0a0f1d;
-  --sidebar-hover: #131c33;
+  /* Glassmorphism — subtle & muted */
+  --glass-bg: rgba(15, 23, 42, 0.85);
+  --glass-border: rgba(255, 255, 255, 0.08);
+
+  /* Sidebar — deep calm obsidian */
+  --sidebar-bg: #0b0f19;
+  --sidebar-hover: #131929;
   --sidebar-text: #94a3b8;
   --sidebar-text-active: #ffffff;
 
-  /* Text hierarchy */
-  --text-primary: #0f172a;
-  --text-secondary: #334155;
-  --text-tertiary: #64748b;
-  --text-muted: #94a3b8;
+  /* Text hierarchy — clean high-contrast, non-glaring */
+  --text-primary: #f1f5f9;
+  --text-secondary: #cbd5e1;
+  --text-tertiary: #94a3b8;
+  --text-muted: #64748b;
 
-  /* Borders — subtle cool grays */
-  --border-default: #e2e8f0;
-  --border-subtle: #f1f5f9;
-  --border-strong: #cbd5e1;
+  /* Borders — refined hairline slate */
+  --border-default: #1e293b;
+  --border-subtle: #162032;
+  --border-strong: #334155;
 
-  /* Module accent colors — each module has a distinct identity */
-  --mod-network: #0891b2;       /* Cyan 600 — topology, flows */
-  --mod-network-soft: #ecfeff;
-  --mod-network-muted: #a5f3fc;
-
-  --mod-devices: #d97706;       /* Amber 600 — hardware assets */
-  --mod-devices-soft: #fffbeb;
-  --mod-devices-muted: #fde68a;
-
-  --mod-packets: #7c3aed;       /* Violet 600 — deep analysis */
-  --mod-packets-soft: #f5f3ff;
-  --mod-packets-muted: #ddd6fe;
-
-  --mod-security: #e11d48;      /* Rose 600 — security ops */
-  --mod-security-soft: #fff1f2;
-  --mod-security-muted: #fecdd3;
-
-  --mod-events: #2563eb;        /* Blue 600 — audit trail */
-  --mod-events-soft: #eff6ff;
-  --mod-events-muted: #bfdbfe;
-
-  --mod-reports: #059669;       /* Emerald 600 — reports */
-  --mod-reports-soft: #ecfdf5;
-  --mod-reports-muted: #a7f3d0;
-
-  --mod-telemetry: #4f46e5;     /* Indigo 600 — data/charts */
-  --mod-telemetry-soft: #eef2ff;
-  --mod-telemetry-muted: #c7d2fe;
-
-  --mod-settings: #78716c;      /* Stone 500 — config */
-  --mod-settings-soft: #fafaf9;
-  --mod-settings-muted: #e7e5e4;
-
-  /* Semantic status */
-  --status-success: #16a34a;
-  --status-success-soft: #f0fdf4;
-  --status-warning: #d97706;
-  --status-warning-soft: #fffbeb;
-  --status-danger: #dc2626;
-  --status-danger-soft: #fef2f2;
-  --status-info: #2563eb;
-  --status-info-soft: #eff6ff;
-
-  /* Spacing scale */
-  --space-xs: 4px;
-  --space-sm: 8px;
-  --space-md: 12px;
-  --space-lg: 16px;
-  --space-xl: 24px;
-  --space-2xl: 32px;
-  --space-3xl: 48px;
+  /* Restrained semantic accent colors (Matte, non-neon) */
+  --color-brand: #3b82f6;       /* Clean corporate blue */
+  --color-success: #10b981;     /* Soft emerald */
+  --color-warning: #f59e0b;     /* Warm amber */
+  --color-danger: #ef4444;      /* Clean red */
+  --color-info: #0284c7;        /* Calming sky blue */
+  --color-purple: #8b5cf6;      /* Muted violet */
 
   /* Radius */
   --radius-sm: 4px;
   --radius-md: 6px;
-  --radius-lg: 8px;
-  --radius-xl: 12px;
+  --radius-lg: 10px;
+  --radius-xl: 14px;
 
-  /* Shadows — very subtle, layered */
-  --shadow-xs: 0 1px 2px rgba(0,0,0,0.04);
-  --shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
-  --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.06), 0 2px 4px -2px rgba(0,0,0,0.04);
-  --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.06), 0 4px 6px -4px rgba(0,0,0,0.04);
-  --shadow-overlay: 0 20px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.06);
+  /* Shadows — natural soft depth, ZERO NEON GLOW */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.35);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.45);
 }
 
-
 html {
-  background-color: #f8fafc;
+  background-color: var(--surface-bg);
+  color-scheme: dark;
 }
 
 body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   color: var(--text-primary);
-  background-color: #f8fafc;
+  background-color: var(--surface-bg);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow: hidden;
   height: 100vh;
   width: 100vw;
   user-select: none;
-  font-size: 14px;
+  font-size: 13.5px;
   line-height: 1.5;
   letter-spacing: -0.01em;
 }
@@ -119,131 +79,144 @@ body {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  background-color: var(--surface-bg);
+}
+
+.font-display {
+  font-family: 'Outfit', 'Inter', sans-serif;
 }
 
 code, pre, .font-mono {
   font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 }
 
-/* ─── Scrollbar ─── */
+/* ─── Scrollbars ─── */
 ::-webkit-scrollbar {
-  width: 5px;
-  height: 5px;
+  width: 6px;
+  height: 6px;
 }
 ::-webkit-scrollbar-track {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: var(--border-strong);
+  background: #242f49;
   border-radius: 99px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--text-tertiary);
+  background: #334155;
 }
 
-/* ─── React Flow Canvas Overrides ─── */
+/* ─── React Flow Canvas Overrides (Clean Matte Architecture) ─── */
 .react-flow__background {
-  background-color: #f3f6fa !important;
+  background-color: #090d16 !important;
 }
+
+.react-flow__background pattern circle {
+  fill: #1e293b !important;
+  opacity: 0.6 !important;
+}
+
 .react-flow__node {
   background: transparent !important;
   border: none !important;
   box-shadow: none !important;
   padding: 0 !important;
 }
+
+/* Clean, non-neon, subtle node handles: hidden by default, visible on hover */
 .react-flow__handle {
-  width: 8px !important;
-  height: 8px !important;
+  width: 7px !important;
+  height: 7px !important;
   border-radius: 50% !important;
-  background-color: #0284c7 !important;
-  border: 1.5px solid #ffffff !important;
-  box-shadow: 0 0 0 1.5px rgba(2, 132, 199, 0.35) !important;
-  opacity: 1 !important;
-  transition: transform 0.15s ease, background-color 0.15s ease !important;
+  background-color: #64748b !important;
+  border: 1.5px solid #090d16 !important;
+  box-shadow: none !important;
+  opacity: 0 !important;
+  transition: transform 0.15s ease, opacity 0.15s ease, background-color 0.15s ease !important;
 }
+
 .react-flow__node:hover .react-flow__handle,
 .react-flow__handle:hover,
 .react-flow__handle.connectingfrom,
 .react-flow__handle.connectionindicator {
-  opacity: 1 !important;
-  transform: scale(1.3) !important;
-  background-color: #0369a1 !important;
+  opacity: 0.9 !important;
+  transform: scale(1.2) !important;
+  background-color: #3b82f6 !important;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3) !important;
 }
+
+/* Edges — clean matte lines without drop-shadow glare */
 .react-flow__edge-path {
-  stroke: #94a3b8;
-  stroke-width: 1.5;
+  stroke: #334155;
+  stroke-width: 1.8;
   transition: stroke 0.2s ease, stroke-width 0.2s ease;
 }
+
+.react-flow__edge:hover .react-flow__edge-path {
+  stroke: #64748b;
+  stroke-width: 2.2;
+}
+
 .react-flow__edge.selected .react-flow__edge-path {
-  stroke: #2563eb;
-  stroke-width: 2.5;
+  stroke: #3b82f6;
+  stroke-width: 2.4;
+  filter: none !important;
 }
+
 .react-flow__edge.animated .react-flow__edge-path {
-  stroke: #2563eb;
-  stroke-width: 2.5;
-  stroke-dasharray: 6 3;
-  animation: dashdraw 0.4s linear infinite;
+  stroke: #3b82f6;
+  stroke-width: 2.4;
+  stroke-dasharray: 6 4;
+  animation: busflow 0.6s linear infinite;
+  filter: none !important;
 }
-@keyframes dashdraw {
-  from { stroke-dashoffset: 9; }
+
+@keyframes busflow {
+  from { stroke-dashoffset: 10; }
   to { stroke-dashoffset: 0; }
 }
 
-/* React Flow controls & minimap — match our design system */
+/* React Flow controls & minimap */
 .react-flow__controls {
-  background: #ffffff !important;
-  border: 1px solid #cbd5e1 !important;
+  background: #0d121f !important;
+  border: 1px solid #1e293b !important;
   border-radius: 8px !important;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
   overflow: hidden !important;
 }
+
 .react-flow__controls-button {
   background: transparent !important;
   border: none !important;
-  border-bottom: 1px solid #f1f5f9 !important;
-  color: #64748b !important;
-  width: 26px !important;
-  height: 26px !important;
+  border-bottom: 1px solid #1e293b !important;
+  color: #94a3b8 !important;
+  width: 28px !important;
+  height: 28px !important;
 }
+
 .react-flow__controls-button:hover {
-  background: #f8fafc !important;
-  color: #0f172a !important;
+  background: #1a2236 !important;
+  color: #f1f5f9 !important;
 }
+
 .react-flow__minimap {
-  border: 1px solid #cbd5e1 !important;
+  border: 1px solid #1e293b !important;
   border-radius: 8px !important;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06) !important;
-  background: #ffffff !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+  background: #0d121f !important;
 }
 
-/* ─── Global component utilities ─── */
-
-/* Module accent stripe for page headers */
-.mod-accent-network { border-left: 3px solid var(--mod-network); }
-.mod-accent-devices { border-left: 3px solid var(--mod-devices); }
-.mod-accent-packets { border-left: 3px solid var(--mod-packets); }
-.mod-accent-security { border-left: 3px solid var(--mod-security); }
-.mod-accent-events { border-left: 3px solid var(--mod-events); }
-.mod-accent-reports { border-left: 3px solid var(--mod-reports); }
-.mod-accent-telemetry { border-left: 3px solid var(--mod-telemetry); }
-.mod-accent-settings { border-left: 3px solid var(--mod-settings); }
-
-/* Active hop pulse on canvas nodes */
-@keyframes hop-pulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(8, 145, 178, 0.3); }
-  50% { box-shadow: 0 0 0 8px rgba(8, 145, 178, 0); }
-}
+/* Active hop indicator on node: subtle clean border focus without eye-piercing neon */
 .node-active-hop {
-  animation: hop-pulse 1.2s ease-in-out infinite;
+  outline: 2px solid #3b82f6 !important;
+  outline-offset: 1px !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4) !important;
 }
 
-/* Subtle hover card lift */
-.card-hover {
-  transition: box-shadow 0.2s ease, transform 0.2s ease;
-}
-.card-hover:hover {
-  box-shadow: var(--shadow-md);
-  transform: translateY(-1px);
+/* Selection */
+::selection {
+  background: rgba(59, 130, 246, 0.3);
+  color: #ffffff;
 }
 
 /* Print styles */
@@ -252,10 +225,4 @@ code, pre, .font-mono {
   .print\:border-none { border: none !important; }
   .print\:shadow-none { box-shadow: none !important; }
   .print\:p-0 { padding: 0 !important; }
-}
-
-/* Selection */
-::selection {
-  background: rgba(8, 145, 178, 0.15);
-  color: var(--text-primary);
 }

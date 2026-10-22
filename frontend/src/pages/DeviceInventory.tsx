@@ -3,13 +3,16 @@ import {
   CheckCircle,
   Filter,
   Key,
+  Locate,
   Network,
   Power,
   Search,
   Server,
+  Shield,
   ShieldAlert,
   Trash2,
   X,
+  Zap,
 } from 'lucide-react';
 import { useSimulatorStore } from '../store/useSimulatorStore';
 import { Device, TrustStatus } from '../types';
@@ -45,55 +48,77 @@ export const DeviceInventory: React.FC = () => {
     setActiveSection('network-lab');
   };
 
-  const selectClass = "px-2.5 py-[6px] border border-stone-200 rounded-lg text-[11.5px] bg-white focus:ring-1 focus:ring-amber-500 outline-none";
+  const selectClass = "px-3 py-1.5 border border-slate-700 bg-slate-900 rounded-lg text-xs font-mono text-slate-200 focus:outline-none focus:border-amber-400";
 
   const getTrustBadge = (trust: TrustStatus) => {
     switch (trust) {
       case 'Trusted':
-        return <span className="inline-flex items-center gap-1 px-2 py-[2px] rounded-full text-[9.5px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-100"><CheckCircle className="w-2.5 h-2.5" /> Trusted</span>;
+        return (
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[9.5px] font-mono font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+            <CheckCircle className="w-2.5 h-2.5" /> TRUSTED
+          </span>
+        );
       case 'Untrusted':
-        return <span className="inline-flex items-center gap-1 px-2 py-[2px] rounded-full text-[9.5px] font-medium bg-rose-50 text-rose-700 border border-rose-100"><ShieldAlert className="w-2.5 h-2.5" /> Untrusted</span>;
+        return (
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[9.5px] font-mono font-bold bg-rose-500/15 text-rose-400 border border-rose-500/30">
+            <ShieldAlert className="w-2.5 h-2.5" /> UNTRUSTED
+          </span>
+        );
       case 'Quarantined':
-        return <span className="inline-flex items-center gap-1 px-2 py-[2px] rounded-full text-[9.5px] font-medium bg-amber-50 text-amber-700 border border-amber-100">Quarantine</span>;
+        return (
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[9.5px] font-mono font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30">
+            QUARANTINED
+          </span>
+        );
     }
   };
 
   const getPurdueColor = (level: string) => {
     switch (level) {
-      case 'Level 0': return 'bg-amber-50 text-amber-700 border-amber-100';
-      case 'Level 1': return 'bg-blue-50 text-blue-700 border-blue-100';
-      case 'Level 2': return 'bg-indigo-50 text-indigo-700 border-indigo-100';
+      case 'Level 0': return 'bg-amber-500/10 text-amber-400 border-amber-500/30';
+      case 'Level 1': return 'bg-blue-500/10 text-blue-400 border-blue-500/30';
+      case 'Level 2': return 'bg-purple-500/10 text-purple-400 border-purple-500/30';
       case 'Level 3':
-      case 'Level 3.5': return 'bg-teal-50 text-teal-700 border-teal-100';
-      default: return 'bg-rose-50 text-rose-700 border-rose-100';
+      case 'Level 3.5': return 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30';
+      default: return 'bg-rose-500/10 text-rose-400 border-rose-500/30';
     }
   };
 
-  // Counts by purdue level for overview
-  const levelCounts = ['Level 0', 'Level 1', 'Level 2', 'Level 3', 'Untrusted'].map(l => ({
+  const levelCounts = ['Level 0', 'Level 1', 'Level 2', 'Level 3', 'Untrusted'].map((l) => ({
     level: l,
-    count: devices.filter(d => d.purdue_level === l || (l === 'Level 3' && (d.purdue_level === 'Level 3' || d.purdue_level === 'Level 3.5'))).length,
+    count: devices.filter(
+      (d) => d.purdue_level === l || (l === 'Level 3' && (d.purdue_level === 'Level 3' || d.purdue_level === 'Level 3.5'))
+    ).length,
   }));
 
   return (
-    <div className="flex-1 flex flex-col h-full overflow-hidden" style={{ background: '#fafaf9' }}>
-      {/* Module header */}
-      <div className="px-6 pt-5 pb-4 border-b border-stone-100 bg-white shrink-0">
+    <div className="flex-1 flex flex-col h-full overflow-hidden bg-[#070b14]">
+      {/* Header */}
+      <div className="px-6 pt-5 pb-4 border-b border-slate-800/80 bg-[#080d1a]/90 backdrop-blur-md shrink-0">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-amber-50 flex items-center justify-center">
-              <Server className="w-5 h-5 text-amber-600" />
+            <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 shadow-inner">
+              <Server className="w-5 h-5" />
             </div>
             <div>
-              <h1 className="text-[15px] font-semibold text-stone-800 tracking-tight">Device Inventory</h1>
-              <p className="text-[11px] text-stone-400 mt-0.5">Purdue Model asset registry — {devices.length} registered devices</p>
+              <div className="flex items-center gap-2">
+                <h1 className="text-[16px] font-bold text-white tracking-tight font-display">
+                  PURDUE MODEL ASSET DIRECTORY
+                </h1>
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/30">
+                  {devices.length} HARDWARE ASSETS
+                </span>
+              </div>
+              <p className="text-[11px] text-slate-400 mt-0.5 font-mono">
+                Cryptographic keystore, hardware MAC addressing, administrative online state & zone segregation
+              </p>
             </div>
           </div>
 
-          {/* Purdue level summary pills */}
-          <div className="flex items-center gap-1.5">
-            {levelCounts.filter(l => l.count > 0).map(l => (
-              <span key={l.level} className={`px-2 py-[2px] rounded-full text-[9.5px] font-medium border ${getPurdueColor(l.level)}`}>
+          {/* Level Summary Badges */}
+          <div className="flex items-center gap-2">
+            {levelCounts.filter((l) => l.count > 0).map((l) => (
+              <span key={l.level} className={`px-2.5 py-1 rounded-lg text-[10px] font-mono font-bold border ${getPurdueColor(l.level)}`}>
                 {l.level === 'Untrusted' ? 'External' : l.level}: {l.count}
               </span>
             ))}
@@ -101,23 +126,23 @@ export const DeviceInventory: React.FC = () => {
         </div>
       </div>
 
-      {/* Filter bar */}
-      <div className="px-6 py-3 bg-white border-b border-stone-100 flex items-center gap-3 shrink-0">
+      {/* Filter Bar */}
+      <div className="px-6 py-3 bg-[#080d1a]/60 border-b border-slate-800/80 flex items-center gap-3 shrink-0">
         <div className="relative flex-1 max-w-sm">
-          <Search className="w-3.5 h-3.5 text-stone-400 absolute left-2.5 top-[7px]" />
+          <Search className="w-3.5 h-3.5 text-slate-500 absolute left-2.5 top-[9px]" />
           <input
             type="text"
-            placeholder="Search by name, IP, type or role…"
+            placeholder="Search by device name, IP, type or role..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-8 pr-3 py-[6px] border border-stone-200 rounded-lg text-[11.5px] bg-white focus:ring-1 focus:ring-amber-500 focus:border-amber-500 outline-none"
+            className="w-full pl-8 pr-3 py-1.5 border border-slate-700 bg-slate-900 rounded-lg text-xs font-mono text-slate-200 placeholder:text-slate-500 focus:outline-none focus:border-amber-400"
           />
         </div>
 
         <div className="flex items-center gap-1.5">
-          <Filter className="w-3 h-3 text-stone-400" />
+          <Filter className="w-3.5 h-3.5 text-slate-500" />
           <select value={filterTrust} onChange={(e) => setFilterTrust(e.target.value)} className={selectClass}>
-            <option value="all">All Trust</option>
+            <option value="all">All Trust Tiers</option>
             <option value="Trusted">Trusted</option>
             <option value="Untrusted">Untrusted</option>
             <option value="Quarantined">Quarantined</option>
@@ -125,89 +150,93 @@ export const DeviceInventory: React.FC = () => {
         </div>
 
         <select value={filterPurdue} onChange={(e) => setFilterPurdue(e.target.value)} className={selectClass}>
-          <option value="all">All Levels</option>
-          <option value="Level 0">L0: Process</option>
+          <option value="all">All Purdue Zones</option>
+          <option value="Level 0">L0: Field / Process</option>
           <option value="Level 1">L1: Basic Control</option>
-          <option value="Level 2">L2: Supervisory</option>
-          <option value="Level 3">L3: Operations</option>
-          <option value="Level 3.5">L3.5: DMZ</option>
-          <option value="Untrusted">External</option>
+          <option value="Level 2">L2: Supervisory SCADA</option>
+          <option value="Level 3">L3: Site Operations</option>
+          <option value="Level 3.5">L3.5: Industrial DMZ</option>
+          <option value="Untrusted">External Untrusted</option>
         </select>
 
-        <span className="text-[11px] text-stone-400 ml-auto font-mono">
-          {filteredDevices.length}/{devices.length}
+        <span className="text-xs text-amber-400 ml-auto font-mono font-bold bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/30">
+          {filteredDevices.length} / {devices.length} Nodes Filtered
         </span>
       </div>
 
       {/* Table */}
-      <div className="flex-1 overflow-auto px-6 py-4">
+      <div className="flex-1 overflow-auto px-6 py-5">
         {filteredDevices.length === 0 ? (
-          <div className="h-64 flex flex-col items-center justify-center text-stone-400 bg-white rounded-xl border border-stone-200/60">
-            <Server className="w-8 h-8 text-stone-200 mb-3" />
-            <p className="text-[12px] font-medium text-stone-500">No devices match your filters</p>
-            <p className="text-[11px] text-stone-400 mt-1">Use the Network Lab palette to deploy virtual nodes</p>
+          <div className="h-64 flex flex-col items-center justify-center text-slate-500 bg-[#0d1424] rounded-2xl border border-slate-800 font-mono">
+            <Server className="w-8 h-8 text-slate-600 mb-3" />
+            <p className="text-xs font-bold text-slate-300">NO INDUSTRIAL ASSETS MATCH FILTER</p>
+            <p className="text-[11px] text-slate-500 mt-1">Use the Network Lab palette to deploy new virtual nodes</p>
           </div>
         ) : (
-          <div className="bg-white rounded-xl border border-stone-200/60 overflow-hidden">
-            <table className="w-full text-left border-collapse">
+          <div className="bg-[#0d1424] rounded-2xl border border-slate-800 overflow-hidden shadow-xl">
+            <table className="w-full text-left border-collapse font-mono text-xs">
               <thead>
-                <tr className="border-b border-stone-100 bg-stone-50/50">
-                  {['Device', 'Type', 'IP Address', 'Level', 'Role', 'Trust', 'Status', 'Actions'].map(h => (
-                    <th key={h} className="py-2.5 px-4 text-[10px] font-semibold text-stone-400 uppercase tracking-wide">{h}</th>
+                <tr className="border-b border-slate-800/80 bg-[#080d1a] text-slate-400 text-[10px] font-bold uppercase tracking-wider">
+                  {['Device Name', 'Chassis Type', 'IP Address', 'Purdue Zone', 'RBAC Role', 'Trust Tier', 'Admin Link', 'Actions'].map((h) => (
+                    <th key={h} className="py-3 px-4">{h}</th>
                   ))}
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-slate-800/40">
                 {filteredDevices.map((d) => (
-                  <tr key={d.id} className="border-b border-stone-50 hover:bg-amber-50/30 transition-colors">
-                    <td className="py-2.5 px-4">
-                      <div className="text-[12px] font-semibold text-stone-800">{d.name}</div>
-                      <div className="text-[9.5px] font-mono text-stone-400 mt-[1px] truncate max-w-[120px]">{d.id}</div>
+                  <tr key={d.id} className="hover:bg-slate-800/40 transition-colors">
+                    <td className="py-3 px-4">
+                      <div className="text-xs font-bold text-white font-display">{d.name}</div>
+                      <div className="text-[10px] text-slate-500 truncate max-w-[140px] mt-0.5">{d.id}</div>
                     </td>
-                    <td className="py-2.5 px-4 text-[11px] text-stone-600 font-medium">{d.device_type}</td>
-                    <td className="py-2.5 px-4">
-                      <span className="font-mono text-[11px] text-stone-800 bg-stone-50 px-1.5 py-[2px] rounded-md border border-stone-100">{d.ip_address}</span>
+                    <td className="py-3 px-4 text-slate-300">{d.device_type}</td>
+                    <td className="py-3 px-4">
+                      <span className="text-cyan-300 font-bold bg-[#060913] px-2 py-1 rounded border border-slate-800">
+                        {d.ip_address}
+                      </span>
                     </td>
-                    <td className="py-2.5 px-4">
-                      <span className={`text-[9.5px] font-medium px-1.5 py-[2px] rounded-md border ${getPurdueColor(d.purdue_level)}`}>
+                    <td className="py-3 px-4">
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded border ${getPurdueColor(d.purdue_level)}`}>
                         {d.purdue_level}
                       </span>
                     </td>
-                    <td className="py-2.5 px-4 text-[11px] text-stone-600">{d.role}</td>
-                    <td className="py-2.5 px-4">{getTrustBadge(d.trust_status)}</td>
-                    <td className="py-2.5 px-4">
+                    <td className="py-3 px-4 text-slate-300 font-medium">{d.role}</td>
+                    <td className="py-3 px-4">{getTrustBadge(d.trust_status)}</td>
+                    <td className="py-3 px-4">
                       <button
                         onClick={() => toggleDeviceState(d)}
-                        className={`inline-flex items-center gap-1 px-2 py-[2px] rounded-full text-[9.5px] font-medium border transition-colors ${
+                        className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded text-[10px] font-bold border transition-all cursor-pointer ${
                           d.is_enabled
-                            ? 'bg-emerald-50 text-emerald-700 border-emerald-100 hover:bg-emerald-100'
-                            : 'bg-stone-50 text-stone-500 border-stone-200 hover:bg-stone-100'
+                            ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/25'
+                            : 'bg-slate-800 text-slate-500 border-slate-700 hover:bg-slate-700'
                         }`}
                       >
                         <Power className="w-2.5 h-2.5" />
-                        {d.is_enabled ? 'Online' : 'Offline'}
+                        <span>{d.is_enabled ? 'ONLINE' : 'OFFLINE'}</span>
                       </button>
                     </td>
-                    <td className="py-2.5 px-4">
-                      <div className="flex items-center gap-1.5">
+                    <td className="py-3 px-4">
+                      <div className="flex items-center gap-2">
                         {d.public_key_pem && (
                           <button
                             onClick={() => setSelectedKeyDev(d)}
-                            className="p-1 rounded-md text-stone-400 hover:text-amber-600 hover:bg-amber-50 transition-colors"
-                            title="View Public Key"
+                            className="p-1 rounded-lg text-slate-400 hover:text-amber-400 hover:bg-amber-500/10 transition-colors cursor-pointer"
+                            title="Inspect RSA-2048 Public Key"
                           >
                             <Key className="w-3.5 h-3.5" />
                           </button>
                         )}
                         <button
                           onClick={() => handleInspectOnCanvas(d)}
-                          className="px-2 py-[3px] text-[10.5px] font-medium text-stone-600 hover:text-stone-800 bg-stone-50 hover:bg-stone-100 rounded-md border border-stone-200 transition-colors"
+                          className="px-2.5 py-1 text-[10.5px] font-semibold text-cyan-400 hover:text-cyan-300 bg-cyan-500/10 hover:bg-cyan-500/20 rounded-lg border border-cyan-500/30 transition-all cursor-pointer flex items-center gap-1"
                         >
-                          Locate
+                          <Locate className="w-3 h-3" />
+                          <span>Locate</span>
                         </button>
                         <button
-                          onClick={() => { if (window.confirm(`Delete ${d.name}?`)) deleteDevice(d.id); }}
-                          className="p-1 rounded-md text-stone-300 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+                          onClick={() => { if (window.confirm(`Delete virtual device ${d.name}?`)) deleteDevice(d.id); }}
+                          className="p-1 rounded-lg text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 transition-colors cursor-pointer"
+                          title="Delete device"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
@@ -223,36 +252,36 @@ export const DeviceInventory: React.FC = () => {
 
       {/* Public Key Modal */}
       {selectedKeyDev && (
-        <div className="fixed inset-0 z-50 bg-stone-900/40 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl border border-stone-200 shadow-lg w-full max-w-xl overflow-hidden">
-            <div className="px-5 py-4 border-b border-stone-100 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="w-7 h-7 rounded-lg bg-amber-50 flex items-center justify-center">
-                  <Key className="w-3.5 h-3.5 text-amber-600" />
+        <div className="fixed inset-0 z-50 bg-[#060913]/85 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="bg-[#0b101f] rounded-2xl border border-slate-700 shadow-2xl w-full max-w-xl overflow-hidden font-mono">
+            <div className="px-5 py-4 border-b border-slate-800/80 flex items-center justify-between bg-[#080d1a]">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 shadow-inner">
+                  <Key className="w-4 h-4" />
                 </div>
                 <div>
-                  <h3 className="text-[12px] font-semibold text-stone-800">RSA-2048 Public Key</h3>
-                  <p className="text-[10px] text-stone-400">{selectedKeyDev.name}</p>
+                  <h3 className="text-xs font-bold text-white font-display">RSA-2048 CRYPTOGRAPHIC PUBLIC KEY</h3>
+                  <p className="text-[10px] text-slate-400">{selectedKeyDev.name} ({selectedKeyDev.ip_address})</p>
                 </div>
               </div>
-              <button onClick={() => setSelectedKeyDev(null)} className="p-1.5 rounded-md text-stone-400 hover:text-stone-600 hover:bg-stone-100 transition-colors">
+              <button onClick={() => setSelectedKeyDev(null)} className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer">
                 <X className="w-4 h-4" />
               </button>
             </div>
             <div className="p-5 space-y-3">
-              <p className="text-[11px] text-stone-500">
-                Cryptographic identity key used by the security engine to verify RSA-PSS digital signatures from this device.
+              <p className="text-xs text-slate-400 leading-relaxed">
+                Cryptographic identity key registered in the simulation backend to verify RSA-PSS digital signatures generated by this node.
               </p>
-              <pre className="p-3 bg-stone-900 text-stone-400 rounded-lg font-mono text-[9.5px] overflow-x-auto leading-relaxed max-h-56">
+              <pre className="p-3 bg-[#060913] text-amber-300 rounded-xl font-mono text-[9.5px] overflow-x-auto leading-relaxed border border-slate-800 max-h-56">
                 {selectedKeyDev.public_key_pem}
               </pre>
             </div>
-            <div className="px-5 py-3 bg-stone-50 border-t border-stone-100 flex justify-end">
+            <div className="px-5 py-3 bg-[#080d1a] border-t border-slate-800/80 flex justify-end">
               <button
                 onClick={() => setSelectedKeyDev(null)}
-                className="px-3 py-[6px] bg-stone-800 hover:bg-stone-700 text-white rounded-lg text-[11.5px] font-medium transition-colors"
+                className="px-4 py-1.5 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-xs font-semibold transition-colors cursor-pointer"
               >
-                Close
+                Close Key
               </button>
             </div>
           </div>

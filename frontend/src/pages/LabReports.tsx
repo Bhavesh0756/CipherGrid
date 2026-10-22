@@ -25,17 +25,26 @@ export const LabReports: React.FC = () => {
   const handleExportEvents = () => window.open(api.getExportEventsUrl(), '_blank');
 
   return (
-    <div className="flex-1 flex flex-col h-full overflow-hidden" style={{ background: '#fafaf9' }}>
-      {/* Module header — hidden on print */}
-      <div className="px-6 pt-5 pb-4 border-b border-stone-100 bg-white shrink-0 print:hidden">
+    <div className="flex-1 flex flex-col h-full overflow-hidden bg-[#070b14]">
+      {/* Module Header — Hidden on print */}
+      <div className="px-6 pt-5 pb-4 border-b border-slate-800/80 bg-[#080d1a]/90 backdrop-blur-md shrink-0 print:hidden">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-emerald-50 flex items-center justify-center">
-              <FileCheck2 className="w-5 h-5 text-emerald-600" />
+            <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shadow-inner">
+              <FileCheck2 className="w-5 h-5" />
             </div>
             <div>
-              <h1 className="text-[15px] font-semibold text-stone-800 tracking-tight">Lab Reports</h1>
-              <p className="text-[11px] text-stone-400 mt-0.5">Formal security evaluation · ISA/IEC 62443 & NIST SP 800-82</p>
+              <div className="flex items-center gap-2">
+                <h1 className="text-[16px] font-bold text-white tracking-tight font-display">
+                  LAB REPORTS & CERTIFICATION DOSSIER
+                </h1>
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+                  ISA/IEC 62443 COMPLIANT
+                </span>
+              </div>
+              <p className="text-[11px] text-slate-400 mt-0.5 font-mono">
+                Formal cybersecurity verification, threat evaluation scorecard & NIST SP 800-82 audit report
+              </p>
             </div>
           </div>
 
@@ -43,110 +52,111 @@ export const LabReports: React.FC = () => {
             <button
               onClick={() => fetchLabReport()}
               disabled={isLoading}
-              className="flex items-center gap-1.5 px-3 py-[6px] border border-stone-200 hover:bg-stone-50 rounded-lg text-stone-600 text-[11.5px] font-medium transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 border border-slate-700 hover:bg-slate-800 rounded-lg text-slate-300 text-xs font-mono transition-colors cursor-pointer"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />
-              Regenerate
+              <span>Regenerate</span>
             </button>
             <button
               onClick={handleExportScenarios}
-              className="flex items-center gap-1.5 px-3 py-[6px] border border-stone-200 hover:bg-stone-50 rounded-lg text-stone-600 text-[11.5px] font-medium transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 border border-slate-700 hover:bg-slate-800 rounded-lg text-slate-300 text-xs font-mono transition-colors cursor-pointer"
             >
               <Download className="w-3.5 h-3.5" />
-              Scenarios CSV
+              <span>Scenarios CSV</span>
             </button>
             <button
               onClick={handleExportEvents}
-              className="flex items-center gap-1.5 px-3 py-[6px] border border-stone-200 hover:bg-stone-50 rounded-lg text-stone-600 text-[11.5px] font-medium transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 border border-slate-700 hover:bg-slate-800 rounded-lg text-slate-300 text-xs font-mono transition-colors cursor-pointer"
             >
               <Download className="w-3.5 h-3.5" />
-              Events CSV
+              <span>Events CSV</span>
             </button>
             <button
               onClick={handlePrint}
-              className="flex items-center gap-1.5 px-3.5 py-[6px] bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-[11.5px] font-medium transition-colors"
+              className="flex items-center gap-1.5 px-3.5 py-1.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white rounded-lg text-xs font-semibold shadow-lg shadow-emerald-500/20 transition-all cursor-pointer font-mono"
             >
               <Printer className="w-3.5 h-3.5" />
-              Print / PDF
+              <span>Print / Export PDF</span>
             </button>
           </div>
         </div>
       </div>
 
-      {/* Report canvas */}
-      <div className="flex-1 overflow-y-auto px-6 py-6 flex justify-center">
+      {/* Report Canvas */}
+      <div className="flex-1 overflow-y-auto px-6 py-6 flex justify-center bg-[#070b14] print:p-0 print:bg-white">
         {labReport ? (
-          <div className="bg-white border border-stone-200/60 shadow-sm rounded-xl max-w-4xl w-full p-10 text-stone-800 select-text print:border-none print:shadow-none print:p-0 print:rounded-none">
-
-            {/* Report header */}
-            <div className="border-b-2 border-stone-900 pb-6 mb-8">
+          <div className="bg-[#0b101f] border border-slate-800 rounded-2xl max-w-4xl w-full p-10 text-slate-200 select-text shadow-2xl print:bg-white print:text-black print:border-none print:shadow-none print:p-0 print:rounded-none">
+            {/* Report Header */}
+            <div className="border-b-2 border-blue-500/60 pb-6 mb-8 print:border-black">
               <div className="flex justify-between items-start">
                 <div>
                   <div className="flex items-center gap-2 mb-2">
-                    <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center">
-                      <Shield className="w-4 h-4 text-emerald-600" />
+                    <div className="w-8 h-8 rounded-lg bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400 print:bg-transparent print:text-black">
+                      <Shield className="w-4 h-4" />
                     </div>
-                    <span className="text-[10px] font-semibold text-emerald-600 uppercase tracking-widest">Industrial Cybersecurity Assessment</span>
+                    <span className="text-[10px] font-mono font-bold text-emerald-400 uppercase tracking-widest print:text-black">
+                      Industrial Cybersecurity Technical Assessment
+                    </span>
                   </div>
-                  <h1 className="text-xl font-bold text-stone-950 uppercase tracking-tight leading-tight">
+                  <h1 className="text-xl font-bold text-white uppercase tracking-tight font-display print:text-black">
                     {labReport.title}
                   </h1>
-                  <p className="text-[11px] text-stone-500 mt-1">
-                    Formal Verification & Security Evaluation Report
+                  <p className="text-xs text-slate-400 mt-1 font-mono print:text-gray-600">
+                    Formal Verification & Security Defense Evaluation Report
                   </p>
                 </div>
-                <div className="text-right text-[10.5px] font-mono text-stone-500 space-y-0.5">
-                  <div>Generated: {labReport.generated_at}</div>
+                <div className="text-right text-[10.5px] font-mono text-slate-400 space-y-0.5 print:text-black">
+                  <div>Generated: <span className="text-slate-200 font-semibold print:text-black">{labReport.generated_at}</span></div>
                   <div>Standard: ISA/IEC 62443 · NIST SP 800-82</div>
                 </div>
               </div>
             </div>
 
-            {/* Executive summary KPIs */}
+            {/* Executive Summary KPIs */}
             <div className="grid grid-cols-4 gap-3 mb-8">
               {[
-                { label: 'Total Scenarios', value: labReport.security_summary?.total_tests || 0, color: 'bg-stone-50 border-stone-200', text: 'text-stone-900' },
-                { label: 'Passed', value: labReport.security_summary?.passed || 0, color: 'bg-emerald-50 border-emerald-200', text: 'text-emerald-800' },
-                { label: 'Failed', value: labReport.security_summary?.failed || 0, color: 'bg-rose-50 border-rose-200', text: 'text-rose-800' },
-                { label: 'Success Rate', value: `${labReport.security_summary?.pass_rate || 0}%`, color: 'bg-indigo-50 border-indigo-200', text: 'text-indigo-800' },
-              ].map(m => (
-                <div key={m.label} className={`p-3 border rounded-lg ${m.color}`}>
-                  <div className="text-[9px] font-bold uppercase tracking-wider text-stone-500 mb-1">{m.label}</div>
-                  <div className={`text-xl font-bold ${m.text}`}>{m.value}</div>
+                { label: 'Total Scenarios', value: labReport.security_summary?.total_tests || 0, color: 'bg-[#060913] border-slate-800 text-white', accent: 'text-slate-100' },
+                { label: 'Passed Validations', value: labReport.security_summary?.passed || 0, color: 'bg-emerald-950/20 border-emerald-500/30 text-emerald-400', accent: 'text-emerald-400' },
+                { label: 'Failed Defenses', value: labReport.security_summary?.failed || 0, color: 'bg-rose-950/20 border-rose-500/30 text-rose-400', accent: 'text-rose-400' },
+                { label: 'Defense Pass Rate', value: `${labReport.security_summary?.pass_rate || 0}%`, color: 'bg-blue-950/20 border-blue-500/30 text-blue-400', accent: 'text-blue-400' },
+              ].map((m) => (
+                <div key={m.label} className={`p-4 border rounded-xl font-mono ${m.color} print:bg-gray-100 print:text-black print:border-gray-300`}>
+                  <div className="text-[9.5px] font-bold uppercase tracking-wider text-slate-400 mb-1 print:text-gray-600">{m.label}</div>
+                  <div className={`text-2xl font-bold ${m.accent} print:text-black`}>{m.value}</div>
                 </div>
               ))}
             </div>
 
             {/* Section 1: Topology */}
             <section className="mb-8">
-              <h2 className="text-[11px] font-bold uppercase tracking-wider text-stone-700 border-b border-stone-200 pb-2 mb-4 flex items-center gap-2">
-                <Shield className="w-3.5 h-3.5 text-emerald-600" />
+              <h2 className="text-xs font-bold uppercase tracking-wider text-white border-b border-slate-800 pb-2 mb-4 flex items-center gap-2 font-display print:text-black print:border-black">
+                <Shield className="w-3.5 h-3.5 text-emerald-400 print:text-black" />
                 1. Network Topology Summary
               </h2>
-              <p className="text-[12px] text-stone-600 mb-4">
-                The evaluated network consists of{' '}
-                <strong className="text-stone-800">{labReport.topology_summary?.total_devices} virtual devices</strong>{' '}
+              <p className="text-xs text-slate-300 mb-4 leading-relaxed font-mono print:text-black">
+                The evaluated OT environment contains{' '}
+                <strong className="text-slate-100 font-bold print:text-black">{labReport.topology_summary?.total_devices} virtual devices</strong>{' '}
                 connected across{' '}
-                <strong className="text-stone-800">{labReport.topology_summary?.total_connections} physical links</strong>{' '}
+                <strong className="text-slate-100 font-bold print:text-black">{labReport.topology_summary?.total_connections} physical conduit links</strong>{' '}
                 spanning Purdue Model Levels 0 through 3.5.
               </p>
               <div className="overflow-x-auto">
-                <table className="w-full text-left border border-stone-200 rounded-lg overflow-hidden text-xs">
-                  <thead className="bg-stone-50 border-b border-stone-200 text-stone-600 text-[10px] uppercase font-semibold">
+                <table className="w-full text-left border border-slate-800 rounded-xl overflow-hidden font-mono text-xs print:border-gray-300">
+                  <thead className="bg-[#060913] border-b border-slate-800 text-slate-400 text-[10px] uppercase font-bold print:bg-gray-200 print:text-black">
                     <tr>
-                      {['ID', 'Device Name', 'Type', 'IP Address', 'Role'].map(h => (
-                        <th key={h} className="py-2 px-3">{h}</th>
+                      {['ID', 'Device Name', 'Type', 'IP Address', 'RBAC Role'].map((h) => (
+                        <th key={h} className="py-2.5 px-3">{h}</th>
                       ))}
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-stone-100 font-mono text-[11px]">
+                  <tbody className="divide-y divide-slate-800/40 text-[11px] print:divide-gray-300">
                     {labReport.topology_summary?.devices?.map((d) => (
-                      <tr key={d.id} className="hover:bg-stone-50">
-                        <td className="py-1.5 px-3 text-stone-400">{d.id}</td>
-                        <td className="py-1.5 px-3 font-sans font-semibold text-stone-800">{d.name}</td>
-                        <td className="py-1.5 px-3 font-sans text-stone-600">{d.type}</td>
-                        <td className="py-1.5 px-3 text-stone-700">{d.ip}</td>
-                        <td className="py-1.5 px-3 font-sans text-stone-500">{d.role}</td>
+                      <tr key={d.id} className="hover:bg-slate-800/30 print:text-black">
+                        <td className="py-2 px-3 text-slate-400 print:text-black">{d.id}</td>
+                        <td className="py-2 px-3 font-semibold text-white print:text-black">{d.name}</td>
+                        <td className="py-2 px-3 text-slate-300 print:text-black">{d.type}</td>
+                        <td className="py-2 px-3 text-slate-300 font-mono print:text-black">{d.ip}</td>
+                        <td className="py-2 px-3 text-slate-400 print:text-black">{d.role}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -156,33 +166,38 @@ export const LabReports: React.FC = () => {
 
             {/* Section 2: Scenarios */}
             <section className="mb-8">
-              <h2 className="text-[11px] font-bold uppercase tracking-wider text-stone-700 border-b border-stone-200 pb-2 mb-4 flex items-center gap-2">
-                <FileText className="w-3.5 h-3.5 text-emerald-600" />
+              <h2 className="text-xs font-bold uppercase tracking-wider text-white border-b border-slate-800 pb-2 mb-4 flex items-center gap-2 font-display print:text-black print:border-black">
+                <FileText className="w-3.5 h-3.5 text-blue-400 print:text-black" />
                 2. Empirical Security Test Results
               </h2>
-              <div className="space-y-3">
+              <div className="space-y-3 font-mono">
                 {labReport.scenarios?.map((sc) => (
-                  <div key={sc.scenario_id} className="border border-stone-200 rounded-lg p-4 space-y-2">
+                  <div key={sc.scenario_id} className="border border-slate-800 rounded-xl p-4 bg-[#060913]/60 space-y-2 print:bg-white print:border-gray-300">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        {sc.pass_status
-                          ? <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                          : <XCircle className="w-4 h-4 text-rose-600" />
-                        }
-                        <span className="text-[12px] font-bold text-stone-800">{sc.name}</span>
+                        {sc.pass_status ? (
+                          <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                        ) : (
+                          <XCircle className="w-4 h-4 text-rose-400" />
+                        )}
+                        <span className="text-xs font-bold text-white font-display print:text-black">{sc.name}</span>
                       </div>
-                      <span className={`px-2 py-[2px] rounded-md text-[9.5px] font-mono font-bold ${
-                        sc.pass_status ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-rose-50 text-rose-700 border border-rose-200'
+                      <span className={`px-2.5 py-0.5 rounded text-[9.5px] font-bold ${
+                        sc.pass_status
+                          ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
+                          : 'bg-rose-500/15 text-rose-400 border border-rose-500/30'
                       }`}>
                         {sc.pass_status ? 'PASS' : 'FAIL'}
                       </span>
                     </div>
-                    <p className="text-[11px] text-stone-500"><span className="font-medium text-stone-700">Objective:</span> {sc.objective}</p>
+                    <p className="text-[11px] text-slate-400 print:text-gray-600">
+                      <span className="font-bold text-slate-300 print:text-black">Objective:</span> {sc.objective}
+                    </p>
                     <div className="grid grid-cols-2 gap-3 text-[11px]">
-                      <div><span className="text-stone-400">Expected: </span><span className="font-medium text-stone-700">{sc.expected_outcome}</span></div>
-                      <div><span className="text-stone-400">Actual: </span><span className="font-medium text-stone-700">{sc.actual_outcome}</span></div>
+                      <div><span className="text-slate-500">Expected: </span><span className="text-slate-200 font-semibold print:text-black">{sc.expected_outcome}</span></div>
+                      <div><span className="text-slate-500">Actual: </span><span className="text-slate-200 font-semibold print:text-black">{sc.actual_outcome}</span></div>
                     </div>
-                    <div className="bg-stone-50 p-2.5 rounded-md border border-stone-100 text-[10.5px] font-mono text-stone-600">
+                    <div className="bg-[#090f1e] p-2.5 rounded-lg border border-slate-800 text-[10.5px] text-slate-300 print:bg-gray-100 print:text-black print:border-gray-300">
                       {sc.reason}
                     </div>
                   </div>
@@ -192,31 +207,31 @@ export const LabReports: React.FC = () => {
 
             {/* Section 3: Conclusion */}
             <section>
-              <h2 className="text-[11px] font-bold uppercase tracking-wider text-stone-700 border-b border-stone-200 pb-2 mb-4 flex items-center gap-2">
-                <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+              <h2 className="text-xs font-bold uppercase tracking-wider text-white border-b border-slate-800 pb-2 mb-4 flex items-center gap-2 font-display print:text-black print:border-black">
+                <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 print:text-black" />
                 3. Conclusion & Recommendations
               </h2>
-              <div className="bg-stone-50 border border-stone-200 rounded-lg p-4">
-                <p className="text-[12px] text-stone-700 leading-relaxed">{labReport.conclusion}</p>
+              <div className="bg-[#060913] border border-slate-800 rounded-xl p-4 print:bg-gray-100 print:border-gray-300">
+                <p className="text-xs text-slate-300 leading-relaxed font-mono print:text-black">{labReport.conclusion}</p>
               </div>
             </section>
 
-            {/* Signature block */}
-            <div className="border-t border-stone-200 pt-8 mt-10 flex justify-between items-center text-[10.5px] text-stone-400">
+            {/* Signature Block */}
+            <div className="border-t border-slate-800 pt-8 mt-10 flex justify-between items-center text-[10.5px] font-mono text-slate-500 print:border-black print:text-black">
               <div>
-                <div className="font-medium">Audited by: ICS Cybersecurity Simulation Engine</div>
-                <div className="text-[9.5px] mt-0.5">Cryptographic Suite: AES-256-GCM / RSA-PSS-2048 / SHA-256</div>
+                <div className="font-semibold text-slate-300 print:text-black">Evaluated by: CipherGrid Industrial Simulation Engine</div>
+                <div className="text-[9.5px] mt-0.5">Cryptographic Suite: AES-256-GCM / RSA-PSS-2048 / SHA-256 Digest</div>
               </div>
               <div className="text-right">
-                <div className="font-mono text-[11px] font-semibold text-stone-700">STATUS: VERIFIED</div>
-                <div className="text-[9.5px] mt-0.5">Educational Simulation Certification</div>
+                <div className="font-bold text-emerald-400 print:text-black">STATUS: CRYPTOGRAPHICALLY ASSURED</div>
+                <div className="text-[9.5px] mt-0.5">Educational Cybersecurity Verification</div>
               </div>
             </div>
           </div>
         ) : (
-          <div className="flex items-center justify-center h-64 text-stone-400">
-            <RefreshCw className="w-5 h-5 animate-spin text-stone-300 mr-2" />
-            <span className="text-[12px]">Compiling lab report…</span>
+          <div className="flex items-center justify-center h-64 text-slate-500 font-mono">
+            <RefreshCw className="w-5 h-5 animate-spin text-blue-400 mr-2" />
+            <span className="text-xs">Compiling assessment report…</span>
           </div>
         )}
       </div>

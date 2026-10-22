@@ -2,9 +2,14 @@ import React, { useState } from 'react';
 import {
   AlertCircle,
   AlertTriangle,
+  Code2,
   FileText,
+  Lock,
   Send,
+  Shield,
+  ShieldAlert,
   X,
+  Zap,
 } from 'lucide-react';
 import { useSimulatorStore } from '../../store/useSimulatorStore';
 import { MessageType, SecurityProfile } from '../../types';
@@ -47,7 +52,7 @@ export const MessageSimulatorModal: React.FC<MessageSimulatorModalProps> = ({ is
     setValidationError(null);
 
     if (senderId === receiverId) {
-      setValidationError('Sender and receiver must be different devices.');
+      setValidationError('Source and destination devices must be different.');
       return;
     }
     if (!payload.trim()) {
@@ -87,32 +92,32 @@ export const MessageSimulatorModal: React.FC<MessageSimulatorModalProps> = ({ is
     null, 2
   );
 
-  const inputClass = "w-full px-2.5 py-[6px] border border-stone-200 rounded-md text-[12px] bg-white focus:ring-1 focus:ring-cyan-500 focus:border-cyan-500 outline-none transition-colors";
+  const inputClass = "w-full px-3 py-1.5 border border-slate-700 rounded-lg text-xs bg-slate-900 text-slate-100 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 transition-colors font-mono";
 
   return (
-    <div className="fixed inset-0 z-50 bg-stone-900/40 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="bg-white rounded-xl border border-stone-200 shadow-lg w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh]">
+    <div className="fixed inset-0 z-50 bg-[#060913]/85 backdrop-blur-md flex items-center justify-center p-4">
+      <div className="bg-[#0b101f] rounded-2xl border border-slate-700/80 shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[92vh]">
         {/* Header */}
-        <div className="px-5 py-3.5 border-b border-stone-100 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-cyan-50 flex items-center justify-center">
-              <Send className="w-3.5 h-3.5 text-cyan-600" />
+        <div className="px-5 py-3.5 border-b border-slate-800/80 flex items-center justify-between bg-[#060913]/90">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-xl bg-blue-500/10 border border-blue-500/30 flex items-center justify-center shadow-inner">
+              <Zap className="w-4 h-4 text-blue-400" />
             </div>
             <div>
-              <h2 className="text-[13px] font-semibold text-stone-800">Message Simulator</h2>
-              <p className="text-[10px] text-stone-400">Configure and inject a packet into the simulation</p>
+              <h2 className="text-sm font-bold text-white tracking-tight font-display">PACKET INJECTION GENERATOR</h2>
+              <p className="text-[10px] text-slate-400 font-mono">Simulate encrypted industrial payload transmission & attack triggers</p>
             </div>
           </div>
-          <button onClick={onClose} className="p-1.5 rounded-md text-stone-400 hover:text-stone-600 hover:bg-stone-100 transition-colors">
+          <button onClick={onClose} className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer">
             <X className="w-4 h-4" />
           </button>
         </div>
 
         {/* Body */}
-        <form onSubmit={handleSend} className="p-5 overflow-y-auto flex-1 space-y-4 text-xs">
+        <form onSubmit={handleSend} className="p-5 overflow-y-auto flex-1 space-y-4 text-xs font-mono">
           {validationError && (
-            <div className="p-2.5 bg-rose-50 border border-rose-200/60 text-rose-700 rounded-lg flex items-center gap-2 text-[11px]">
-              <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
+            <div className="p-2.5 bg-rose-500/15 border border-rose-500/40 text-rose-300 rounded-lg flex items-center gap-2 text-xs">
+              <AlertCircle className="w-4 h-4 shrink-0 text-rose-400" />
               <span>{validationError}</span>
             </div>
           )}
@@ -120,7 +125,7 @@ export const MessageSimulatorModal: React.FC<MessageSimulatorModalProps> = ({ is
           {/* Device selection */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-[11px] font-medium text-stone-600 mb-1">Source Device</label>
+              <label className="block text-[10px] uppercase font-bold text-slate-300 mb-1">Source Node (Sender)</label>
               <select value={senderId} onChange={(e) => setSenderId(e.target.value)} className={inputClass}>
                 {devices.map((d) => (
                   <option key={d.id} value={d.id}>{d.name} ({d.ip_address})</option>
@@ -128,7 +133,7 @@ export const MessageSimulatorModal: React.FC<MessageSimulatorModalProps> = ({ is
               </select>
             </div>
             <div>
-              <label className="block text-[11px] font-medium text-stone-600 mb-1">Destination Device</label>
+              <label className="block text-[10px] uppercase font-bold text-slate-300 mb-1">Destination Node (Receiver)</label>
               <select value={receiverId} onChange={(e) => setReceiverId(e.target.value)} className={inputClass}>
                 {devices.map((d) => (
                   <option key={d.id} value={d.id}>{d.name} ({d.ip_address})</option>
@@ -140,61 +145,61 @@ export const MessageSimulatorModal: React.FC<MessageSimulatorModalProps> = ({ is
           {/* Message type & security */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-[11px] font-medium text-stone-600 mb-1">Message Type</label>
+              <label className="block text-[10px] uppercase font-bold text-slate-400 mb-1">Protocol Message Type</label>
               <select value={messageType} onChange={(e) => handleMessageTypeChange(e.target.value as MessageType)} className={inputClass}>
-                <option value="Sensor Reading">Sensor Reading</option>
+                <option value="Sensor Reading">Sensor Reading (Modbus)</option>
                 <option value="Device Status">Device Status</option>
-                <option value="Controller Command">Controller Command</option>
+                <option value="Controller Command">Controller Command (CIP)</option>
                 <option value="Alarm Notification">Alarm Notification</option>
               </select>
             </div>
             <div>
-              <label className="block text-[11px] font-medium text-stone-600 mb-1">Security Profile</label>
-              <select value={securityProfile} onChange={(e) => setSecurityProfile(e.target.value as SecurityProfile)} className={`${inputClass} font-medium`}>
-                <option value="Authenticated Secure Communication">Full: AES-GCM + RSA-PSS + SHA-256</option>
-                <option value="Integrity Verified">Integrity: SHA-256 Digest</option>
-                <option value="Security Disabled">Disabled: Plaintext</option>
+              <label className="block text-[10px] uppercase font-bold text-slate-400 mb-1">Cryptographic Profile</label>
+              <select value={securityProfile} onChange={(e) => setSecurityProfile(e.target.value as SecurityProfile)} className={inputClass}>
+                <option value="Authenticated Secure Communication">AES-256-GCM + RSA-PSS + SHA-256</option>
+                <option value="Integrity Verified">SHA-256 Digest Only</option>
+                <option value="Security Disabled">Plaintext (Insecure)</option>
               </select>
             </div>
           </div>
 
           {/* Payload */}
           <div>
-            <label className="block text-[11px] font-medium text-stone-600 mb-1">Payload</label>
+            <label className="block text-[10px] uppercase font-bold text-slate-400 mb-1">Raw Payload Parameters</label>
             <textarea
               rows={2}
               value={payload}
               onChange={(e) => setPayload(e.target.value)}
-              className={`${inputClass} font-mono resize-none`}
+              className={`${inputClass} resize-none font-mono text-cyan-300`}
               placeholder="key1=value1;key2=value2"
               required
             />
           </div>
 
           {/* Attack injection */}
-          <div className="bg-amber-50/60 border border-amber-200/60 rounded-lg p-3.5 space-y-2">
-            <div className="flex items-center gap-1.5 text-amber-800 text-[11px] font-semibold">
-              <AlertTriangle className="w-3.5 h-3.5 text-amber-500" />
-              <span>Adversarial Attack Injection</span>
+          <div className="bg-[#12192c] border border-amber-500/30 rounded-xl p-3.5 space-y-2">
+            <div className="flex items-center gap-2 text-amber-400 text-xs font-bold uppercase font-display">
+              <ShieldAlert className="w-4 h-4 text-amber-400" />
+              <span>Adversarial Cyber Attack Injection</span>
             </div>
-            <p className="text-[10.5px] text-amber-700/80">
-              Test cryptographic and RBAC defenses by injecting tampering scenarios.
+            <p className="text-[10px] text-slate-400 leading-normal">
+              Test AES-GCM tag verification, RSA-PSS signature authenticity, and replay detection filters by injecting intentional corruptions.
             </p>
             <div className="grid grid-cols-2 gap-x-4 gap-y-2 pt-1">
               {[
-                { label: 'Tamper Ciphertext', checked: tamperMessage, onChange: setTamperMessage },
+                { label: 'Tamper Ciphertext (MITM)', checked: tamperMessage, onChange: setTamperMessage },
                 { label: 'Corrupt RSA-PSS Signature', checked: tamperSignature, onChange: setTamperSignature },
-                { label: 'Corrupt AES-GCM Tag', checked: tamperTag, onChange: setTamperTag },
-                { label: 'Replay Stale Message', checked: replayAttack, onChange: setReplayAttack },
+                { label: 'Corrupt AES-GCM Auth Tag', checked: tamperTag, onChange: setTamperTag },
+                { label: 'Replay Stale Sequence ID', checked: replayAttack, onChange: setReplayAttack },
               ].map((atk) => (
-                <label key={atk.label} className="flex items-center gap-2 cursor-pointer text-[11px]">
+                <label key={atk.label} className="flex items-center gap-2 cursor-pointer text-[11px] text-slate-300 hover:text-white">
                   <input
                     type="checkbox"
                     checked={atk.checked}
                     onChange={(e) => atk.onChange(e.target.checked)}
-                    className="rounded border-stone-300 text-cyan-600 focus:ring-cyan-500 w-3.5 h-3.5"
+                    className="rounded border-slate-700 bg-slate-900 text-cyan-400 focus:ring-0 w-3.5 h-3.5 cursor-pointer"
                   />
-                  <span className="text-stone-700 font-medium">{atk.label}</span>
+                  <span>{atk.label}</span>
                 </label>
               ))}
             </div>
@@ -202,27 +207,31 @@ export const MessageSimulatorModal: React.FC<MessageSimulatorModalProps> = ({ is
 
           {/* Preview */}
           <div>
-            <label className="flex items-center gap-1 text-[11px] font-medium text-stone-600 mb-1">
-              <FileText className="w-3 h-3 text-stone-400" />
-              Packet Specification Preview
+            <label className="flex items-center gap-1 text-[10px] uppercase font-bold text-slate-400 mb-1">
+              <Code2 className="w-3 h-3 text-slate-400" />
+              <span>Serialized Packet Envelope Preview</span>
             </label>
-            <pre className="p-2.5 bg-stone-900 text-stone-400 rounded-lg font-mono text-[10px] overflow-x-auto max-h-24 leading-relaxed">
+            <pre className="p-3 bg-[#060913] text-slate-300 rounded-xl border border-slate-800 font-mono text-[10px] overflow-x-auto max-h-24 leading-relaxed">
               {serializedPreview}
             </pre>
           </div>
 
           {/* Footer */}
-          <div className="pt-3 border-t border-stone-100 flex justify-end gap-2">
-            <button type="button" onClick={onClose} className="px-3.5 py-[6px] border border-stone-200 text-stone-600 hover:bg-stone-50 rounded-md text-[11.5px] font-medium transition-colors">
+          <div className="pt-3 border-t border-slate-800/80 flex justify-end gap-2.5">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-1.5 border border-slate-700 text-slate-300 hover:text-white hover:bg-slate-800 rounded-lg text-xs font-medium transition-colors cursor-pointer"
+            >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSimulating}
-              className="flex items-center gap-1.5 px-4 py-[6px] bg-cyan-600 hover:bg-cyan-500 disabled:bg-stone-300 text-white rounded-md text-[11.5px] font-medium transition-colors"
+              className="flex items-center gap-1.5 px-4 py-1.5 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white rounded-lg text-xs font-medium transition-colors shadow-sm cursor-pointer"
             >
-              <Send className="w-3 h-3" />
-              {isSimulating ? 'Processing…' : 'Inject & Transmit'}
+              <Send className="w-3.5 h-3.5" />
+              <span>{isSimulating ? 'Injecting…' : 'Inject & Transmit'}</span>
             </button>
           </div>
         </form>

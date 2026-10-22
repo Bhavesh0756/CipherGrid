@@ -4,11 +4,17 @@ import {
   Bell,
   Check,
   CheckCircle2,
-  ChevronDown,
+  Clock,
   ExternalLink,
+  Flame,
   Play,
   Save,
+  Send,
+  Shield,
+  ShieldAlert,
   ShieldCheck,
+  Sparkles,
+  Wifi,
   X,
 } from 'lucide-react';
 import { api } from '../../services/api';
@@ -27,7 +33,7 @@ const INITIAL_NOTIFICATIONS: NotificationItem[] = [
   {
     id: 'notif-1',
     title: 'Rogue Write Blocked',
-    description: 'Unauthorized write attempt (0x06) from Rogue Tap to PLC-01 was rejected.',
+    description: 'Unauthorized write attempt (0x06) from Rogue Tap to PLC-01 was rejected by RBAC policy.',
     time: '2m ago',
     type: 'warning',
     unread: true,
@@ -35,7 +41,7 @@ const INITIAL_NOTIFICATIONS: NotificationItem[] = [
   {
     id: 'notif-2',
     title: 'Crypto Session Established',
-    description: 'Supervisory SCADA Server established authenticated TLS session with Switch.',
+    description: 'SCADA Server established AES-256-GCM authenticated session with RTU/Switch.',
     time: '14m ago',
     type: 'success',
     unread: false,
@@ -43,7 +49,7 @@ const INITIAL_NOTIFICATIONS: NotificationItem[] = [
   {
     id: 'notif-3',
     title: 'Topology Synchronized',
-    description: '7 industrial control nodes active with zero packet drop in Level 0-3.',
+    description: 'Industrial nodes active with zero packet drop in Purdue Levels 0-3.5.',
     time: '1h ago',
     type: 'info',
     unread: false,
@@ -57,13 +63,28 @@ export const Topbar: React.FC = () => {
     setMessageModalOpen,
     activeSection,
     setActiveSection,
+    devices,
   } = useSimulatorStore();
 
   const [backendStatus, setBackendStatus] = useState<'checking' | 'connected' | 'disconnected'>('checking');
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [notifications, setNotifications] = useState<NotificationItem[]>(INITIAL_NOTIFICATIONS);
+  const [currentTime, setCurrentTime] = useState<string>('');
 
   const notifRef = useRef<HTMLDivElement>(null);
+
+  // Live ICS clock
+  useEffect(() => {
+    const updateTime = () => {
+      const now = new Date();
+      setCurrentTime(
+        now.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' })
+      );
+    };
+    updateTime();
+    const timer = setInterval(updateTime, 1000);
+    return () => clearInterval(timer);
+  }, []);
 
   // Close notifications on outside click
   useEffect(() => {
@@ -112,101 +133,118 @@ export const Topbar: React.FC = () => {
 
   const getSectionSubtitle = () => {
     switch (activeSection) {
-      case 'network-lab': return 'Interactive Industrial Topology';
-      case 'device-inventory': return 'Purdue Model Asset Directory';
-      case 'packet-inspector': return 'Deep Simulation Event Analysis';
-      case 'security-center': return 'Cryptographic & Access Control Workbench';
-      case 'event-logs': return 'Persistent System & Audit Records';
-      case 'lab-reports': return 'Security Evaluation & Technical Audit';
-      case 'dashboard': return 'System Telemetry & Statistics';
-      case 'settings': return 'Configuration & Security Parameters';
-      default: return 'Interactive Industrial Topology';
+      case 'network-lab': return 'Interactive OT Topology & Packet Simulation';
+      case 'device-inventory': return 'Purdue Model Asset Directory & Keys';
+      case 'packet-inspector': return 'Wireshark-Grade Cryptographic Dissector';
+      case 'security-center': return '9 Automated Defense Scenarios';
+      case 'event-logs': return 'Immutable Relational Audit Trail';
+      case 'lab-reports': return 'Formal Cryptographic Evaluation';
+      case 'dashboard': return 'Real-Time SCADA KPI Telemetry';
+      case 'settings': return 'Cryptographic Engine Parameters';
+      default: return 'Interactive OT Topology';
     }
   };
 
   return (
-    <header className="h-14 bg-white border-b border-slate-200/90 px-6 flex items-center justify-between text-slate-700 select-none z-20 shrink-0">
-      {/* Left: Section Context Title */}
-      <div className="flex items-center gap-2.5 min-w-0">
-        <div className="flex items-center gap-1.5 cursor-pointer hover:opacity-80 transition-opacity">
-          <span className="text-[15px] font-bold text-slate-900 tracking-tight">
+    <header className="h-14 bg-[#080d1a]/95 border-b border-slate-800/80 px-5 flex items-center justify-between text-slate-200 select-none z-20 shrink-0 backdrop-blur-md">
+      {/* Left: Section Context Title & HUD Breadcrumb */}
+      <div className="flex items-center gap-3 min-w-0">
+        <div className="flex items-center gap-2">
+          <div className="w-2 h-2 rounded-xs bg-blue-500 rotate-45" />
+          <span className="text-[14px] font-bold text-white tracking-tight font-display">
             {getSectionTitle()}
           </span>
-          <ChevronDown className="w-3.5 h-3.5 text-slate-500" />
         </div>
 
-        <span className="text-slate-300 font-light text-sm mx-1">|</span>
+        <span className="text-slate-700 font-mono text-sm">/</span>
 
-        <span className="text-[13px] text-slate-500 font-normal truncate">
+        <span className="text-[12px] text-slate-400 font-medium truncate hidden md:inline">
           {getSectionSubtitle()}
         </span>
       </div>
 
-      {/* Right: Actions */}
-      <div className="flex items-center gap-3">
-        {/* Online/Offline Status Pill */}
-        <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-semibold">
+      {/* Middle: Live Cyber HUD Pill */}
+      <div className="hidden lg:flex items-center gap-3 px-3.5 py-1 rounded-full bg-slate-900/90 border border-slate-800 text-slate-300">
+        <div className="flex items-center gap-1.5 text-[11px] font-mono text-slate-300">
+          <Clock className="w-3.5 h-3.5 text-slate-400" />
+          <span>{currentTime || '00:00:00'} UTC</span>
+        </div>
+        <span className="w-1 h-1 rounded-full bg-slate-700" />
+        <div className="flex items-center gap-1.5 text-[11px] font-mono">
+          <span className="text-slate-400">DEFCON:</span>
+          <span className="text-emerald-400 font-medium flex items-center gap-1">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+            GUARDED
+          </span>
+        </div>
+      </div>
+
+      {/* Right: Actions & Status */}
+      <div className="flex items-center gap-2.5">
+        {/* Backend Status Pill */}
+        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-900/80 border border-slate-800 text-[11px] font-mono font-medium">
           <span
             className={`w-2 h-2 rounded-full ${
               backendStatus === 'connected'
-                ? 'bg-emerald-500 shadow-[0_0_6px_#10b981]'
+                ? 'bg-emerald-500'
                 : backendStatus === 'checking'
-                ? 'bg-amber-400 animate-pulse'
+                ? 'bg-amber-400 animate-ping'
                 : 'bg-rose-500'
             }`}
           />
-          <span>{backendStatus === 'connected' ? 'Online' : backendStatus === 'checking' ? 'Connecting' : 'Offline'}</span>
+          <span className={backendStatus === 'connected' ? 'text-emerald-400' : 'text-slate-400'}>
+            {backendStatus === 'connected' ? 'API 200 OK' : backendStatus === 'checking' ? 'SYNCING' : 'OFFLINE'}
+          </span>
         </div>
 
-        {/* Primary Action: Simulate */}
+        {/* Primary Action: Dispatch / Simulate */}
         <button
           onClick={() => setMessageModalOpen(true)}
-          className="flex items-center gap-2 px-4 py-1.5 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white rounded-lg text-xs font-semibold shadow-sm shadow-blue-600/30 transition-all cursor-pointer"
+          className="flex items-center gap-2 px-3.5 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-medium shadow-sm transition-colors cursor-pointer border border-blue-500/40 active:scale-95"
         >
-          <Play className="w-3.5 h-3.5 fill-current" />
-          <span>Simulate</span>
+          <Send className="w-3.5 h-3.5" />
+          <span>Dispatch Packet</span>
         </button>
 
         {/* Secondary Action: Save */}
         <button
           onClick={saveTopology}
           disabled={isLoading}
-          className="flex items-center gap-1.5 px-3.5 py-1.5 bg-white hover:bg-slate-50 active:bg-slate-100 border border-slate-200 text-slate-700 rounded-lg text-xs font-medium transition-all shadow-2xs cursor-pointer"
+          className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-900/90 hover:bg-slate-800 active:bg-slate-700 border border-slate-700/80 text-slate-300 hover:text-white rounded-lg text-xs font-medium transition-all shadow-xs cursor-pointer disabled:opacity-50"
           title="Save current topology state"
         >
-          <Save className="w-3.5 h-3.5 text-slate-600" />
+          <Save className="w-3.5 h-3.5 text-slate-400" />
           <span>Save</span>
         </button>
 
-        {/* Notifications Icon & Dropdown Container */}
+        {/* Notifications Icon & Popover */}
         <div className="relative" ref={notifRef}>
           <button
             onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
-            className={`p-2 rounded-lg border transition-colors shadow-2xs cursor-pointer relative ${
+            className={`p-1.5 rounded-lg border transition-all cursor-pointer relative ${
               isNotificationsOpen
-                ? 'bg-blue-50 border-blue-300 text-blue-600'
-                : 'bg-white hover:bg-slate-50 border-slate-200 text-slate-600 hover:text-slate-900'
+                ? 'bg-slate-800 border-slate-700 text-slate-100'
+                : 'bg-slate-900/90 hover:bg-slate-800 border-slate-800 text-slate-400 hover:text-white'
             }`}
-            title="Notifications"
+            title="Alerts & Audit Notifications"
           >
             <Bell className="w-4 h-4" />
             {unreadCount > 0 && (
-              <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-rose-500 text-white rounded-full text-[9px] font-bold flex items-center justify-center shadow-xs">
+              <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-rose-500 text-white rounded-full text-[9px] font-mono font-bold flex items-center justify-center">
                 {unreadCount}
               </span>
             )}
           </button>
 
-          {/* Notifications Dropdown Popover */}
+          {/* Notifications Dropdown */}
           {isNotificationsOpen && (
-            <div className="absolute right-0 top-11 w-84 bg-white border border-slate-200/90 rounded-xl shadow-xl z-50 overflow-hidden animate-in fade-in-50 zoom-in-95 duration-150">
-              {/* Popover Header */}
-              <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between bg-slate-50/70">
+            <div className="absolute right-0 top-11 w-84 bg-[#0d1527] border border-slate-700/80 rounded-xl shadow-2xl z-50 overflow-hidden animate-in fade-in-50 zoom-in-95 duration-150 backdrop-blur-xl">
+              <div className="px-4 py-3 border-b border-slate-800/80 flex items-center justify-between bg-[#090f1c]/90">
                 <div className="flex items-center gap-2">
-                  <h4 className="text-xs font-bold text-slate-900">Notifications</h4>
+                  <h4 className="text-xs font-bold text-white font-display">System Alerts</h4>
                   {unreadCount > 0 && (
-                    <span className="text-[10px] font-semibold bg-rose-100 text-rose-700 px-1.5 py-0.2 rounded-full">
-                      {unreadCount} new
+                    <span className="text-[10px] font-mono font-bold bg-rose-500/20 text-rose-400 border border-rose-500/30 px-1.5 py-0.2 rounded-full">
+                      {unreadCount} NEW
                     </span>
                   )}
                 </div>
@@ -214,16 +252,15 @@ export const Topbar: React.FC = () => {
                 {unreadCount > 0 && (
                   <button
                     onClick={handleMarkAllRead}
-                    className="text-[10.5px] font-medium text-blue-600 hover:text-blue-700 cursor-pointer flex items-center gap-1"
+                    className="text-[10.5px] font-mono text-blue-400 hover:text-blue-300 cursor-pointer flex items-center gap-1"
                   >
                     <Check className="w-3 h-3" />
-                    <span>Mark all read</span>
+                    <span>Clear</span>
                   </button>
                 )}
               </div>
 
-              {/* Notification Items List */}
-              <div className="divide-y divide-slate-100 max-h-80 overflow-y-auto">
+              <div className="divide-y divide-slate-800/60 max-h-80 overflow-y-auto">
                 {notifications.map((item) => (
                   <div
                     key={item.id}
@@ -232,17 +269,17 @@ export const Topbar: React.FC = () => {
                         prev.map((n) => (n.id === item.id ? { ...n, unread: false } : n))
                       );
                     }}
-                    className={`p-3.5 flex items-start gap-3 hover:bg-slate-50/80 transition-colors cursor-pointer ${
-                      item.unread ? 'bg-blue-50/20' : ''
+                    className={`p-3.5 flex items-start gap-3 hover:bg-slate-800/40 transition-colors cursor-pointer ${
+                      item.unread ? 'bg-blue-500/5' : ''
                     }`}
                   >
                     <div
                       className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 border mt-0.5 ${
                         item.type === 'warning'
-                          ? 'bg-rose-50 border-rose-200 text-rose-600'
+                          ? 'bg-rose-500/15 border-rose-500/30 text-rose-400'
                           : item.type === 'success'
-                          ? 'bg-emerald-50 border-emerald-200 text-emerald-600'
-                          : 'bg-blue-50 border-blue-200 text-blue-600'
+                          ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-400'
+                          : 'bg-slate-800 border-slate-700 text-slate-300'
                       }`}
                     >
                       {item.type === 'warning' && <AlertTriangle className="w-3.5 h-3.5" />}
@@ -252,35 +289,34 @@ export const Topbar: React.FC = () => {
 
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between gap-1">
-                        <span className="text-xs font-semibold text-slate-900 truncate">
+                        <span className="text-xs font-semibold text-slate-100 truncate">
                           {item.title}
                         </span>
-                        <span className="text-[10px] text-slate-400 font-mono shrink-0">
+                        <span className="text-[10px] text-slate-500 font-mono shrink-0">
                           {item.time}
                         </span>
                       </div>
-                      <p className="text-[11px] text-slate-500 mt-0.5 leading-snug line-clamp-2">
+                      <p className="text-[11px] text-slate-400 mt-0.5 leading-snug line-clamp-2">
                         {item.description}
                       </p>
                     </div>
 
                     {item.unread && (
-                      <span className="w-1.5 h-1.5 rounded-full bg-blue-600 shrink-0 mt-1.5"></span>
+                      <span className="w-1.5 h-1.5 rounded-full bg-blue-400 shrink-0 mt-1.5"></span>
                     )}
                   </div>
                 ))}
               </div>
 
-              {/* Popover Footer */}
-              <div className="p-2 border-t border-slate-100 bg-slate-50/50 flex items-center justify-center">
+              <div className="p-2 border-t border-slate-800/80 bg-[#090f1c]/90 flex items-center justify-center">
                 <button
                   onClick={() => {
                     setActiveSection('event-logs');
                     setIsNotificationsOpen(false);
                   }}
-                  className="w-full py-1.5 text-center text-xs font-semibold text-blue-600 hover:text-blue-700 hover:bg-blue-50/60 rounded-lg transition-colors cursor-pointer flex items-center justify-center gap-1.5"
+                  className="w-full py-1.5 text-center text-xs font-medium text-blue-400 hover:text-blue-300 hover:bg-blue-500/10 rounded-lg transition-colors cursor-pointer flex items-center justify-center gap-1.5"
                 >
-                  <span>View All Security Logs</span>
+                  <span>Open Audit Event Logs</span>
                   <ExternalLink className="w-3 h-3" />
                 </button>
               </div>
@@ -288,10 +324,10 @@ export const Topbar: React.FC = () => {
           )}
         </div>
 
-        {/* User Avatar Circle */}
+        {/* Operator Badge */}
         <div
-          className="w-8 h-8 rounded-full bg-slate-800 text-white font-bold text-xs flex items-center justify-center shadow-xs select-none cursor-pointer hover:ring-2 hover:ring-blue-500/40 transition-all"
-          title="Bhavesh Gambhirrao"
+          className="w-8 h-8 rounded-lg bg-slate-800 border border-slate-700 text-slate-300 font-medium text-xs flex items-center justify-center select-none cursor-pointer hover:bg-slate-700 transition-colors"
+          title="ICS Operator Console"
         >
           BG
         </div>

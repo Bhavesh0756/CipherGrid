@@ -32,62 +32,62 @@ const DEVICE_CONFIG: Record<
     icon: React.ReactNode;
     iconBg: string;
     borderAccent: string;
-    edgeColor: string;
+    levelColor: string;
   }
 > = {
   'Sensor': {
-    icon: <Thermometer className="w-4 h-4 text-amber-600" />,
-    iconBg: 'bg-amber-50 text-amber-600 border-amber-200/80',
+    icon: <Thermometer className="w-4 h-4 text-amber-400" />,
+    iconBg: 'bg-amber-950/40 text-amber-400 border-amber-800/40',
     borderAccent: 'border-l-amber-500',
-    edgeColor: '#f59e0b',
+    levelColor: 'text-amber-300/90 bg-amber-950/30 border-amber-800/40',
   },
   'PLC': {
-    icon: <Cpu className="w-4 h-4 text-blue-600" />,
-    iconBg: 'bg-blue-50 text-blue-600 border-blue-200/80',
-    borderAccent: 'border-l-blue-600',
-    edgeColor: '#2563eb',
+    icon: <Cpu className="w-4 h-4 text-blue-400" />,
+    iconBg: 'bg-blue-950/40 text-blue-400 border-blue-800/40',
+    borderAccent: 'border-l-blue-500',
+    levelColor: 'text-blue-300/90 bg-blue-950/30 border-blue-800/40',
   },
   'SCADA Server': {
-    icon: <HardDrive className="w-4 h-4 text-purple-600" />,
-    iconBg: 'bg-purple-50 text-purple-600 border-purple-200/80',
-    borderAccent: 'border-l-purple-600',
-    edgeColor: '#9333ea',
+    icon: <HardDrive className="w-4 h-4 text-purple-400" />,
+    iconBg: 'bg-purple-950/40 text-purple-400 border-purple-800/40',
+    borderAccent: 'border-l-purple-500',
+    levelColor: 'text-purple-300/90 bg-purple-950/30 border-purple-800/40',
   },
   'Operator Workstation': {
-    icon: <Laptop className="w-4 h-4 text-amber-600" />,
-    iconBg: 'bg-amber-50 text-amber-600 border-amber-200/80',
+    icon: <Laptop className="w-4 h-4 text-amber-400" />,
+    iconBg: 'bg-amber-950/40 text-amber-400 border-amber-800/40',
     borderAccent: 'border-l-amber-500',
-    edgeColor: '#f59e0b',
+    levelColor: 'text-amber-300/90 bg-amber-950/30 border-amber-800/40',
   },
   'Industrial Gateway': {
-    icon: <Network className="w-4 h-4 text-emerald-600" />,
-    iconBg: 'bg-emerald-50 text-emerald-600 border-emerald-200/80',
-    borderAccent: 'border-l-emerald-600',
-    edgeColor: '#10b981',
+    icon: <Network className="w-4 h-4 text-emerald-400" />,
+    iconBg: 'bg-emerald-950/40 text-emerald-400 border-emerald-800/40',
+    borderAccent: 'border-l-emerald-500',
+    levelColor: 'text-emerald-300/90 bg-emerald-950/30 border-emerald-800/40',
   },
   'Ethernet Switch': {
-    icon: <Layers className="w-4 h-4 text-blue-600" />,
-    iconBg: 'bg-blue-50 text-blue-600 border-blue-200/80',
-    borderAccent: 'border-l-blue-600',
-    edgeColor: '#2563eb',
+    icon: <Layers className="w-4 h-4 text-blue-400" />,
+    iconBg: 'bg-blue-950/40 text-blue-400 border-blue-800/40',
+    borderAccent: 'border-l-blue-500',
+    levelColor: 'text-blue-300/90 bg-blue-950/30 border-blue-800/40',
   },
   'Router': {
-    icon: <RouterIcon className="w-4 h-4 text-cyan-600" />,
-    iconBg: 'bg-cyan-50 text-cyan-600 border-cyan-200/80',
-    borderAccent: 'border-l-cyan-600',
-    edgeColor: '#06b6d4',
+    icon: <RouterIcon className="w-4 h-4 text-sky-400" />,
+    iconBg: 'bg-sky-950/40 text-sky-400 border-sky-800/40',
+    borderAccent: 'border-l-sky-500',
+    levelColor: 'text-sky-300/90 bg-sky-950/30 border-sky-800/40',
   },
   'Monitoring Server': {
-    icon: <Eye className="w-4 h-4 text-emerald-600" />,
-    iconBg: 'bg-emerald-50 text-emerald-600 border-emerald-200/80',
-    borderAccent: 'border-l-emerald-600',
-    edgeColor: '#10b981',
+    icon: <Eye className="w-4 h-4 text-emerald-400" />,
+    iconBg: 'bg-emerald-950/40 text-emerald-400 border-emerald-800/40',
+    borderAccent: 'border-l-emerald-500',
+    levelColor: 'text-emerald-300/90 bg-emerald-950/30 border-emerald-800/40',
   },
   'Untrusted Device': {
-    icon: <ShieldAlert className="w-4 h-4 text-rose-600" />,
-    iconBg: 'bg-rose-50 text-rose-600 border-rose-200/80',
-    borderAccent: 'border-l-rose-600',
-    edgeColor: '#e11d48',
+    icon: <ShieldAlert className="w-4 h-4 text-rose-400" />,
+    iconBg: 'bg-rose-950/40 text-rose-400 border-rose-800/40',
+    borderAccent: 'border-l-rose-500',
+    levelColor: 'text-rose-300/90 bg-rose-950/30 border-rose-800/40',
   },
 };
 
@@ -95,37 +95,37 @@ export const IndustrialNode: React.FC<IndustrialNodeProps> = memo(({ data }) => 
   const { device, isSelected, isHighlighted, isActiveHop, isSource, isDestination } = data;
   const config =
     DEVICE_CONFIG[device.device_type] || {
-      icon: <Activity className="w-4 h-4 text-slate-600" />,
-      iconBg: 'bg-slate-50 text-slate-600 border-slate-200',
-      borderAccent: 'border-l-slate-400',
-      edgeColor: '#64748b',
+      icon: <Activity className="w-4 h-4 text-slate-400" />,
+      iconBg: 'bg-slate-800 text-slate-400 border-slate-700',
+      borderAccent: 'border-l-slate-500',
+      levelColor: 'text-slate-400 bg-slate-800 border-slate-700',
     };
 
   const isTrusted = device.trust_status === 'Trusted';
   const isUntrusted = device.trust_status === 'Untrusted';
 
-  // Clean display name
   const displayName = device.name.replace(/\s+PLC$/i, '').trim();
 
-  let borderClasses = `border-l-4 ${config.borderAccent} border-slate-200`;
-  let shadowClasses = 'shadow-xs hover:shadow-md';
+  // Subtle clean border styles without glaring neon lights
+  let borderClasses = `border-l-4 ${config.borderAccent} border-slate-800`;
+  let ringClasses = '';
 
   if (isActiveHop) {
-    borderClasses = 'border-l-4 border-l-blue-600 border-blue-500 ring-2 ring-blue-500/50 node-active-hop';
-    shadowClasses = 'shadow-lg';
+    borderClasses = 'border-l-4 border-l-blue-400 border-blue-500';
+    ringClasses = 'ring-2 ring-blue-500/60 node-active-hop';
   } else if (isSelected) {
-    borderClasses = 'border-l-4 border-l-blue-600 border-blue-500 ring-2 ring-blue-500/40';
-    shadowClasses = 'shadow-md';
+    borderClasses = 'border-l-4 border-l-blue-500 border-slate-600';
+    ringClasses = 'ring-1 ring-blue-500/50';
   } else if (isHighlighted) {
-    borderClasses = `border-l-4 ${config.borderAccent} border-blue-400 ring-1 ring-blue-400/30`;
-    shadowClasses = 'shadow-sm';
+    borderClasses = `border-l-4 ${config.borderAccent} border-blue-500/60`;
+    ringClasses = 'ring-1 ring-blue-500/30';
   }
 
   return (
     <div
       style={{ width: 240, height: 86, boxSizing: 'border-box' }}
-      className={`group relative bg-white rounded-xl border transition-all duration-200 px-3 py-2.5 flex flex-col justify-between select-none hover:-translate-y-0.5 hover:shadow-md ${borderClasses} ${shadowClasses} ${
-        !device.is_enabled ? 'opacity-60' : ''
+      className={`group relative bg-[#0e1422] rounded-xl border transition-all duration-150 px-3 py-2 flex flex-col justify-between select-none shadow-md shadow-black/40 ${borderClasses} ${ringClasses} ${
+        !device.is_enabled ? 'opacity-40 grayscale' : ''
       }`}
     >
       {/* Port handles on all 4 sides */}
@@ -138,62 +138,67 @@ export const IndustrialNode: React.FC<IndustrialNodeProps> = memo(({ data }) => 
       <div className="flex items-center justify-between gap-2 min-w-0">
         <div className="flex items-center gap-2.5 min-w-0 flex-1">
           <div
-            className={`w-7 h-7 rounded-lg flex items-center justify-center border shadow-2xs shrink-0 ${config.iconBg}`}
+            className={`w-7 h-7 rounded-lg flex items-center justify-center border shrink-0 ${config.iconBg}`}
           >
             {config.icon}
           </div>
 
           <div className="min-w-0 flex-1">
             <h3
-              className="text-[12px] font-bold text-slate-900 truncate leading-snug tracking-tight"
+              className="text-[12px] font-semibold text-slate-100 truncate leading-snug tracking-tight font-display"
               title={displayName}
             >
               {displayName}
             </h3>
-            <p className="text-[10px] text-slate-400 font-medium leading-none mt-0.5 truncate">
+            <p className="text-[10px] text-slate-400 font-mono leading-none mt-0.5 truncate">
               {device.device_type}
             </p>
           </div>
         </div>
 
-        {/* Status Pill */}
-        <div className="shrink-0">
-          {isTrusted && (
-            <span className="text-[9px] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
-              Trusted
-            </span>
-          )}
-          {isUntrusted && (
-            <span className="text-[9px] font-semibold px-2 py-0.5 rounded-full bg-rose-50 text-rose-700 border border-rose-200">
-              Untrusted
-            </span>
-          )}
-          {device.trust_status === 'Quarantined' && (
-            <span className="text-[9px] font-semibold px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200">
-              Quarantined
-            </span>
-          )}
+        {/* Status Pill — subtle matte styling */}
+        <div className="shrink-0 flex items-center gap-1.5">
+          <span
+            className={`w-1.5 h-1.5 rounded-full ${
+              device.is_enabled && isTrusted
+                ? 'bg-emerald-500'
+                : isUntrusted
+                ? 'bg-rose-500'
+                : 'bg-amber-500'
+            }`}
+          />
+          <span
+            className={`text-[9px] font-mono font-medium px-1.5 py-0.2 rounded border ${
+              isTrusted
+                ? 'bg-emerald-950/40 text-emerald-400 border-emerald-800/40'
+                : isUntrusted
+                ? 'bg-rose-950/40 text-rose-400 border-rose-800/40'
+                : 'bg-amber-950/40 text-amber-400 border-amber-800/40'
+            }`}
+          >
+            {isTrusted ? 'TRUST' : isUntrusted ? 'ROGUE' : 'STANDBY'}
+          </span>
         </div>
       </div>
 
-      {/* Bottom row: IP address and Purdue Level completely inside the card border */}
-      <div className="pt-1.5 border-t border-slate-100 flex items-center justify-between text-[10.5px]">
-        <span className="font-mono text-slate-700 font-medium">
+      {/* Bottom row: IP address and Purdue Level */}
+      <div className="pt-1.5 border-t border-slate-800/80 flex items-center justify-between text-[10.5px]">
+        <span className="font-mono text-slate-300 font-medium text-[11px] tracking-tight">
           {device.ip_address}
         </span>
-        <span className="text-slate-500 font-medium text-[10px]">
+        <span className={`font-mono text-[9px] px-1.5 py-0.2 rounded border ${config.levelColor}`}>
           {device.purdue_level}
         </span>
       </div>
 
-      {/* Source / Destination flags during simulation */}
+      {/* Source / Destination flags */}
       {isSource && (
-        <div className="absolute -top-2 left-3 bg-blue-600 text-white text-[8px] font-mono font-bold px-1.5 py-[2px] rounded-sm shadow-xs tracking-wider">
+        <div className="absolute -top-2.5 left-3 bg-blue-600 text-white text-[8px] font-mono font-bold px-1.5 py-0.5 rounded shadow-sm tracking-wider">
           SRC
         </div>
       )}
       {isDestination && (
-        <div className="absolute -top-2 right-3 bg-emerald-600 text-white text-[8px] font-mono font-bold px-1.5 py-[2px] rounded-sm shadow-xs tracking-wider">
+        <div className="absolute -top-2.5 right-3 bg-emerald-600 text-white text-[8px] font-mono font-bold px-1.5 py-0.5 rounded shadow-sm tracking-wider">
           DST
         </div>
       )}
@@ -202,4 +207,3 @@ export const IndustrialNode: React.FC<IndustrialNodeProps> = memo(({ data }) => 
 });
 
 IndustrialNode.displayName = 'IndustrialNode';
-

@@ -1,7 +1,9 @@
 import React from 'react';
 import {
   Activity,
+  Cpu,
   FileCheck2,
+  Lock,
   Network,
   Radio,
   ScrollText,
@@ -9,13 +11,16 @@ import {
   Settings,
   Shield,
   ShieldAlert,
+  Zap,
 } from 'lucide-react';
 import { SectionType, useSimulatorStore } from '../../store/useSimulatorStore';
 
 interface NavItem {
   id: SectionType;
   label: string;
-  icon: React.ReactNode;
+  icon: (active: boolean) => React.ReactNode;
+  accentColor: string;
+  badge?: string;
 }
 
 interface NavSection {
@@ -30,114 +35,153 @@ const NAV_SECTIONS: NavSection[] = [
       {
         id: 'network-lab',
         label: 'Network Lab',
-        icon: <Network className="w-4 h-4 shrink-0" />,
+        accentColor: '#3b82f6',
+        icon: (active) => (
+          <Network className={`w-4 h-4 shrink-0 transition-transform duration-200 group-hover:scale-105 ${active ? 'text-blue-400' : 'text-slate-400 group-hover:text-blue-400'}`} />
+        ),
       },
       {
         id: 'device-inventory',
         label: 'Device Inventory',
-        icon: <Server className="w-4 h-4 shrink-0" />,
+        accentColor: '#f59e0b',
+        icon: (active) => (
+          <Server className={`w-4 h-4 shrink-0 transition-transform duration-200 group-hover:scale-105 ${active ? 'text-amber-400' : 'text-slate-400 group-hover:text-amber-400'}`} />
+        ),
       },
       {
         id: 'packet-inspector',
         label: 'Packet Inspector',
-        icon: <Radio className="w-4 h-4 shrink-0" />,
+        accentColor: '#a855f7',
+        icon: (active) => (
+          <Radio className={`w-4 h-4 shrink-0 transition-transform duration-200 group-hover:scale-105 ${active ? 'text-purple-400' : 'text-slate-400 group-hover:text-purple-400'}`} />
+        ),
       },
     ],
   },
   {
-    title: 'SECURITY & AUDIT',
+    title: 'CYBER DEFENSE & AUDIT',
     items: [
       {
         id: 'security-center',
         label: 'Security Center',
-        icon: <ShieldAlert className="w-4 h-4 shrink-0" />,
+        accentColor: '#f43f5e',
+        badge: '9 Scenarios',
+        icon: (active) => (
+          <ShieldAlert className={`w-4 h-4 shrink-0 transition-transform duration-200 group-hover:scale-105 ${active ? 'text-rose-400' : 'text-slate-400 group-hover:text-rose-400'}`} />
+        ),
       },
       {
         id: 'event-logs',
         label: 'Event Logs',
-        icon: <ScrollText className="w-4 h-4 shrink-0" />,
+        accentColor: '#38bdf8',
+        icon: (active) => (
+          <ScrollText className={`w-4 h-4 shrink-0 transition-transform duration-200 group-hover:scale-105 ${active ? 'text-sky-400' : 'text-slate-400 group-hover:text-sky-400'}`} />
+        ),
       },
       {
         id: 'lab-reports',
         label: 'Lab Reports',
-        icon: <FileCheck2 className="w-4 h-4 shrink-0" />,
+        accentColor: '#10b981',
+        icon: (active) => (
+          <FileCheck2 className={`w-4 h-4 shrink-0 transition-transform duration-200 group-hover:scale-105 ${active ? 'text-emerald-400' : 'text-slate-400 group-hover:text-emerald-400'}`} />
+        ),
       },
     ],
   },
   {
-    title: 'PLATFORM',
+    title: 'OPERATIONS',
     items: [
       {
         id: 'dashboard',
         label: 'Telemetry Overview',
-        icon: <Activity className="w-4 h-4 shrink-0" />,
+        accentColor: '#6366f1',
+        icon: (active) => (
+          <Activity className={`w-4 h-4 shrink-0 transition-transform duration-200 group-hover:scale-105 ${active ? 'text-indigo-400' : 'text-slate-400 group-hover:text-indigo-400'}`} />
+        ),
       },
       {
         id: 'settings',
         label: 'Settings',
-        icon: <Settings className="w-4 h-4 shrink-0" />,
+        accentColor: '#94a3b8',
+        icon: (active) => (
+          <Settings className={`w-4 h-4 shrink-0 transition-transform duration-200 group-hover:scale-105 ${active ? 'text-slate-300' : 'text-slate-400 group-hover:text-slate-200'}`} />
+        ),
       },
     ],
   },
 ];
+
 export const Sidebar: React.FC = () => {
-  const { activeSection, setActiveSection } = useSimulatorStore();
+  const { activeSection, setActiveSection, devices, isSimulating } = useSimulatorStore();
 
   return (
-    <aside className="w-64 bg-[#0a0f1d] border-r border-slate-800/80 flex flex-col h-full select-none shrink-0 z-20 shadow-xl shadow-black/20">
+    <aside className="w-64 bg-[#080d1a] border-r border-slate-800/80 flex flex-col h-full select-none shrink-0 z-20 shadow-xl shadow-black/60">
       {/* ─── Top Brand Header ─── */}
-      <div className="h-16 px-4.5 flex items-center gap-3.5 border-b border-slate-800/60 shrink-0 bg-[#070b14]/70">
-        <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-700 border border-blue-400/30 flex items-center justify-center text-white shadow-md shadow-blue-600/25 shrink-0">
-          <Shield className="w-4.5 h-4.5 text-white stroke-[2.2]" />
+      <div className="h-16 px-4.5 flex items-center justify-between border-b border-slate-800/80 shrink-0 bg-[#060913]/90 backdrop-blur-md">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="relative w-9 h-9 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center text-blue-400 shrink-0 group cursor-pointer shadow-sm">
+            <Shield className="w-4.5 h-4.5 text-blue-400 stroke-[2.2]" />
+          </div>
+          <div className="min-w-0">
+            <div className="flex items-center gap-1.5">
+              <h1 className="text-[14.5px] font-bold text-white tracking-tight leading-tight font-display">
+                CipherGrid
+              </h1>
+              <span className="px-1.5 py-0.2 rounded text-[9px] font-mono font-medium bg-slate-800 text-slate-300 border border-slate-700">
+                PRO
+              </span>
+            </div>
+            <p className="text-[10px] text-slate-400 font-mono tracking-wider uppercase leading-none mt-1">
+              SCADA / OT Simulator
+            </p>
+          </div>
         </div>
-        <div className="min-w-0">
-          <h1 className="text-[14px] font-bold text-slate-100 tracking-tight leading-tight">
-            CipherGrid
-          </h1>
-          <p className="text-[10px] text-blue-400/85 font-mono font-semibold tracking-wider uppercase leading-none mt-1">
-            ICS Simulator
-          </p>
-        </div>
+
+        {isSimulating && (
+          <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-500/15 border border-blue-500/30 text-blue-300 text-[10px] font-mono">
+            <Zap className="w-2.5 h-2.5" />
+            SIM
+          </span>
+        )}
       </div>
 
-      {/* ─── Middle Navigation: Spaciously Distributed & Stylish ─── */}
-      <nav className="flex-1 overflow-y-auto px-3.5 py-4 flex flex-col justify-around min-h-0">
+      {/* ─── Middle Navigation ─── */}
+      <nav className="flex-1 overflow-y-auto px-3 py-4 flex flex-col justify-around min-h-0 space-y-4">
         {NAV_SECTIONS.map((section) => (
           <div key={section.title} className="flex flex-col">
-            {/* Category Heading with stylish letter-spacing and tone */}
-            <div className="px-3 pb-2.5 text-[10px] font-bold text-slate-400/90 tracking-[0.14em] uppercase select-none">
-              {section.title}
+            <div className="px-3 pb-2 text-[10px] font-bold text-slate-400 font-mono tracking-[0.16em] uppercase select-none flex items-center justify-between">
+              <span>{section.title}</span>
             </div>
 
-            {/* Navigation Rows with spacious h-11 height and 8px gap */}
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               {section.items.map((item) => {
                 const isActive = activeSection === item.id;
                 return (
                   <button
                     key={item.id}
                     onClick={() => setActiveSection(item.id)}
-                    className={`group relative w-full h-11 flex items-center gap-3.5 px-3.5 rounded-xl text-[13px] font-medium transition-all duration-150 text-left cursor-pointer focus:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/50 ${
+                    className={`group relative w-full h-10.5 flex items-center justify-between px-3.5 rounded-xl text-[13px] font-medium transition-colors duration-150 text-left cursor-pointer focus:outline-none ${
                       isActive
-                        ? 'bg-blue-600/[0.14] text-white font-semibold border border-blue-500/30 shadow-xs shadow-blue-500/10'
-                        : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800/40 hover:border-slate-700/40 border border-transparent'
+                        ? 'bg-slate-800/80 text-white font-semibold border border-slate-700'
+                        : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800/40 hover:border-slate-700/50 border border-transparent'
                     }`}
                   >
-                    {/* Active Left Indicator Bar with subtle luminous glow */}
                     {isActive && (
-                      <span className="absolute left-0 top-2.5 bottom-2.5 w-1 rounded-r-md bg-gradient-to-b from-blue-400 to-blue-600 shadow-[0_0_8px_rgba(59,130,246,0.6)]" />
+                      <span
+                        className="absolute left-0 top-2 bottom-2 w-1 rounded-r-md bg-blue-500"
+                      />
                     )}
 
-                    <span
-                      className={`transition-colors shrink-0 ${
-                        isActive
-                          ? 'text-blue-400'
-                          : 'text-slate-400 group-hover:text-slate-200'
-                      }`}
-                    >
-                      {item.icon}
-                    </span>
-                    <span className="truncate">{item.label}</span>
+                    <div className="flex items-center gap-3 min-w-0">
+                      {item.icon(isActive)}
+                      <span className="truncate">{item.label}</span>
+                    </div>
+
+                    {item.badge && (
+                      <span className="text-[9.5px] font-mono px-1.5 py-0.5 rounded bg-slate-800/80 border border-slate-700/60 text-slate-400 group-hover:text-slate-300">
+                        {item.badge}
+                      </span>
+                    )}
                   </button>
                 );
               })}
@@ -146,25 +190,28 @@ export const Sidebar: React.FC = () => {
         ))}
       </nav>
 
-      {/* ─── Bottom Grounded Product Footer ─── */}
-      <div className="p-3.5 border-t border-slate-800/70 shrink-0 bg-[#070b14]/80 mt-auto">
-        <div className="bg-[#0e1628]/90 border border-slate-800/80 rounded-xl px-3.5 py-2.5 flex items-center justify-between shadow-xs">
-          <div className="flex items-center gap-2.5 min-w-0">
-            <div className="w-8 h-8 rounded-lg bg-blue-950/60 border border-blue-500/25 flex items-center justify-center text-blue-400 shrink-0">
-              <Shield className="w-4 h-4" />
+      {/* ─── Bottom Grounded Product Footer & Telemetry Widget ─── */}
+      <div className="p-3 border-t border-slate-800/80 shrink-0 bg-[#060913]/90 backdrop-blur-md mt-auto">
+        <div className="bg-[#0e1628]/95 border border-slate-700/50 rounded-xl p-3 shadow-inner">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-emerald-500" />
+              <span className="text-[11px] font-semibold text-slate-200 font-display">SIM ENGINE</span>
             </div>
-            <div className="min-w-0">
-              <div className="text-[12px] font-semibold text-slate-200 leading-tight truncate">
-                ICS Simulator
-              </div>
-              <div className="text-[10px] text-slate-400 font-mono tracking-tight mt-0.5">
-                v1.0.0
-              </div>
-            </div>
+            <span className="text-[10px] font-mono text-slate-300 bg-slate-800 px-1.5 py-0.5 rounded border border-slate-700">
+              AES-256-GCM
+            </span>
           </div>
-          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-medium shrink-0">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-            <span>Online</span>
+
+          <div className="grid grid-cols-2 gap-2 pt-1 border-t border-slate-800/80 text-[10.5px] font-mono">
+            <div>
+              <div className="text-slate-400 text-[9px] uppercase">Topology</div>
+              <div className="text-slate-200 font-semibold">{devices.length} Nodes</div>
+            </div>
+            <div>
+              <div className="text-slate-400 text-[9px] uppercase">Engine</div>
+              <div className="text-emerald-400 font-semibold">Active</div>
+            </div>
           </div>
         </div>
       </div>
