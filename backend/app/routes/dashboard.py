@@ -1,4 +1,8 @@
 """Dashboard Operational Overview API Routes."""
+# API Route Documentation:
+# - GET /api/dashboard/stats: Aggregates real-time packet metrics, threat counters, and device operational statuses.
+# - GET /api/dashboard/system-health: Evaluates uptime, memory footprint, and SQLite storage integrity.
+
 from flask import Blueprint, jsonify
 from ..database.db import query_db
 
