@@ -105,6 +105,20 @@ const NetworkLabContent: React.FC = () => {
   }, [devices, selectedDevice, setSelectedDevice]);
 
   const nodes: Node[] = useMemo(() => {
+    const secStatus = (selectedEvent?.security_status || lastResult?.status || '').toLowerCase();
+    const isTampered =
+      selectedEvent?.packet_state === 'Rejected' ||
+      selectedEvent?.packet_state === 'Failed' ||
+      secStatus.includes('mismatch') ||
+      secStatus.includes('tamper') ||
+      secStatus.includes('invalid') ||
+      secStatus.includes('replay') ||
+      secStatus.includes('violation') ||
+      secStatus.includes('attack') ||
+      secStatus.includes('denied');
+
+    const isSimulating = playbackState === 'playing' || playbackState === 'paused';
+
     return devices.map((d) => {
       const isSelected = selectedDevice?.id === d.id;
       const isHighlighted = highlightedPath.includes(d.id);
@@ -118,10 +132,20 @@ const NetworkLabContent: React.FC = () => {
         position: { x: d.position_x, y: d.position_y },
         width: 240,
         height: 86,
-        data: { device: d, isSelected, isHighlighted, isActiveHop, isSource, isDestination },
+        data: {
+          device: d,
+          isSelected,
+          isHighlighted,
+          isActiveHop,
+          isSource,
+          isDestination,
+          laserStatus: isTampered ? 'tampered' : 'accepted',
+          isSimulating,
+        },
       };
     });
-  }, [devices, selectedDevice, highlightedPath, activeHopId]);
+  }, [devices, selectedDevice, highlightedPath, activeHopId, selectedEvent, lastResult, playbackState]);
+
 
   // Edges: Interactive Laser Edge with animated energy pulse & tamper explosion
   const edges: Edge[] = useMemo(() => {

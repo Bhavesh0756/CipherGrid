@@ -23,6 +23,8 @@ interface IndustrialNodeProps {
     isActiveHop?: boolean;
     isSource?: boolean;
     isDestination?: boolean;
+    laserStatus?: 'accepted' | 'tampered' | 'idle';
+    isSimulating?: boolean;
   };
 }
 
@@ -92,7 +94,16 @@ const DEVICE_CONFIG: Record<
 };
 
 export const IndustrialNode: React.FC<IndustrialNodeProps> = memo(({ data }) => {
-  const { device, isSelected, isHighlighted, isActiveHop, isSource, isDestination } = data;
+  const {
+    device,
+    isSelected,
+    isHighlighted,
+    isActiveHop,
+    isSource,
+    isDestination,
+    laserStatus = 'idle',
+    isSimulating = false,
+  } = data;
   const config =
     DEVICE_CONFIG[device.device_type] || {
       icon: <Activity className="w-4 h-4 text-slate-400" />,
@@ -106,11 +117,19 @@ export const IndustrialNode: React.FC<IndustrialNodeProps> = memo(({ data }) => 
 
   const displayName = device.name.replace(/\s+PLC$/i, '').trim();
 
-  // Subtle clean border styles without glaring neon lights
+  // Subtle clean border styles or energetic laser resonance
   let borderClasses = `border-l-4 ${config.borderAccent} border-slate-800`;
   let ringClasses = '';
 
-  if (isActiveHop) {
+  if (isActiveHop && isSimulating) {
+    if (laserStatus === 'tampered') {
+      borderClasses = 'border-l-4 border-l-rose-500 border-rose-500';
+      ringClasses = 'ring-2 ring-rose-500/80 node-laser-tampered';
+    } else {
+      borderClasses = 'border-l-4 border-l-emerald-400 border-emerald-500';
+      ringClasses = 'ring-2 ring-emerald-500/80 node-laser-accepted';
+    }
+  } else if (isActiveHop) {
     borderClasses = 'border-l-4 border-l-blue-400 border-blue-500';
     ringClasses = 'ring-2 ring-blue-500/60 node-active-hop';
   } else if (isSelected) {
@@ -156,28 +175,47 @@ export const IndustrialNode: React.FC<IndustrialNodeProps> = memo(({ data }) => 
           </div>
         </div>
 
-        {/* Status Pill — subtle matte styling */}
+        {/* Status Pill or Active Laser Transit Indicator */}
         <div className="shrink-0 flex items-center gap-1.5">
-          <span
-            className={`w-1.5 h-1.5 rounded-full ${
-              device.is_enabled && isTrusted
-                ? 'bg-emerald-500'
-                : isUntrusted
-                ? 'bg-rose-500'
-                : 'bg-amber-500'
-            }`}
-          />
-          <span
-            className={`text-[9px] font-mono font-medium px-1.5 py-0.2 rounded border ${
-              isTrusted
-                ? 'bg-emerald-950/40 text-emerald-400 border-emerald-800/40'
-                : isUntrusted
-                ? 'bg-rose-950/40 text-rose-400 border-rose-800/40'
-                : 'bg-amber-950/40 text-amber-400 border-amber-800/40'
-            }`}
-          >
-            {isTrusted ? 'TRUST' : isUntrusted ? 'ROGUE' : 'STANDBY'}
-          </span>
+          {isActiveHop && isSimulating ? (
+            <span
+              className={`text-[8.5px] font-mono font-bold px-1.5 py-0.5 rounded-full border flex items-center gap-1 ${
+                laserStatus === 'tampered'
+                  ? 'bg-rose-950/90 text-rose-300 border-rose-500 animate-pulse'
+                  : 'bg-emerald-950/90 text-emerald-300 border-emerald-500 animate-pulse'
+              }`}
+            >
+              <span
+                className={`w-1.5 h-1.5 rounded-full ${
+                  laserStatus === 'tampered' ? 'bg-rose-400 animate-ping' : 'bg-emerald-400'
+                }`}
+              />
+              {laserStatus === 'tampered' ? 'TAMPER' : 'LASER'}
+            </span>
+          ) : (
+            <>
+              <span
+                className={`w-1.5 h-1.5 rounded-full ${
+                  device.is_enabled && isTrusted
+                    ? 'bg-emerald-500'
+                    : isUntrusted
+                    ? 'bg-rose-500'
+                    : 'bg-amber-500'
+                }`}
+              />
+              <span
+                className={`text-[9px] font-mono font-medium px-1.5 py-0.2 rounded border ${
+                  isTrusted
+                    ? 'bg-emerald-950/40 text-emerald-400 border-emerald-800/40'
+                    : isUntrusted
+                    ? 'bg-rose-950/40 text-rose-400 border-rose-800/40'
+                    : 'bg-amber-950/40 text-amber-400 border-amber-800/40'
+                }`}
+              >
+                {isTrusted ? 'TRUST' : isUntrusted ? 'ROGUE' : 'STANDBY'}
+              </span>
+            </>
+          )}
         </div>
       </div>
 
