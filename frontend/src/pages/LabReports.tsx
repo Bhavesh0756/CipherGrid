@@ -1,4 +1,8 @@
 import React, { useEffect } from 'react';
+/**
+ * LabReports Component
+ * Forensic auditing interface for generating IEC 62443 compliance scores, vulnerability breakdowns, and executive summaries.
+ */
 import {
   CheckCircle2,
   Download,
