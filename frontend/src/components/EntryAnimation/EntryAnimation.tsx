@@ -1,3 +1,6 @@
+/**
+ * EntryAnimation - Cyber-industrial boot sequence powered by Anime.js v4.
+ */
 import React, { useEffect, useState, useRef } from 'react';
 import { animate, createTimeline, stagger } from 'animejs';
 import {
