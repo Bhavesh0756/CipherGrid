@@ -1,4 +1,4 @@
-# Secure Industrial Control System Communication Simulator
+# Secure Industrial Control System Communication Simulator (CipherGrid)
 
 An educational cybersecurity and industrial network simulation platform designed to model virtual SCADA/ICS environments, visualize hop-by-hop packet communication across Purdue Model levels, and demonstrate how cryptographic mechanisms and access control policies protect critical infrastructure messages.
 
