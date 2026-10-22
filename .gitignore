@@ -59,6 +59,7 @@ frontend/dist-ssr/
 *.swp
 *.swo
 
-# OS
+# OS & Temp
 .DS_Store
 Thumbs.db
+*.tmp
