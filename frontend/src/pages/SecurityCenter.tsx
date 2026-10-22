@@ -1,4 +1,8 @@
 import React, { useEffect, useState } from 'react';
+/**
+ * SecurityCenter Component
+ * Security configuration cockpit for cryptographic suite selection, RBAC policy enforcement, and MITM adversarial triggers.
+ */
 import {
   CheckCircle2,
   Cpu,
