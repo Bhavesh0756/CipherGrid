@@ -1,4 +1,10 @@
 """Virtual Device Management API Routes."""
+# API Route Documentation:
+# - GET /api/devices: Returns full list of provisioned ICS/SCADA field units.
+# - POST /api/devices: Enforces Purdue Level validation (Levels 0 through 4) and unique IP assignments.
+# - PUT /api/devices/<id>: Updates device role, protocol profile, or security configuration.
+# - DELETE /api/devices/<id>: Decommissions device and updates network topology adjacency matrix.
+
 import json
 from datetime import datetime, timezone
 from flask import Blueprint, request, jsonify
