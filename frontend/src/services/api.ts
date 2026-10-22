@@ -1,4 +1,8 @@
 import type {
+/**
+ * CipherGrid Industrial Security Simulator API Service
+ * Centralized REST client with auto-reconnecting fetch, base URL resolution, and typed error handling.
+ */
   AuditLog,
   DashboardStats,
   Device,
