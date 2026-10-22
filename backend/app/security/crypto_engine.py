@@ -20,6 +20,7 @@ from cryptography.exceptions import InvalidTag, InvalidSignature
 _PROCESSED_MESSAGE_IDS = set()
 _PROCESSED_NONCES = set()
 
+# Utility function for test fixtures and state re-initialization
 def reset_replay_cache():
     """Clears the replay detection cache (e.g. for testing or session reset)."""
     global _PROCESSED_MESSAGE_IDS, _PROCESSED_NONCES
