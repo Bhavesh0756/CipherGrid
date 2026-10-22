@@ -1,4 +1,8 @@
 import React, { useState } from 'react';
+/**
+ * DeviceInventory Component
+ * Manages industrial field hardware asset tracking, IP allocation, Purdue level assignment, and operational statuses.
+ */
 import {
   CheckCircle,
   Filter,
