@@ -1,4 +1,9 @@
 """Cybersecurity Engine and Scenario Runner API Routes."""
+# API Route Documentation:
+# - GET /api/security/policy: Retrieves current cryptographic rules, active cipher suites, and ACL matrix.
+# - POST /api/security/policy: Hot-reloads cipher suite (AES-256-GCM / ChaCha20-Poly1305) and key rotation timers.
+# - POST /api/security/mitm/toggle: Simulates active packet tampering, replay attacks, or man-in-the-middle interception.
+
 import json
 from flask import Blueprint, request, jsonify
 from ..simulation.scenarios import list_security_scenarios, run_security_scenario
