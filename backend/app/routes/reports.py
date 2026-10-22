@@ -1,4 +1,9 @@
 """Engineering Lab Reports and Export API Routes."""
+# API Route Documentation:
+# - GET /api/reports/compliance: Generates security compliance audit against IEC 62443 / NIST SP 800-82.
+# - GET /api/reports/export/pdf: Exports comprehensive lab simulation summary report.
+# - GET /api/reports/export/csv: Serializes packet inspection frames for forensic evaluation.
+
 import csv
 import io
 import json
