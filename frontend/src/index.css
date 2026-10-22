@@ -336,4 +336,76 @@ code, pre, .font-mono {
   animation: quantumFloat 6s ease-in-out infinite;
 }
 
+/* ─── OT Network Laser Edge & Particle Explosion Keyframes ─── */
+@keyframes laserFlow {
+  from {
+    stroke-dashoffset: 44;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes shockwaveRingExpand {
+  0% {
+    r: 6;
+    stroke-width: 3.5;
+    opacity: 1;
+    stroke: #fb7185;
+  }
+  50% {
+    stroke-width: 2;
+    opacity: 0.8;
+  }
+  100% {
+    r: 32;
+    stroke-width: 0.5;
+    opacity: 0;
+    stroke: #e11d48;
+  }
+}
+
+@keyframes sparkBurstScale {
+  0% {
+    transform: scale(0.3) rotate(0deg);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.15) rotate(15deg);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(1.4) rotate(30deg);
+    opacity: 0;
+  }
+}
+
+.animate-laser-flow {
+  animation: laserFlow 0.65s linear infinite;
+}
+
+.animate-shockwave-ring {
+  animation: shockwaveRingExpand 0.85s ease-out infinite;
+  transform-origin: center;
+}
+
+.animate-spark-burst {
+  animation: sparkBurstScale 0.6s ease-out infinite;
+  transform-origin: center;
+}
+
+/* Energetic node resonance during laser transit */
+.node-laser-accepted {
+  box-shadow: 0 0 25px rgba(16, 185, 129, 0.45), inset 0 0 15px rgba(16, 185, 129, 0.2) !important;
+  border-color: rgba(52, 211, 153, 0.8) !important;
+  transition: all 0.3s ease;
+}
+
+.node-laser-tampered {
+  box-shadow: 0 0 30px rgba(244, 63, 94, 0.55), inset 0 0 18px rgba(244, 63, 94, 0.3) !important;
+  border-color: rgba(244, 63, 94, 0.9) !important;
+  transition: all 0.3s ease;
+}
+
+
 
