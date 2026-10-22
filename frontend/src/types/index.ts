@@ -98,6 +98,7 @@ export interface SimulationEvent {
   source_id: string;
   destination_id: string;
   current_hop: string;
+  next_hop?: string;
   message_type: MessageType;
   packet_state: PacketState;
   security_status: string;

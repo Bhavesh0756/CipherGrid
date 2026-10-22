@@ -129,7 +129,10 @@ const NetworkLabContent: React.FC = () => {
     let activeSrc: string | null = null;
     let activeDst: string | null = null;
 
-    if (highlightedPath.length > 1 && activeHopId) {
+    if (selectedEvent?.current_hop && selectedEvent?.next_hop) {
+      activeSrc = selectedEvent.current_hop;
+      activeDst = selectedEvent.next_hop;
+    } else if (highlightedPath.length > 1 && activeHopId) {
       const hopIdx = highlightedPath.indexOf(activeHopId);
       if (hopIdx > 0) {
         activeSrc = highlightedPath[hopIdx - 1];

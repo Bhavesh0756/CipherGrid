@@ -391,6 +391,7 @@ export const useSimulatorStore = create<SimulatorStore>((set, get) => {
           source_id: ev.source_device || params.sender_id,
           destination_id: ev.destination_device || params.receiver_id,
           current_hop: ev.current_hop,
+          next_hop: ev.next_hop,
           message_type: params.message_type as any,
           packet_state: ev.packet_state,
           security_status: ev.security_status,
