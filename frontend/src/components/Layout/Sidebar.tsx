@@ -115,34 +115,34 @@ export const Sidebar: React.FC = () => {
   const { activeSection, setActiveSection, devices, isSimulating, triggerIntroAnimation } = useSimulatorStore();
 
   return (
-    <aside className="w-64 bg-[#080d1a] border-r border-slate-800/80 flex flex-col h-full select-none shrink-0 z-20 shadow-xl shadow-black/60">
+    <aside className="w-56 bg-[#080d1a] border-r border-slate-800/80 flex flex-col h-full select-none shrink-0 z-20 shadow-xl shadow-black/60">
       {/* ─── Top Brand Header ─── */}
-      <div className="h-16 px-4.5 flex items-center justify-between border-b border-slate-800/80 shrink-0 bg-[#060913]/90 backdrop-blur-md">
+      <div className="h-15 px-3.5 flex items-center justify-between border-b border-slate-800/80 shrink-0 bg-[#060913]/90 backdrop-blur-md">
         <div
           onClick={() => triggerIntroAnimation()}
           title="Click to replay Entry Animation"
-          className="flex items-center gap-3 min-w-0 cursor-pointer group"
+          className="flex items-center gap-2.5 min-w-0 cursor-pointer group"
         >
-          <div className="relative w-9 h-9 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center text-blue-400 shrink-0 shadow-sm transition-all duration-200 group-hover:border-cyan-500/50 group-hover:shadow-[0_0_15px_rgba(6,182,212,0.3)]">
-            <Shield className="w-4.5 h-4.5 text-blue-400 stroke-[2.2] transition-transform duration-200 group-hover:scale-110 group-hover:text-cyan-400" />
+          <div className="relative w-8 h-8 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center text-blue-400 shrink-0 shadow-sm transition-all duration-200 group-hover:border-cyan-500/50 group-hover:shadow-[0_0_15px_rgba(6,182,212,0.3)]">
+            <Shield className="w-4 h-4 text-blue-400 stroke-[2.2] transition-transform duration-200 group-hover:scale-110 group-hover:text-cyan-400" />
           </div>
           <div className="min-w-0">
-            <div className="flex items-center gap-1.5">
-              <h1 className="text-[14.5px] font-bold text-white tracking-tight leading-tight font-display group-hover:text-cyan-300 transition-colors">
+            <div className="flex items-center gap-1">
+              <h1 className="text-[13.5px] font-bold text-white tracking-tight leading-tight font-display group-hover:text-cyan-300 transition-colors">
                 CipherGrid
               </h1>
-              <span className="px-1.5 py-0.2 rounded text-[9px] font-mono font-medium bg-slate-800 text-slate-300 border border-slate-700 group-hover:border-cyan-500/40">
+              <span className="px-1 py-0.2 rounded text-[8.5px] font-mono font-medium bg-slate-800 text-slate-300 border border-slate-700 group-hover:border-cyan-500/40">
                 PRO
               </span>
             </div>
-            <p className="text-[10px] text-slate-400 font-mono tracking-wider uppercase leading-none mt-1 group-hover:text-slate-300">
+            <p className="text-[9.5px] text-slate-400 font-mono tracking-wider uppercase leading-none mt-0.5 group-hover:text-slate-300">
               SCADA / OT Simulator
             </p>
           </div>
         </div>
 
         {isSimulating && (
-          <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-500/15 border border-blue-500/30 text-blue-300 text-[10px] font-mono">
+          <span className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-blue-500/15 border border-blue-500/30 text-blue-300 text-[9px] font-mono">
             <Zap className="w-2.5 h-2.5" />
             SIM
           </span>
@@ -150,21 +150,21 @@ export const Sidebar: React.FC = () => {
       </div>
 
       {/* ─── Middle Navigation ─── */}
-      <nav className="flex-1 overflow-y-auto px-3 py-4 flex flex-col justify-around min-h-0 space-y-4">
+      <nav className="flex-1 overflow-y-auto px-2.5 py-3 flex flex-col justify-around min-h-0 space-y-3">
         {NAV_SECTIONS.map((section) => (
           <div key={section.title} className="flex flex-col">
-            <div className="px-3 pb-2 text-[10px] font-bold text-slate-400 font-mono tracking-[0.16em] uppercase select-none flex items-center justify-between">
+            <div className="px-2.5 pb-1.5 text-[9.5px] font-bold text-slate-400 font-mono tracking-[0.16em] uppercase select-none flex items-center justify-between">
               <span>{section.title}</span>
             </div>
 
-            <div className="space-y-1.5">
+            <div className="space-y-1">
               {section.items.map((item) => {
                 const isActive = activeSection === item.id;
                 return (
                   <button
                     key={item.id}
                     onClick={() => setActiveSection(item.id)}
-                    className={`group relative w-full h-10.5 flex items-center justify-between px-3.5 rounded-xl text-[13px] font-medium transition-colors duration-150 text-left cursor-pointer focus:outline-none ${
+                    className={`group relative w-full h-9 flex items-center justify-between px-2.5 rounded-lg text-[12px] font-medium transition-colors duration-150 text-left cursor-pointer focus:outline-none ${
                       isActive
                         ? 'bg-slate-800/80 text-white font-semibold border border-slate-700'
                         : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800/40 hover:border-slate-700/50 border border-transparent'
@@ -172,17 +172,17 @@ export const Sidebar: React.FC = () => {
                   >
                     {isActive && (
                       <span
-                        className="absolute left-0 top-2 bottom-2 w-1 rounded-r-md bg-blue-500"
+                        className="absolute left-0 top-1.5 bottom-1.5 w-1 rounded-r-md bg-blue-500"
                       />
                     )}
 
-                    <div className="flex items-center gap-3 min-w-0">
+                    <div className="flex items-center gap-2.5 min-w-0">
                       {item.icon(isActive)}
                       <span className="truncate">{item.label}</span>
                     </div>
 
                     {item.badge && (
-                      <span className="text-[9.5px] font-mono px-1.5 py-0.5 rounded bg-slate-800/80 border border-slate-700/60 text-slate-400 group-hover:text-slate-300">
+                      <span className="text-[9px] font-mono px-1 py-0.2 rounded bg-slate-800/80 border border-slate-700/60 text-slate-400 group-hover:text-slate-300">
                         {item.badge}
                       </span>
                     )}
@@ -195,25 +195,25 @@ export const Sidebar: React.FC = () => {
       </nav>
 
       {/* ─── Bottom Grounded Product Footer & Telemetry Widget ─── */}
-      <div className="p-3 border-t border-slate-800/80 shrink-0 bg-[#060913]/90 backdrop-blur-md mt-auto">
-        <div className="bg-[#0e1628]/95 border border-slate-700/50 rounded-xl p-3 shadow-inner">
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-emerald-500" />
-              <span className="text-[11px] font-semibold text-slate-200 font-display">SIM ENGINE</span>
+      <div className="p-2.5 border-t border-slate-800/80 shrink-0 bg-[#060913]/90 backdrop-blur-md mt-auto">
+        <div className="bg-[#0e1628]/95 border border-slate-700/50 rounded-xl p-2.5 shadow-inner">
+          <div className="flex items-center justify-between mb-1.5">
+            <div className="flex items-center gap-1.5">
+              <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+              <span className="text-[10.5px] font-semibold text-slate-200 font-display">SIM ENGINE</span>
             </div>
-            <span className="text-[10px] font-mono text-slate-300 bg-slate-800 px-1.5 py-0.5 rounded border border-slate-700">
+            <span className="text-[9px] font-mono text-slate-300 bg-slate-800 px-1 py-0.2 rounded border border-slate-700">
               AES-256-GCM
             </span>
           </div>
 
-          <div className="grid grid-cols-2 gap-2 pt-1 border-t border-slate-800/80 text-[10.5px] font-mono">
+          <div className="grid grid-cols-2 gap-1.5 pt-1 border-t border-slate-800/80 text-[10px] font-mono">
             <div>
-              <div className="text-slate-400 text-[9px] uppercase">Topology</div>
+              <div className="text-slate-400 text-[8.5px] uppercase">Topology</div>
               <div className="text-slate-200 font-semibold">{devices.length} Nodes</div>
             </div>
             <div>
-              <div className="text-slate-400 text-[9px] uppercase">Engine</div>
+              <div className="text-slate-400 text-[8.5px] uppercase">Engine</div>
               <div className="text-emerald-400 font-semibold">Active</div>
             </div>
           </div>
