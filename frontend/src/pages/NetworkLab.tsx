@@ -96,17 +96,6 @@ const NetworkLabContent: React.FC = () => {
     }
   }, [devices.length, fitView, getZoom]);
 
-  // Select Core OT Ethernet Switch by default if none selected
-  useEffect(() => {
-    if (!selectedDevice && devices.length > 0) {
-      const switchDev =
-        devices.find((d) => d.name.toLowerCase().includes('switch')) ||
-        devices.find((d) => d.device_type === 'Ethernet Switch') ||
-        devices[0];
-      setSelectedDevice(switchDev);
-    }
-  }, [devices, selectedDevice, setSelectedDevice]);
-
   const nodes: Node[] = useMemo(() => {
     const secStatus = (selectedEvent?.security_status || lastResult?.status || '').toLowerCase();
     const isTampered =
@@ -271,7 +260,9 @@ const NetworkLabContent: React.FC = () => {
     [devices, setSelectedDevice]
   );
 
-  const onPaneClick = useCallback(() => {}, []);
+  const onPaneClick = useCallback(() => {
+    setSelectedDevice(null);
+  }, [setSelectedDevice]);
 
   const onConnect = useCallback(
     (params: FlowConnection) => {
