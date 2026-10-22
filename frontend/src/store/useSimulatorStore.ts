@@ -41,6 +41,7 @@ interface SimulatorStore {
   selectedDevice: Device | null;
   isLoading: boolean;
   error: string | null;
+  clearError: () => void;
 
   // Actions on Topology
   fetchTopology: () => Promise<void>;
@@ -156,6 +157,7 @@ export const useSimulatorStore = create<SimulatorStore>((set, get) => {
     selectedDevice: null,
     isLoading: false,
     error: null,
+    clearError: () => set({ error: null }),
 
     fetchTopology: async () => {
       set({ isLoading: true, error: null });

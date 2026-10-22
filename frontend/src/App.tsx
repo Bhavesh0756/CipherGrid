@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { X } from 'lucide-react';
 import { EntryAnimation } from './components/EntryAnimation/EntryAnimation';
 import { Sidebar } from './components/Layout/Sidebar';
 import { Topbar } from './components/Layout/Topbar';
@@ -13,11 +14,21 @@ import { Settings } from './pages/Settings';
 import { useSimulatorStore } from './store/useSimulatorStore';
 
 export const App: React.FC = () => {
-  const { activeSection, fetchTopology, error } = useSimulatorStore();
+  const { activeSection, fetchTopology, error, clearError } = useSimulatorStore();
 
   useEffect(() => {
     fetchTopology();
   }, [fetchTopology]);
+
+  // Auto-dismiss transient error after 6 seconds
+  useEffect(() => {
+    if (error) {
+      const timer = setTimeout(() => {
+        clearError();
+      }, 6000);
+      return () => clearTimeout(timer);
+    }
+  }, [error, clearError]);
 
   const renderActiveSection = () => {
     switch (activeSection) {
@@ -61,6 +72,13 @@ export const App: React.FC = () => {
                 <span className="w-2 h-2 rounded-full bg-rose-500 animate-ping" />
                 <span className="font-mono font-medium">{error}</span>
               </div>
+              <button
+                onClick={clearError}
+                className="p-1 rounded hover:bg-rose-900/60 text-rose-300 hover:text-white transition-colors cursor-pointer"
+                title="Dismiss message"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
             </div>
           )}
           {renderActiveSection()}

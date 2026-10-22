@@ -82,14 +82,45 @@ def simulate_industrial_message(
     msg_num = query_db("SELECT COUNT(*) as cnt FROM messages", one=True)["cnt"] + 1
     message_id = f"MSG-{now[:10].replace('-', '')}-{msg_num:04d}"
 
-    # Fetch devices from DB (with flexible ID, case-insensitive, or Name lookup)
+    # Fetch devices from DB (with flexible ID, case-insensitive, Name, or Role/Type lookup)
     sender = query_db("SELECT * FROM devices WHERE id = ?", (sender_id,), one=True)
     if not sender:
         sender = query_db("SELECT * FROM devices WHERE LOWER(id) = LOWER(?) OR LOWER(name) = LOWER(?)", (sender_id, sender_id), one=True)
+    if not sender:
+        s_low = str(sender_id).lower()
+        if "sensor" in s_low:
+            sender = query_db("SELECT * FROM devices WHERE LOWER(type) LIKE '%sensor%' OR LOWER(role) LIKE '%sensor%' LIMIT 1", one=True)
+        elif "plc" in s_low or "controller" in s_low:
+            sender = query_db("SELECT * FROM devices WHERE LOWER(type) LIKE '%plc%' OR LOWER(role) LIKE '%plc%' OR LOWER(role) LIKE '%controller%' LIMIT 1", one=True)
+        elif "untrusted" in s_low or "rogue" in s_low:
+            sender = query_db("SELECT * FROM devices WHERE LOWER(type) LIKE '%untrusted%' OR LOWER(role) LIKE '%untrusted%' OR LOWER(trust_status) = 'untrusted' LIMIT 1", one=True)
 
     receiver = query_db("SELECT * FROM devices WHERE id = ?", (receiver_id,), one=True)
     if not receiver:
         receiver = query_db("SELECT * FROM devices WHERE LOWER(id) = LOWER(?) OR LOWER(name) = LOWER(?)", (receiver_id, receiver_id), one=True)
+    if not receiver:
+        r_low = str(receiver_id).lower()
+        if "scada" in r_low or "server" in r_low:
+            receiver = query_db("SELECT * FROM devices WHERE LOWER(type) LIKE '%scada%' OR LOWER(role) LIKE '%scada%' OR LOWER(name) LIKE '%scada%' LIMIT 1", one=True)
+        elif "plc" in r_low or "controller" in r_low:
+            receiver = query_db("SELECT * FROM devices WHERE LOWER(type) LIKE '%plc%' OR LOWER(role) LIKE '%plc%' OR LOWER(role) LIKE '%controller%' LIMIT 1", one=True)
+
+    # If registry was emptied or devices missing, auto-seed default topology
+    if not sender or not receiver:
+        device_count = query_db("SELECT COUNT(*) as cnt FROM devices", one=True)["cnt"]
+        if device_count < 2:
+            from ..database.db import seed_default_topology
+            seed_default_topology()
+            if not sender:
+                sender = query_db("SELECT * FROM devices WHERE id = ?", (sender_id,), one=True) or query_db("SELECT * FROM devices LIMIT 1", one=True)
+            if not receiver:
+                receiver = query_db("SELECT * FROM devices WHERE id = ?", (receiver_id,), one=True) or query_db("SELECT * FROM devices WHERE id != ? LIMIT 1", (sender["id"] if sender else "",), one=True)
+
+    # Fallback to any distinct available device in the database so simulation never hard-crashes
+    if not sender:
+        sender = query_db("SELECT * FROM devices LIMIT 1", one=True)
+    if not receiver and sender:
+        receiver = query_db("SELECT * FROM devices WHERE id != ? LIMIT 1", (sender["id"],), one=True) or sender
 
     if not sender:
         raise ValueError(f"Sender device '{sender_id}' not found in registry.")
