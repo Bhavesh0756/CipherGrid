@@ -64,7 +64,6 @@ export const Topbar: React.FC = () => {
     activeSection,
     setActiveSection,
     devices,
-    triggerIntroAnimation,
   } = useSimulatorStore();
 
   const [backendStatus, setBackendStatus] = useState<'checking' | 'connected' | 'disconnected'>('checking');
@@ -216,16 +215,6 @@ export const Topbar: React.FC = () => {
         >
           <Save className="w-3.5 h-3.5 text-slate-400" />
           <span>Save</span>
-        </button>
-
-        {/* Action: Replay Entry Animation */}
-        <button
-          onClick={triggerIntroAnimation}
-          className="flex items-center gap-1.5 px-2.5 py-1.5 bg-slate-900/90 hover:bg-slate-800 active:bg-slate-700 border border-slate-700/80 text-cyan-400 hover:text-cyan-300 rounded-lg text-xs font-medium transition-all shadow-xs cursor-pointer"
-          title="Replay Cyber Entry Animation"
-        >
-          <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
-          <span className="hidden sm:inline">Intro</span>
         </button>
 
         {/* Notifications Icon & Popover */}
