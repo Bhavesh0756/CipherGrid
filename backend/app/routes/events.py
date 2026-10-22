@@ -1,4 +1,9 @@
 """Audit Logs and Simulation Events API Routes."""
+# API Route Documentation:
+# - GET /api/events/packet-stream: Streams real-time packet transit hops and verification events.
+# - GET /api/events/audit-logs: Queries immutable audit trail with severity and date range filtering.
+# - DELETE /api/events/audit-logs: Flushes transient event telemetry while preserving baseline benchmarks.
+
 import csv
 import io
 import json
