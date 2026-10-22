@@ -8,7 +8,26 @@ import type {
   TopologyData,
 } from '../types';
 
-const BASE_URL = '/api';
+/**
+ * Resolves the API base URL:
+ * 1. If VITE_API_BASE_URL is provided, normalize trailing slashes and ensure it ends with '/api'.
+ * 2. In production mode (e.g. deployed on Vercel), fall back to the live Render backend:
+ *    https://aegisgrid-backend.onrender.com/api
+ * 3. In local development without env, fall back to '/api' which routes through the local Vite dev proxy.
+ */
+function resolveBaseUrl(): string {
+  const envUrl = (import.meta.env.VITE_API_BASE_URL || '').trim();
+  if (envUrl) {
+    const sanitized = envUrl.replace(/\/+$/, '');
+    return sanitized.endsWith('/api') ? sanitized : `${sanitized}/api`;
+  }
+  if (import.meta.env.PROD) {
+    return 'https://aegisgrid-backend.onrender.com/api';
+  }
+  return '/api';
+}
+
+const BASE_URL = resolveBaseUrl();
 
 async function handleResponse<T>(res: Response): Promise<T> {
   if (!res.ok) {
