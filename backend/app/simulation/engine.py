@@ -1,4 +1,9 @@
 """Simulation Engine for Industrial Control System Communication.
+# Transmission Lifecycle States:
+# 1. Created: Payload serialized by source PLC/HMI.
+# 2. Queued: Ingress buffer admission and ACL policy validation.
+# 3. In Transit: Cryptographic encapsulation, routing hop traversal, and anomaly detection.
+# 4. Delivered / Rejected: Destination verification, MAC validation, and audit trail persistence.
 
 Coordinates topology pathfinding, device admission, RBAC authorization,
 cryptographic transformation, hop-by-hop packet events, and audit logging.
