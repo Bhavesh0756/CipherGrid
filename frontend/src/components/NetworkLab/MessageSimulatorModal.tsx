@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   AlertCircle,
   AlertTriangle,
@@ -22,8 +22,8 @@ interface MessageSimulatorModalProps {
 export const MessageSimulatorModal: React.FC<MessageSimulatorModalProps> = ({ isOpen, onClose }) => {
   const { devices, dispatchMessage, isSimulating } = useSimulatorStore();
 
-  const [senderId, setSenderId] = useState<string>('Sensor-01');
-  const [receiverId, setReceiverId] = useState<string>('SCADA-Server');
+  const [senderId, setSenderId] = useState<string>('');
+  const [receiverId, setReceiverId] = useState<string>('');
   const [messageType, setMessageType] = useState<MessageType>('Sensor Reading');
   const [payload, setPayload] = useState<string>('temperature=42.5;pressure=101.3;unit=celsius');
   const [securityProfile, setSecurityProfile] = useState<SecurityProfile>('Authenticated Secure Communication');
@@ -35,7 +35,39 @@ export const MessageSimulatorModal: React.FC<MessageSimulatorModalProps> = ({ is
 
   const [validationError, setValidationError] = useState<string | null>(null);
 
+  // Synchronize senderId and receiverId with existing devices when modal opens or devices change
+  useEffect(() => {
+    if (!isOpen || devices.length === 0) return;
+
+    let currentSender = senderId;
+    if (!devices.some((d) => d.id === currentSender)) {
+      currentSender = devices[0].id;
+      setSenderId(currentSender);
+    }
+
+    if (!devices.some((d) => d.id === receiverId) || receiverId === currentSender) {
+      const alt = devices.find((d) => d.id !== currentSender) || devices[0];
+      setReceiverId(alt.id);
+    }
+  }, [isOpen, devices]);
+
   if (!isOpen) return null;
+
+  const handleSenderChange = (newSender: string) => {
+    setSenderId(newSender);
+    if (receiverId === newSender && devices.length > 1) {
+      const alt = devices.find((d) => d.id !== newSender);
+      if (alt) setReceiverId(alt.id);
+    }
+  };
+
+  const handleReceiverChange = (newReceiver: string) => {
+    setReceiverId(newReceiver);
+    if (senderId === newReceiver && devices.length > 1) {
+      const alt = devices.find((d) => d.id !== newReceiver);
+      if (alt) setSenderId(alt.id);
+    }
+  };
 
   const handleMessageTypeChange = (t: MessageType) => {
     setMessageType(t);
@@ -126,7 +158,7 @@ export const MessageSimulatorModal: React.FC<MessageSimulatorModalProps> = ({ is
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-[10px] uppercase font-bold text-slate-300 mb-1">Source Node (Sender)</label>
-              <select value={senderId} onChange={(e) => setSenderId(e.target.value)} className={inputClass}>
+              <select value={senderId} onChange={(e) => handleSenderChange(e.target.value)} className={inputClass}>
                 {devices.map((d) => (
                   <option key={d.id} value={d.id}>{d.name} ({d.ip_address})</option>
                 ))}
@@ -134,7 +166,7 @@ export const MessageSimulatorModal: React.FC<MessageSimulatorModalProps> = ({ is
             </div>
             <div>
               <label className="block text-[10px] uppercase font-bold text-slate-300 mb-1">Destination Node (Receiver)</label>
-              <select value={receiverId} onChange={(e) => setReceiverId(e.target.value)} className={inputClass}>
+              <select value={receiverId} onChange={(e) => handleReceiverChange(e.target.value)} className={inputClass}>
                 {devices.map((d) => (
                   <option key={d.id} value={d.id}>{d.name} ({d.ip_address})</option>
                 ))}

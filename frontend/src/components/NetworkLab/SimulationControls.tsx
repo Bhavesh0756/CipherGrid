@@ -85,13 +85,17 @@ export const SimulationControls: React.FC = () => {
   const [dbEvents, setDbEvents] = useState<DisplayLogEvent[]>([]);
 
   useEffect(() => {
-    if (devices.length >= 2) {
-      if (!devices.some((d) => d.id === sourceId)) {
-        setSourceId(devices[0].id);
-      }
-      if (!devices.some((d) => d.id === destId)) {
-        setDestId(devices[1].id);
-      }
+    if (devices.length === 0) return;
+
+    let currentSource = sourceId;
+    if (!devices.some((d) => d.id === currentSource)) {
+      currentSource = devices[0].id;
+      setSourceId(currentSource);
+    }
+
+    if (!devices.some((d) => d.id === destId) || (destId === currentSource && devices.length > 1)) {
+      const alt = devices.find((d) => d.id !== currentSource) || devices[0];
+      setDestId(alt.id);
     }
   }, [devices, sourceId, destId]);
 
