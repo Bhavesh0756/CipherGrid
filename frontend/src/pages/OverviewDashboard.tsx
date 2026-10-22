@@ -1,4 +1,8 @@
 import React, { useEffect } from 'react';
+/**
+ * OverviewDashboard Component
+ * High-level operations center rendering real-time telemetry metrics, security threat distribution, and live alerts.
+ */
 import {
   Activity,
   ArrowRight,
