@@ -1,4 +1,8 @@
 """Network Topology Graph Traversal and Pathfinding Algorithm."""
+# Pathfinding Algorithm Notes:
+# - Employs Dijkstra's shortest path algorithm over the device adjacency graph.
+# - Applies edge weights reflecting transmission latency, Purdue security boundaries, and firewall inspection overhead.
+
 from typing import List, Dict, Any, Tuple, Optional
 from collections import deque
 from ..database.db import query_db
