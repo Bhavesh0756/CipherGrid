@@ -34,6 +34,7 @@ import {
 import { DeviceInspector } from '../components/NetworkLab/DeviceInspector';
 import { DevicePalette } from '../components/NetworkLab/DevicePalette';
 import { IndustrialNode } from '../components/NetworkLab/IndustrialNode';
+import { LaserEdge } from '../components/NetworkLab/LaserEdge';
 import { MessageSimulatorModal } from '../components/NetworkLab/MessageSimulatorModal';
 import { SimulationControls } from '../components/NetworkLab/SimulationControls';
 import { useSimulatorStore } from '../store/useSimulatorStore';
@@ -41,6 +42,11 @@ import { Device, DeviceType, PurdueLevel } from '../types';
 
 const nodeTypes = {
   industrialDevice: IndustrialNode,
+};
+
+const edgeTypes = {
+  laserEdge: LaserEdge,
+  default: LaserEdge,
 };
 
 const NetworkLabContent: React.FC = () => {
@@ -56,6 +62,9 @@ const NetworkLabContent: React.FC = () => {
     fetchTopology,
     highlightedPath,
     activeHopId,
+    playbackState,
+    selectedEvent,
+    lastResult,
     isMessageModalOpen,
     setMessageModalOpen,
   } = useSimulatorStore();
@@ -114,8 +123,40 @@ const NetworkLabContent: React.FC = () => {
     });
   }, [devices, selectedDevice, highlightedPath, activeHopId]);
 
-  // Edges: Clean matte industrial conduits, highlight blue during simulation (zero neon glare)
+  // Edges: Interactive Laser Edge with animated energy pulse & tamper explosion
   const edges: Edge[] = useMemo(() => {
+    // Determine the active hop pair from highlightedPath & activeHopId
+    let activeSrc: string | null = null;
+    let activeDst: string | null = null;
+
+    if (highlightedPath.length > 1 && activeHopId) {
+      const hopIdx = highlightedPath.indexOf(activeHopId);
+      if (hopIdx > 0) {
+        activeSrc = highlightedPath[hopIdx - 1];
+        activeDst = highlightedPath[hopIdx];
+      } else if (hopIdx === 0) {
+        activeSrc = highlightedPath[0];
+        activeDst = highlightedPath[1];
+      }
+    } else if (highlightedPath.length > 1 && (playbackState === 'playing' || playbackState === 'paused')) {
+      activeSrc = highlightedPath[0];
+      activeDst = highlightedPath[1];
+    }
+
+    const secStatus = (selectedEvent?.security_status || lastResult?.status || '').toLowerCase();
+    const isTampered =
+      selectedEvent?.packet_state === 'Rejected' ||
+      selectedEvent?.packet_state === 'Failed' ||
+      secStatus.includes('mismatch') ||
+      secStatus.includes('tamper') ||
+      secStatus.includes('invalid') ||
+      secStatus.includes('replay') ||
+      secStatus.includes('violation') ||
+      secStatus.includes('attack') ||
+      secStatus.includes('denied');
+
+    const edgeStatus: 'accepted' | 'tampered' | 'idle' = isTampered ? 'tampered' : 'accepted';
+
     return connections.map((c) => {
       let inPath = false;
       for (let i = 0; i < highlightedPath.length - 1; i++) {
@@ -127,6 +168,11 @@ const NetworkLabContent: React.FC = () => {
           break;
         }
       }
+
+      const isActiveHop =
+        (playbackState === 'playing' || playbackState === 'paused') &&
+        ((c.source_id === activeSrc && c.target_id === activeDst) ||
+          (c.source_id === activeDst && c.target_id === activeSrc));
 
       const srcDev = devices.find((d) => d.id === c.source_id);
       const dstDev = devices.find((d) => d.id === c.target_id);
@@ -151,36 +197,31 @@ const NetworkLabContent: React.FC = () => {
         target: c.target_id,
         sourceHandle: 'r',
         targetHandle: 'l',
-        type: 'default',
-        animated: inPath,
+        type: 'laserEdge',
+        animated: isActiveHop || inPath,
+        data: {
+          isActive: isActiveHop,
+          inPath,
+          status: isActiveHop ? edgeStatus : 'idle',
+          latency: c.latency_ms,
+          edgeColor,
+          sourceDeviceName: srcDev?.name,
+          targetDeviceName: dstDev?.name,
+        },
         style: {
-          stroke: edgeColor,
-          strokeWidth: inPath ? 2.2 : 1.7,
+          stroke: isActiveHop ? (isTampered ? '#f43f5e' : '#10b981') : edgeColor,
+          strokeWidth: isActiveHop ? 3 : inPath ? 2.2 : 1.7,
         },
         markerEnd: {
           type: MarkerType.ArrowClosed,
-          color: edgeColor,
-          width: 10,
-          height: 10,
+          color: isActiveHop ? (isTampered ? '#f43f5e' : '#10b981') : edgeColor,
+          width: 12,
+          height: 12,
         },
-        label: `${c.latency_ms} ms`,
-        labelStyle: {
-          fill: '#cbd5e1',
-          fontSize: 9,
-          fontFamily: 'JetBrains Mono, monospace',
-          fontWeight: 600,
-        },
-        labelBgStyle: {
-          fill: '#0f172a',
-          fillOpacity: 0.95,
-          stroke: inPath ? '#3b82f6' : '#1e293b',
-          strokeWidth: 1,
-        },
-        labelBgPadding: [5, 2] as [number, number],
-        labelBgBorderRadius: 9999,
       };
     });
-  }, [connections, highlightedPath, devices]);
+  }, [connections, highlightedPath, activeHopId, playbackState, selectedEvent, lastResult, devices]);
+
 
   const onNodeDragStop = useCallback(
     (_: any, node: Node) => {
@@ -426,6 +467,7 @@ const NetworkLabContent: React.FC = () => {
               onDragOver={onDragOver}
               onDrop={onDrop}
               nodeTypes={nodeTypes}
+              edgeTypes={edgeTypes}
               defaultViewport={{ x: 10, y: 10, zoom: 0.8 }}
               snapToGrid
               snapGrid={[16, 16]}
