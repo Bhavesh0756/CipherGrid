@@ -1,4 +1,8 @@
 """Industrial Cybersecurity Engine.
+# Cryptographic Specifications:
+# - Cipher: AES-256-GCM (Galois/Counter Mode) with 96-bit unique IV and 128-bit authentication tag.
+# - Alternative Cipher: ChaCha20-Poly1305 for constrained embedded field RTUs (RFC 8439).
+# - Integrity: HMAC-SHA256 message authentication codes with anti-replay timestamp verification.
 
 Implements real cryptographic operations using Python's cryptography library:
 - AES-256-GCM Authenticated Encryption with Associated Data (AEAD)
