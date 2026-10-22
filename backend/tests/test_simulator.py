@@ -53,6 +53,26 @@ def test_valid_network_path():
     assert hops == ["Sensor-01", "PLC-01", "Industrial-Switch", "SCADA-Server"]
     assert latency > 0.0
 
+def test_pathfinder_case_insensitivity_and_name_matching():
+    # Lowercase ID matching
+    path_found, hops, latency, err = find_network_path("sensor-01", "scada-server")
+    assert path_found is True
+    assert hops == ["Sensor-01", "PLC-01", "Industrial-Switch", "SCADA-Server"]
+
+    # Name matching
+    path_found2, hops2, _, err2 = find_network_path("Temperature Sensor 01", "Supervisory SCADA Server")
+    assert path_found2 is True
+    assert hops2 == ["Sensor-01", "PLC-01", "Industrial-Switch", "SCADA-Server"]
+
+def test_pathfinder_link_status_variations():
+    # Update a connection to lowercase 'active'
+    execute_db("UPDATE connections SET status = 'active' WHERE source_id = 'Sensor-01' AND target_id = 'PLC-01'")
+    path_found, hops, _, err = find_network_path("Sensor-01", "SCADA-Server")
+    assert path_found is True
+    assert err is None
+    # Restore
+    execute_db("UPDATE connections SET status = 'Active' WHERE source_id = 'Sensor-01' AND target_id = 'PLC-01'")
+
 def test_missing_or_invalid_route():
     # Attempt routing from a non-existent node
     path_found, hops, latency, err = find_network_path("NONEXISTENT_NODE", "SCADA-Server")

@@ -8,7 +8,7 @@ import json
 import uuid
 from datetime import datetime, timezone
 from flask import Blueprint, request, jsonify
-from ..database.db import query_db, execute_db, seed_default_topology
+from ..database.db import query_db, execute_db, seed_default_topology, generate_device_keys
 
 topology_bp = Blueprint("topology", __name__, url_prefix="/api/topology")
 
@@ -79,13 +79,40 @@ def save_topology():
                 (edge_id, topology_id, src, tgt, link_type, status, latency)
             )
 
-    # Also update device positions in devices table
+    # Also update or insert device records in devices table
     for node in nodes:
         node_id = node.get("id")
+        if not node_id:
+            continue
         pos = node.get("position", {})
-        x = pos.get("x", 0)
-        y = pos.get("y", 0)
-        execute_db("UPDATE devices SET x_pos = ?, y_pos = ? WHERE id = ?", (x, y, node_id))
+        x = float(pos.get("x", 0))
+        y = float(pos.get("y", 0))
+        node_data = node.get("data", {})
+
+        existing = query_db("SELECT id FROM devices WHERE id = ?", (node_id,), one=True)
+        if existing:
+            execute_db("UPDATE devices SET x_pos = ?, y_pos = ? WHERE id = ?", (x, y, node_id))
+        else:
+            name = node_data.get("name") or node_id
+            dev_type = node_data.get("type") or "PLC"
+            ip = node_data.get("ip_address") or "192.168.1.100"
+            mac = node_data.get("mac_address") or f"00:1A:2B:3C:4D:{abs(hash(node_id)) % 90 + 10}"
+            role = node_data.get("role") or "Controller"
+            trust = node_data.get("trust_status") or "Trusted"
+            purdue = node_data.get("purdue_level") or "Level 1"
+            enabled = 1 if node_data.get("enabled", True) else 0
+
+            pub_pem, priv_pem, aes_key = generate_device_keys(node_id)
+            execute_db(
+                """INSERT INTO devices 
+                   (id, name, type, ip_address, mac_address, purdue_level, role, trust_status, enabled, allowed_actions, public_key_pem, private_key_pem, aes_key_hex, x_pos, y_pos, created_at, updated_at)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                (
+                    node_id, name, dev_type, ip, mac, purdue, role, trust, enabled,
+                    json.dumps(["Sensor Reading", "Device Status", "Controller Command", "Alarm Notification"]),
+                    pub_pem, priv_pem, aes_key, x, y, now, now
+                )
+            )
 
     return jsonify({"success": True, "message": "Topology successfully saved.", "topology_id": topology_id})
 

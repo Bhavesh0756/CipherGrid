@@ -22,6 +22,7 @@ def send_message():
     security_profile = data.get("security_profile", "Authenticated Secure Communication")
     scenario_id = data.get("scenario_id", "normal")
     session_id = data.get("session_id")
+    topology_id = data.get("topology_id")
 
     if not sender_id or not receiver_id:
         return jsonify({"success": False, "error": "sender_id and receiver_id are required."}), 400
@@ -34,7 +35,8 @@ def send_message():
             raw_payload=raw_payload,
             security_profile=security_profile,
             scenario_id=scenario_id,
-            session_id=session_id
+            session_id=session_id,
+            topology_id=topology_id
         )
         return jsonify(result), 200
     except ValueError as ve:

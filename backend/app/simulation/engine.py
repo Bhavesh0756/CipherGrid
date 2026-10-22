@@ -65,9 +65,16 @@ def simulate_industrial_message(
     security_profile: str = "Authenticated Secure Communication",
     scenario_id: str = "normal",
     session_id: Optional[str] = None,
-    topology_id: str = "starter-topology-01"
+    topology_id: Optional[str] = None
 ) -> Dict[str, Any]:
     """Simulates the full transmission and security validation lifecycle of an industrial message."""
+    if not topology_id or topology_id == "starter-topology-01":
+        active_topo = query_db("SELECT id FROM topologies WHERE is_default = 1 LIMIT 1", one=True)
+        if active_topo:
+            topology_id = active_topo["id"]
+        else:
+            topology_id = "starter-topology-01"
+
     if not session_id:
         session_id = get_or_create_active_session(topology_id)
 
@@ -75,14 +82,23 @@ def simulate_industrial_message(
     msg_num = query_db("SELECT COUNT(*) as cnt FROM messages", one=True)["cnt"] + 1
     message_id = f"MSG-{now[:10].replace('-', '')}-{msg_num:04d}"
 
-    # Fetch devices from DB
+    # Fetch devices from DB (with flexible ID, case-insensitive, or Name lookup)
     sender = query_db("SELECT * FROM devices WHERE id = ?", (sender_id,), one=True)
+    if not sender:
+        sender = query_db("SELECT * FROM devices WHERE LOWER(id) = LOWER(?) OR LOWER(name) = LOWER(?)", (sender_id, sender_id), one=True)
+
     receiver = query_db("SELECT * FROM devices WHERE id = ?", (receiver_id,), one=True)
+    if not receiver:
+        receiver = query_db("SELECT * FROM devices WHERE LOWER(id) = LOWER(?) OR LOWER(name) = LOWER(?)", (receiver_id, receiver_id), one=True)
 
     if not sender:
         raise ValueError(f"Sender device '{sender_id}' not found in registry.")
     if not receiver:
         raise ValueError(f"Receiver device '{receiver_id}' not found in registry.")
+
+    # Canonical device IDs
+    sender_id = sender["id"]
+    receiver_id = receiver["id"]
 
     # Canonical string representation
     canonical_data = canonicalize_payload(raw_payload)

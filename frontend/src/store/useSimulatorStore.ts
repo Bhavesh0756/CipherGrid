@@ -396,6 +396,9 @@ export const useSimulatorStore = create<SimulatorStore>((set, get) => {
       clearTimer();
       set({ isSimulating: true, error: null });
       try {
+        // Guarantee canvas connections and node configurations are synced to backend DB
+        await get().saveTopology();
+
         let scenarioId = 'normal';
         if (params.tamper_message) scenarioId = 'tampering';
         else if (params.tamper_signature) scenarioId = 'bad_signature';
