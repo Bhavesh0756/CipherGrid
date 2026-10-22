@@ -23,9 +23,12 @@ export type SectionType =
   | 'settings';
 
 interface SimulatorStore {
-  // Navigation
+  // Navigation & Presentation
   activeSection: SectionType;
   setActiveSection: (section: SectionType) => void;
+  showIntroAnimation: boolean;
+  setShowIntroAnimation: (show: boolean) => void;
+  triggerIntroAnimation: () => void;
 
   // Topology & Devices
   devices: Device[];
@@ -139,6 +142,9 @@ export const useSimulatorStore = create<SimulatorStore>((set, get) => {
   return {
     activeSection: 'network-lab',
     setActiveSection: (section) => set({ activeSection: section }),
+    showIntroAnimation: true,
+    setShowIntroAnimation: (show) => set({ showIntroAnimation: show }),
+    triggerIntroAnimation: () => set({ showIntroAnimation: true }),
 
     devices: [],
     connections: [],

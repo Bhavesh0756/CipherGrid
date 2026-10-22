@@ -112,26 +112,30 @@ const NAV_SECTIONS: NavSection[] = [
 ];
 
 export const Sidebar: React.FC = () => {
-  const { activeSection, setActiveSection, devices, isSimulating } = useSimulatorStore();
+  const { activeSection, setActiveSection, devices, isSimulating, triggerIntroAnimation } = useSimulatorStore();
 
   return (
     <aside className="w-64 bg-[#080d1a] border-r border-slate-800/80 flex flex-col h-full select-none shrink-0 z-20 shadow-xl shadow-black/60">
       {/* ─── Top Brand Header ─── */}
       <div className="h-16 px-4.5 flex items-center justify-between border-b border-slate-800/80 shrink-0 bg-[#060913]/90 backdrop-blur-md">
-        <div className="flex items-center gap-3 min-w-0">
-          <div className="relative w-9 h-9 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center text-blue-400 shrink-0 group cursor-pointer shadow-sm">
-            <Shield className="w-4.5 h-4.5 text-blue-400 stroke-[2.2]" />
+        <div
+          onClick={() => triggerIntroAnimation()}
+          title="Click to replay Entry Animation"
+          className="flex items-center gap-3 min-w-0 cursor-pointer group"
+        >
+          <div className="relative w-9 h-9 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center text-blue-400 shrink-0 shadow-sm transition-all duration-200 group-hover:border-cyan-500/50 group-hover:shadow-[0_0_15px_rgba(6,182,212,0.3)]">
+            <Shield className="w-4.5 h-4.5 text-blue-400 stroke-[2.2] transition-transform duration-200 group-hover:scale-110 group-hover:text-cyan-400" />
           </div>
           <div className="min-w-0">
             <div className="flex items-center gap-1.5">
-              <h1 className="text-[14.5px] font-bold text-white tracking-tight leading-tight font-display">
+              <h1 className="text-[14.5px] font-bold text-white tracking-tight leading-tight font-display group-hover:text-cyan-300 transition-colors">
                 CipherGrid
               </h1>
-              <span className="px-1.5 py-0.2 rounded text-[9px] font-mono font-medium bg-slate-800 text-slate-300 border border-slate-700">
+              <span className="px-1.5 py-0.2 rounded text-[9px] font-mono font-medium bg-slate-800 text-slate-300 border border-slate-700 group-hover:border-cyan-500/40">
                 PRO
               </span>
             </div>
-            <p className="text-[10px] text-slate-400 font-mono tracking-wider uppercase leading-none mt-1">
+            <p className="text-[10px] text-slate-400 font-mono tracking-wider uppercase leading-none mt-1 group-hover:text-slate-300">
               SCADA / OT Simulator
             </p>
           </div>

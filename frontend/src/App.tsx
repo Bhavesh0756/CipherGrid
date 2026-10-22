@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { EntryAnimation } from './components/EntryAnimation/EntryAnimation';
 import { Sidebar } from './components/Layout/Sidebar';
 import { Topbar } from './components/Layout/Topbar';
 import { DeviceInventory } from './pages/DeviceInventory';
@@ -43,6 +44,9 @@ export const App: React.FC = () => {
 
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-[#070b14] text-slate-100 font-sans antialiased selection:bg-cyan-500/30 selection:text-white">
+      {/* High-Tech Cyber Entry Sequence Overlay */}
+      <EntryAnimation />
+
       {/* Sidebar spanning full height */}
       <Sidebar />
 
