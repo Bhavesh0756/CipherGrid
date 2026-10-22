@@ -1,4 +1,8 @@
 """Repeatable Security Scenarios Suite for Industrial Control Systems.
+# Pre-Configured Attack Scenarios:
+# - Replay Attack: Re-injects captured telemetry frames to trick destination actuators.
+# - Tamper / Bit-Flip: Corrupts ciphertext or Modbus function codes in-flight to test authentication tags.
+# - Denial of Service (DoS): Floods L1 field bus to evaluate rate limiting and queue degradation.
 
 Implements the 9 standard scenarios specified in Phase 9:
 1. normal: Normal valid communication
