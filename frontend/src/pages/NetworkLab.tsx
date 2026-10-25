@@ -68,6 +68,7 @@ const NetworkLabContent: React.FC = () => {
     highlightedPath,
     activeHopId,
     playbackState,
+    simulationEvents,
     selectedEvent,
     lastResult,
     isMessageModalOpen,
@@ -168,19 +169,91 @@ const NetworkLabContent: React.FC = () => {
       activeDst = highlightedPath[1];
     }
 
-    const secStatus = (selectedEvent?.security_status || lastResult?.status || '').toLowerCase();
-    const isTampered =
-      selectedEvent?.packet_state === 'Rejected' ||
-      selectedEvent?.packet_state === 'Failed' ||
-      secStatus.includes('mismatch') ||
-      secStatus.includes('tamper') ||
-      secStatus.includes('invalid') ||
-      secStatus.includes('replay') ||
-      secStatus.includes('violation') ||
-      secStatus.includes('attack') ||
-      secStatus.includes('denied');
+    // Comprehensive attack/tamper/unauthorized detection
+    const isUnauthorizedOrAttack = (() => {
+      // 1. Check lastResult for rejections, drops, and violations
+      if (lastResult) {
+        if (lastResult.success === false) return true;
+        const resStatus = String(lastResult.status || '').toLowerCase();
+        if (
+          resStatus.includes('reject') ||
+          resStatus.includes('drop') ||
+          resStatus.includes('fail') ||
+          resStatus.includes('tamper') ||
+          resStatus.includes('attack') ||
+          resStatus.includes('violation') ||
+          resStatus.includes('unauthoriz') ||
+          resStatus.includes('untrusted') ||
+          resStatus.includes('denied')
+        ) return true;
 
-    const edgeStatus: 'accepted' | 'tampered' | 'idle' = isTampered ? 'tampered' : 'accepted';
+        const reason = String(lastResult.rejection_reason || '').toLowerCase();
+        if (
+          reason.includes('unauthoriz') ||
+          reason.includes('blocked') ||
+          reason.includes('violation') ||
+          reason.includes('denial') ||
+          reason.includes('attack') ||
+          reason.includes('tamper') ||
+          reason.includes('untrusted')
+        ) return true;
+      }
+
+      // 2. Check all simulationEvents for violations/failures
+      const hasFailedEvent = (simulationEvents || []).some((ev) => {
+        const state = String(ev.packet_state || '').toLowerCase();
+        const sec = String(ev.security_status || '').toLowerCase();
+        const exp = String(ev.explanation || '').toLowerCase();
+        return (
+          state === 'rejected' ||
+          state === 'failed' ||
+          state === 'dropped' ||
+          sec.includes('violation') ||
+          sec.includes('tamper') ||
+          sec.includes('mismatch') ||
+          sec.includes('invalid') ||
+          sec.includes('attack') ||
+          sec.includes('replay') ||
+          sec.includes('unauthoriz') ||
+          sec.includes('denied') ||
+          exp.includes('unauthoriz') ||
+          exp.includes('denial') ||
+          exp.includes('violation') ||
+          exp.includes('blocked')
+        );
+      });
+      if (hasFailedEvent) return true;
+
+      // 3. Check selectedEvent
+      if (selectedEvent) {
+        const state = String(selectedEvent.packet_state || '').toLowerCase();
+        const sec = String(selectedEvent.security_status || '').toLowerCase();
+        if (
+          state === 'rejected' ||
+          state === 'failed' ||
+          state === 'dropped' ||
+          sec.includes('violation') ||
+          sec.includes('tamper') ||
+          sec.includes('mismatch') ||
+          sec.includes('invalid') ||
+          sec.includes('attack') ||
+          sec.includes('replay') ||
+          sec.includes('unauthoriz') ||
+          sec.includes('denied')
+        ) return true;
+      }
+
+      // 4. Check if any device on the route is Untrusted
+      const pathHasUntrusted = highlightedPath.some((devId) => {
+        const dev = devices.find((d) => d.id === devId || d.name === devId);
+        return dev?.trust_status === 'Untrusted' || dev?.device_type === 'Untrusted Device';
+      });
+      if (pathHasUntrusted) return true;
+
+      return false;
+    })();
+
+    const edgeStatus: 'accepted' | 'tampered' | 'idle' = isUnauthorizedOrAttack ? 'tampered' : 'accepted';
 
     return connections.map((c) => {
       let inPath = false;
@@ -203,12 +276,25 @@ const NetworkLabContent: React.FC = () => {
       const dstDev = devices.find((d) => d.id === c.target_id);
       let edgeColor = '#242B3A';
       if (inPath) {
-        edgeColor = '#3b82f6';
-      } else if (srcDev?.device_type === 'Untrusted Device' || dstDev?.device_type === 'Untrusted Device') {
+        edgeColor = isUnauthorizedOrAttack ? '#f43f5e' : '#3b82f6';
+      } else if (
+        srcDev?.trust_status === 'Untrusted' ||
+        dstDev?.trust_status === 'Untrusted' ||
+        srcDev?.device_type === 'Untrusted Device' ||
+        dstDev?.device_type === 'Untrusted Device'
+      ) {
         edgeColor = '#f43f5e';
       } else {
         edgeColor = '#242B3A';
       }
+
+      const hopStrokeColor = activeTool === 'slice'
+        ? '#f43f5e'
+        : isActiveHop
+        ? (isUnauthorizedOrAttack ? '#f43f5e' : '#10b981')
+        : inPath
+        ? (isUnauthorizedOrAttack ? '#f43f5e' : '#3b82f6')
+        : edgeColor;
 
       return {
         id: c.id,
@@ -221,7 +307,8 @@ const NetworkLabContent: React.FC = () => {
         data: {
           isActive: isActiveHop,
           inPath,
-          status: isActiveHop ? edgeStatus : 'idle',
+          status: isUnauthorizedOrAttack ? 'tampered' : (isActiveHop ? 'accepted' : 'idle'),
+          isTampered: isUnauthorizedOrAttack,
           latency: c.latency_ms,
           edgeColor,
           sourceDeviceName: srcDev?.name,
@@ -230,18 +317,18 @@ const NetworkLabContent: React.FC = () => {
           onDelete: deleteConnection,
         },
         style: {
-          stroke: activeTool === 'slice' ? '#f43f5e' : isActiveHop ? (isTampered ? '#f43f5e' : '#10b981') : edgeColor,
-          strokeWidth: activeTool === 'slice' ? 3 : isActiveHop ? 3 : inPath ? 2.2 : 1.7,
+          stroke: hopStrokeColor,
+          strokeWidth: activeTool === 'slice' ? 3 : isActiveHop ? 3.2 : inPath ? 2.5 : 1.7,
         },
         markerEnd: {
           type: MarkerType.ArrowClosed,
-          color: activeTool === 'slice' ? '#f43f5e' : isActiveHop ? (isTampered ? '#f43f5e' : '#10b981') : edgeColor,
+          color: hopStrokeColor,
           width: 12,
           height: 12,
         },
       };
     });
-  }, [connections, highlightedPath, activeHopId, playbackState, selectedEvent, lastResult, devices, activeTool, deleteConnection]);
+  }, [connections, highlightedPath, activeHopId, playbackState, simulationEvents, selectedEvent, lastResult, devices, activeTool, deleteConnection]);
 
 
 

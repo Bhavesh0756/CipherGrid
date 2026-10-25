@@ -6,6 +6,7 @@ export interface LaserEdgeData {
   isActive?: boolean;
   inPath?: boolean;
   status?: 'accepted' | 'tampered' | 'idle';
+  isTampered?: boolean;
   latency?: number;
   edgeColor?: string;
   sourceDeviceName?: string;
@@ -46,7 +47,9 @@ export const LaserEdge: React.FC<EdgeProps> = memo(({
   });
 
   const isAccepted = status === 'accepted';
-  const isTampered = status === 'tampered';
+  const isTampered = Boolean(
+    edgeData.isTampered ?? (status === 'tampered' || edgeColor === '#f43f5e')
+  );
   const isSliceMode = Boolean(edgeData.isSliceMode);
   const [isHovered, setIsHovered] = useState(false);
 
@@ -61,12 +64,12 @@ export const LaserEdge: React.FC<EdgeProps> = memo(({
     conduitOpacity = 0.95;
   } else if (isActive) {
     conduitStroke = isTampered ? '#f43f5e' : '#10b981';
-    conduitWidth = 3;
+    conduitWidth = 3.2;
     conduitOpacity = 1;
   } else if (inPath) {
-    conduitStroke = '#3b82f6';
-    conduitWidth = 2.2;
-    conduitOpacity = 0.85;
+    conduitStroke = isTampered ? '#f43f5e' : (edgeColor || '#3b82f6');
+    conduitWidth = 2.5;
+    conduitOpacity = 0.9;
   }
 
 

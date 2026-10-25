@@ -173,17 +173,85 @@ export const NetworkPlant3DView: React.FC<NetworkPlant3DViewProps> = ({
   playbackStateRef.current = playbackState;
   const lastPlaybackStateRef = useRef<string>(playbackState);
 
-  // Security status for packet trail styling
-  const secStatus = (selectedEvent?.security_status || lastResult?.status || '').toLowerCase();
-  const isPacketTampered =
-    selectedEvent?.packet_state === 'Rejected' ||
-    selectedEvent?.packet_state === 'Failed' ||
-    secStatus.includes('mismatch') ||
-    secStatus.includes('tamper') ||
-    secStatus.includes('invalid') ||
-    secStatus.includes('violation') ||
-    secStatus.includes('attack') ||
-    secStatus.includes('denied');
+  // Comprehensive attack/tamper/unauthorized detection
+  const isPacketTampered = (() => {
+    if (lastResult) {
+      if (lastResult.success === false) return true;
+      const resStatus = String(lastResult.status || '').toLowerCase();
+      if (
+        resStatus.includes('reject') ||
+        resStatus.includes('drop') ||
+        resStatus.includes('fail') ||
+        resStatus.includes('tamper') ||
+        resStatus.includes('attack') ||
+        resStatus.includes('violation') ||
+        resStatus.includes('unauthoriz') ||
+        resStatus.includes('untrusted') ||
+        resStatus.includes('denied')
+      ) return true;
+
+      const reason = String(lastResult.rejection_reason || '').toLowerCase();
+      if (
+        reason.includes('unauthoriz') ||
+        reason.includes('blocked') ||
+        reason.includes('violation') ||
+        reason.includes('denial') ||
+        reason.includes('attack') ||
+        reason.includes('tamper') ||
+        reason.includes('untrusted')
+      ) return true;
+    }
+
+    const hasFailedEvent = (simulationEvents || []).some((ev) => {
+      const state = String(ev.packet_state || '').toLowerCase();
+      const sec = String(ev.security_status || '').toLowerCase();
+      const exp = String(ev.explanation || '').toLowerCase();
+      return (
+        state === 'rejected' ||
+        state === 'failed' ||
+        state === 'dropped' ||
+        sec.includes('violation') ||
+        sec.includes('tamper') ||
+        sec.includes('mismatch') ||
+        sec.includes('invalid') ||
+        sec.includes('attack') ||
+        sec.includes('replay') ||
+        sec.includes('unauthoriz') ||
+        sec.includes('denied') ||
+        exp.includes('unauthoriz') ||
+        exp.includes('denial') ||
+        exp.includes('violation') ||
+        exp.includes('blocked')
+      );
+    });
+    if (hasFailedEvent) return true;
+
+    if (selectedEvent) {
+      const state = String(selectedEvent.packet_state || '').toLowerCase();
+      const sec = String(selectedEvent.security_status || '').toLowerCase();
+      if (
+        state === 'rejected' ||
+        state === 'failed' ||
+        state === 'dropped' ||
+        sec.includes('violation') ||
+        sec.includes('tamper') ||
+        sec.includes('mismatch') ||
+        sec.includes('invalid') ||
+        sec.includes('attack') ||
+        sec.includes('replay') ||
+        sec.includes('unauthoriz') ||
+        sec.includes('denied')
+      ) return true;
+    }
+
+    const pathHasUntrusted = highlightedPath.some((devId) => {
+      const dev = devices.find((d) => d.id === devId || d.name === devId);
+      return dev?.trust_status === 'Untrusted' || dev?.device_type === 'Untrusted Device';
+    });
+    if (pathHasUntrusted) return true;
+
+    return false;
+  })();
 
   const isSimulating = playbackState === 'playing' || playbackState === 'paused' || highlightedPath.length > 0;
 
