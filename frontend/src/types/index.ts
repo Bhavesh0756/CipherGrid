@@ -93,6 +93,7 @@ export type PacketState =
 
 export interface SimulationEvent {
   id: string;
+  frame_id?: string;
   session_id: string;
   message_id: string;
   event_time: string;

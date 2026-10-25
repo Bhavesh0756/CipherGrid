@@ -121,9 +121,10 @@ def get_recent_notifications():
 @events_bp.route("/packet-stream", methods=["GET"])
 def get_packet_events():
     """Retrieves simulation packet events for the Packet Inspector table."""
-    limit = int(request.args.get("limit", 100))
+    limit = int(request.args.get("limit", 150))
     message_id = request.args.get("message_id")
     state = request.args.get("state")
+    search = request.args.get("search")
 
     conditions = []
     args = []
@@ -132,9 +133,14 @@ def get_packet_events():
         conditions.append("message_id = ?")
         args.append(message_id)
 
-    if state and state != "ALL":
+    if state and state != "ALL" and state != "all":
         conditions.append("packet_state = ?")
         args.append(state)
+
+    if search:
+        search_wildcard = f"%{search.strip()}%"
+        conditions.append("(message_id LIKE ? OR source_device LIKE ? OR destination_device LIKE ? OR current_hop LIKE ? OR protocol LIKE ? OR explanation LIKE ?)")
+        args.extend([search_wildcard] * 6)
 
     where_clause = ""
     if conditions:
@@ -146,6 +152,7 @@ def get_packet_events():
     )
 
     for ev in events:
+        ev["frame_id"] = f"FRAME-{ev['id']:04d}"
         if ev.get("wire_details_json"):
             try:
                 ev["wire_details"] = json.loads(ev["wire_details_json"])

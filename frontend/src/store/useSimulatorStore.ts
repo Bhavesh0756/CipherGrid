@@ -426,6 +426,7 @@ export const useSimulatorStore = create<SimulatorStore>((set, get) => {
 
         const mappedEvents: SimulationEvent[] = (result.events || []).map((ev: any) => ({
           id: String(ev.id),
+          frame_id: ev.frame_id || (ev.id ? `FRAME-${String(ev.id).padStart(4, '0')}` : undefined),
           session_id: ev.session_id,
           message_id: ev.message_id,
           event_time: ev.timestamp || new Date().toISOString(),

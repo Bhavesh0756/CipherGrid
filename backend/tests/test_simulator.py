@@ -393,4 +393,47 @@ def test_api_security_error_handling(client):
     assert bad_sig_res.status_code == 200
     assert bad_sig_res.get_json()["valid"] is False
 
+def test_packet_forensics_verification(client):
+    """Verifies that the /api/security/verify-packet endpoint performs real SHA-256, RSA-PSS, and AES-GCM checks."""
+    # 1. Simulate a real secure message
+    sim_res = client.post("/api/messages/send", json={
+        "sender_id": "Sensor-01",
+        "receiver_id": "SCADA-Server",
+        "message_type": "Sensor Reading",
+        "payload": {"temperature": 85.4, "pressure": 12.1},
+        "security_profile": "Authenticated Secure Communication"
+    })
+    assert sim_res.status_code == 200
+    data = sim_res.get_json()
+    msg_id = data["message_id"]
+
+    # 2. Verify forensics on the authentic packet
+    forensics_res = client.post("/api/security/verify-packet", json={"message_id": msg_id})
+    assert forensics_res.status_code == 200
+    f_data = forensics_res.get_json()
+    assert f_data["success"] is True
+    assert f_data["overall_valid"] is True
+    assert f_data["integrity"]["matches"] is True
+    assert f_data["signature"]["valid"] is True
+    assert f_data["authentication"]["valid"] is True
+    assert f_data["authorization"]["status"] == "AUTHORIZED"
+    assert f_data["rejection_details"]["reason_code"] == "OK_DELIVERED"
+
+    # 3. Safe non-destructive tamper simulation on cloned packet
+    tamper_res = client.post("/api/security/verify-packet", json={
+        "message_id": msg_id,
+        "tamper_options": {
+            "active": True,
+            "tamper_payload": True,
+            "tampered_payload_text": "MALICIOUS_INJECTED_SETPOINT"
+        }
+    })
+    assert tamper_res.status_code == 200
+    t_data = tamper_res.get_json()
+    assert t_data["overall_valid"] is False
+    assert t_data["tamper_simulation"]["detected"] is True
+    assert t_data["integrity"]["matches"] is False
+    assert "MISMATCH" in t_data["integrity"]["status"]
+
+
 

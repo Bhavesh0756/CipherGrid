@@ -274,16 +274,37 @@ def simulate_industrial_message(
     # 4. Final Delivery Decision
     final_status = "Delivered"
     rejection_reason = None
+    policy_rule_id = "RULE-SEC-ALL-POLICIES-SATISFIED"
+    reason_code = "OK_DELIVERED"
 
     if not path_found:
         final_status = "Failed"
         rejection_reason = route_error
+        policy_rule_id = "RULE-NET-CONDUIT-DISCOVERY"
+        reason_code = "ERR_NO_CONDUIT"
     elif not rbac_allowed:
         final_status = "Rejected"
         rejection_reason = rbac_reason
+        policy_rule_id = rbac_details.get("policy", "RULE-RBAC-ADMISSION-CONTROL")
+        reason_code = rbac_details.get("error_code", "ERR_RBAC_VIOLATION")
     elif crypto_failed:
         final_status = "Rejected"
         rejection_reason = crypto_failure_reason
+        if scenario_id == "tampering" or (crypto_failure_reason and "Tag" in crypto_failure_reason):
+            policy_rule_id = "RULE-CRYPTO-AEAD-AUTHENTICATION"
+            reason_code = "ERR_AEAD_TAG_MISMATCH"
+        elif scenario_id == "bad_signature" or (crypto_failure_reason and "Signature" in crypto_failure_reason):
+            policy_rule_id = "RULE-CRYPTO-RSA-PSS-ORIGIN"
+            reason_code = "ERR_INVALID_SIGNATURE"
+        elif scenario_id == "replay_attempt" or (crypto_failure_reason and "Replay" in crypto_failure_reason):
+            policy_rule_id = "RULE-CRYPTO-ANTI-REPLAY"
+            reason_code = "ERR_REPLAY_DETECTED"
+        elif crypto_failure_reason and "Integrity" in crypto_failure_reason:
+            policy_rule_id = "RULE-CRYPTO-SHA256-INTEGRITY"
+            reason_code = "ERR_DIGEST_MISMATCH"
+        else:
+            policy_rule_id = "RULE-CRYPTO-INTEGRITY-CHECK"
+            reason_code = "ERR_CRYPTO_FAILURE"
 
     # 5. Record Message in Database
     execute_db(
@@ -296,157 +317,8 @@ def simulate_industrial_message(
         )
     )
 
-    # 6. Generate Granular Hop-by-Hop Simulation Events
-    events: List[Dict[str, Any]] = []
-
-    # Step 0: Created
-    step_0 = {
-        "session_id": session_id,
-        "message_id": message_id,
-        "step_index": 0,
-        "source_device": sender_id,
-        "destination_device": receiver_id,
-        "current_hop": sender_id,
-        "next_hop": hops[1] if len(hops) > 1 else None,
-        "protocol": "Application / Serializer",
-        "packet_state": "Created",
-        "security_status": crypto_status_label,
-        "explanation": f"Message '{message_id}' formulated by {sender_id}. Payload serialized: {canonical_data[:60]}...",
-        "wire_details": {"raw_payload": canonical_data, "profile": security_profile},
-        "timestamp": now
-    }
-    events.append(step_0)
-
-    # Step 1: Queued
-    step_1 = {
-        "session_id": session_id,
-        "message_id": message_id,
-        "step_index": 1,
-        "source_device": sender_id,
-        "destination_device": receiver_id,
-        "current_hop": sender_id,
-        "next_hop": hops[1] if len(hops) > 1 else None,
-        "protocol": "TCP / IP Egress",
-        "packet_state": "Queued",
-        "security_status": crypto_status_label,
-        "explanation": f"Egress buffer queued frame on interface eth0. Path resolution: {' -> '.join(hops)}.",
-        "wire_details": {"route": hops, "total_latency_ms": total_latency},
-        "timestamp": now
-    }
-    events.append(step_1)
-
-    # If route failed, record failure event at source
-    if not path_found:
-        fail_ev = {
-            "session_id": session_id,
-            "message_id": message_id,
-            "step_index": 2,
-            "source_device": sender_id,
-            "destination_device": receiver_id,
-            "current_hop": sender_id,
-            "next_hop": None,
-            "protocol": "Routing Engine",
-            "packet_state": "Failed",
-            "security_status": "Path Unavailable",
-            "explanation": f"Routing failure: {route_error}",
-            "wire_details": {"error": route_error},
-            "timestamp": now
-        }
-        events.append(fail_ev)
-
-    # If RBAC failed, record rejection at admission step
-    elif not rbac_allowed:
-        rbac_ev = {
-            "session_id": session_id,
-            "message_id": message_id,
-            "step_index": 2,
-            "source_device": sender_id,
-            "destination_device": receiver_id,
-            "current_hop": sender_id,
-            "next_hop": None,
-            "protocol": "Admission Control / RBAC",
-            "packet_state": "Rejected",
-            "security_status": "Access Violation",
-            "explanation": f"Authorization policy denial: {rbac_reason}",
-            "wire_details": rbac_details,
-            "timestamp": now
-        }
-        events.append(rbac_ev)
-
-    else:
-        # Route hop-by-hop
-        for i in range(1, len(hops) - 1):
-            hop_dev = hops[i]
-            in_transit_ev = {
-                "session_id": session_id,
-                "message_id": message_id,
-                "step_index": i + 1,
-                "source_device": sender_id,
-                "destination_device": receiver_id,
-                "current_hop": hop_dev,
-                "next_hop": hops[i + 1],
-                "protocol": "Ethernet / L2 Forwarding",
-                "packet_state": "In transit",
-                "security_status": crypto_status_label,
-                "explanation": f"Intermediate node '{hop_dev}' switched frame toward '{hops[i+1]}'.",
-                "wire_details": {"hop_device": hop_dev, "next_hop": hops[i + 1]},
-                "timestamp": now
-            }
-            events.append(in_transit_ev)
-
-        # Destination Inspection Hop
-        dest_step_index = len(hops) + 1
-        if crypto_failed:
-            crypto_ev = {
-                "session_id": session_id,
-                "message_id": message_id,
-                "step_index": dest_step_index,
-                "source_device": sender_id,
-                "destination_device": receiver_id,
-                "current_hop": receiver_id,
-                "next_hop": None,
-                "protocol": "Security Layer / Verification",
-                "packet_state": "Rejected",
-                "security_status": crypto_status_label,
-                "explanation": f"Security verification failed at {receiver_id}: {crypto_failure_reason}",
-                "wire_details": {"failure_reason": crypto_failure_reason, "checks_passed": security_metadata["checks_passed"]},
-                "timestamp": now
-            }
-            events.append(crypto_ev)
-        else:
-            deliver_ev = {
-                "session_id": session_id,
-                "message_id": message_id,
-                "step_index": dest_step_index,
-                "source_device": sender_id,
-                "destination_device": receiver_id,
-                "current_hop": receiver_id,
-                "next_hop": None,
-                "protocol": "Application Ingress",
-                "packet_state": "Delivered",
-                "security_status": crypto_status_label,
-                "explanation": f"Frame safely accepted by '{receiver_id}'. All security profiles and RBAC policies verified.",
-                "wire_details": {"checks_passed": security_metadata["checks_passed"]},
-                "timestamp": now
-            }
-            events.append(deliver_ev)
-
-    # Persist all events to database
-    for ev in events:
-        execute_db(
-            """INSERT INTO simulation_events 
-               (session_id, message_id, step_index, source_device, destination_device, current_hop, next_hop, protocol, packet_state, security_status, explanation, wire_details_json, timestamp)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
-            (
-                ev["session_id"], ev["message_id"], ev["step_index"], ev["source_device"],
-                ev["destination_device"], ev["current_hop"], ev["next_hop"], ev["protocol"],
-                ev["packet_state"], ev["security_status"], ev["explanation"],
-                json.dumps(ev.get("wire_details", {})), ev["timestamp"]
-            )
-        )
-
-    # 7. Persist to Audit Log
-    execute_db(
+    # 6. Persist to Audit Log first so audit_event_id is available for event linking
+    audit_id, _ = execute_db(
         """INSERT INTO audit_logs 
            (timestamp, session_id, message_id, source_device, destination_device, event_type, security_result, decision, rejection_reason, details_json)
            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
@@ -461,11 +333,239 @@ def simulate_industrial_message(
                 "security_profile": security_profile,
                 "scenario_id": scenario_id,
                 "hops": hops,
+                "policy_rule_id": policy_rule_id,
+                "reason_code": reason_code,
                 "checks_passed": security_metadata["checks_passed"],
                 "rejection_reason": rejection_reason
             })
         )
     )
+    audit_event_id = f"AUDIT-LOG-#{audit_id}"
+
+    # Master cryptographic wire envelope
+    shared_wire_envelope = {
+        "message_id": message_id,
+        "session_id": session_id,
+        "sender_id": sender_id,
+        "receiver_id": receiver_id,
+        "message_type": message_type,
+        "security_profile": security_profile,
+        "raw_payload": canonical_data,
+        "digest": security_metadata.get("digest", {}).get("hash_hex") if security_metadata.get("digest") else None,
+        "signature": security_metadata.get("signature", {}).get("signature_b64") if security_metadata.get("signature") else None,
+        "nonce": security_metadata.get("encryption", {}).get("nonce_b64") if security_metadata.get("encryption") else None,
+        "tag": security_metadata.get("encryption", {}).get("tag_b64") if security_metadata.get("encryption") else None,
+        "ciphertext": security_metadata.get("encryption", {}).get("ciphertext_b64") if security_metadata.get("encryption") else None,
+        "associated_data": security_metadata.get("encryption", {}).get("associated_data") if security_metadata.get("encryption") else None,
+        "route": hops,
+        "total_latency_ms": total_latency,
+        "policy_rule_id": policy_rule_id,
+        "reason_code": reason_code,
+        "sender_trust_status": sender.get("trust_status", "Trusted"),
+        "receiver_trust_status": receiver.get("trust_status", "Trusted"),
+        "sender_public_key": sender.get("public_key_pem"),
+        "audit_event_id": audit_event_id,
+        "checks_passed": security_metadata["checks_passed"],
+        "failure_reason": rejection_reason,
+    }
+
+    # Progressive timestamps for realistic packet timeline
+    from datetime import timedelta
+    base_dt = datetime.now(timezone.utc)
+    current_ms = 0.0
+
+    def step_timestamp(add_ms: float = 0.0) -> str:
+        nonlocal current_ms
+        current_ms += add_ms
+        dt = base_dt + timedelta(milliseconds=current_ms)
+        return dt.strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3] + "Z"
+
+    # 7. Generate Granular Hop-by-Hop Simulation Events with Progressive Timestamps & Durations
+    events: List[Dict[str, Any]] = []
+
+    # Step 0: Created
+    t0 = step_timestamp(0.0)
+    dur_0 = 0.4
+    w0 = dict(shared_wire_envelope)
+    w0.update({"step_role": "Source Serializer", "duration_ms": dur_0, "cumulative_ms": round(current_ms, 2)})
+    step_0 = {
+        "session_id": session_id,
+        "message_id": message_id,
+        "step_index": 0,
+        "source_device": sender_id,
+        "destination_device": receiver_id,
+        "current_hop": sender_id,
+        "next_hop": hops[1] if len(hops) > 1 else None,
+        "protocol": "Application / Serializer",
+        "packet_state": "Created",
+        "security_status": crypto_status_label,
+        "explanation": f"Frame created by {sender_id}. Payload serialized: {canonical_data[:60]}...",
+        "wire_details": w0,
+        "timestamp": t0
+    }
+    events.append(step_0)
+
+    # Step 1: Queued
+    dur_1 = 1.2
+    t1 = step_timestamp(dur_1)
+    w1 = dict(shared_wire_envelope)
+    w1.update({"step_role": "Egress Interface eth0", "duration_ms": dur_1, "cumulative_ms": round(current_ms, 2)})
+    step_1 = {
+        "session_id": session_id,
+        "message_id": message_id,
+        "step_index": 1,
+        "source_device": sender_id,
+        "destination_device": receiver_id,
+        "current_hop": sender_id,
+        "next_hop": hops[1] if len(hops) > 1 else None,
+        "protocol": "TCP / IP Egress",
+        "packet_state": "Queued",
+        "security_status": crypto_status_label,
+        "explanation": f"Egress buffer queued frame on interface eth0. Path resolution: {' -> '.join(hops)}.",
+        "wire_details": w1,
+        "timestamp": t1
+    }
+    events.append(step_1)
+
+    # If route failed, record failure event at source
+    if not path_found:
+        dur_fail = 0.5
+        tfail = step_timestamp(dur_fail)
+        wfail = dict(shared_wire_envelope)
+        wfail.update({"error": route_error, "duration_ms": dur_fail, "cumulative_ms": round(current_ms, 2)})
+        fail_ev = {
+            "session_id": session_id,
+            "message_id": message_id,
+            "step_index": 2,
+            "source_device": sender_id,
+            "destination_device": receiver_id,
+            "current_hop": sender_id,
+            "next_hop": None,
+            "protocol": "Routing Engine",
+            "packet_state": "Failed",
+            "security_status": "Path Unavailable",
+            "explanation": f"Routing failure: {route_error}",
+            "wire_details": wfail,
+            "timestamp": tfail
+        }
+        events.append(fail_ev)
+
+    # If RBAC failed, record rejection at admission step
+    elif not rbac_allowed:
+        dur_rbac = 0.6
+        trbac = step_timestamp(dur_rbac)
+        wrbac = dict(shared_wire_envelope)
+        wrbac.update(rbac_details)
+        wrbac.update({"duration_ms": dur_rbac, "cumulative_ms": round(current_ms, 2)})
+        rbac_ev = {
+            "session_id": session_id,
+            "message_id": message_id,
+            "step_index": 2,
+            "source_device": sender_id,
+            "destination_device": receiver_id,
+            "current_hop": sender_id,
+            "next_hop": None,
+            "protocol": "Admission Control / RBAC",
+            "packet_state": "Rejected",
+            "security_status": "Access Violation",
+            "explanation": f"Authorization policy denial: {rbac_reason}",
+            "wire_details": wrbac,
+            "timestamp": trbac
+        }
+        events.append(rbac_ev)
+
+    else:
+        # Route hop-by-hop through intermediate conduits
+        hop_latency = round(total_latency / max(1, len(hops) - 1), 2) if total_latency else 2.0
+        for i in range(1, len(hops) - 1):
+            hop_dev = hops[i]
+            thop = step_timestamp(hop_latency)
+            whop = dict(shared_wire_envelope)
+            whop.update({
+                "hop_index": i,
+                "hop_device": hop_dev,
+                "next_hop": hops[i + 1],
+                "duration_ms": hop_latency,
+                "cumulative_ms": round(current_ms, 2)
+            })
+            in_transit_ev = {
+                "session_id": session_id,
+                "message_id": message_id,
+                "step_index": i + 1,
+                "source_device": sender_id,
+                "destination_device": receiver_id,
+                "current_hop": hop_dev,
+                "next_hop": hops[i + 1],
+                "protocol": "Ethernet / L2 Forwarding",
+                "packet_state": "In transit",
+                "security_status": crypto_status_label,
+                "explanation": f"Intermediate node '{hop_dev}' switched frame toward '{hops[i+1]}'.",
+                "wire_details": whop,
+                "timestamp": thop
+            }
+            events.append(in_transit_ev)
+
+        # Destination Inspection Hop
+        dest_step_index = len(hops) + 1
+        dur_dest = 1.6
+        tdest = step_timestamp(dur_dest)
+        wdest = dict(shared_wire_envelope)
+        wdest.update({"duration_ms": dur_dest, "cumulative_ms": round(current_ms, 2)})
+
+        if crypto_failed:
+            wdest.update({
+                "failure_reason": crypto_failure_reason,
+                "checks_passed": security_metadata["checks_passed"]
+            })
+            crypto_ev = {
+                "session_id": session_id,
+                "message_id": message_id,
+                "step_index": dest_step_index,
+                "source_device": sender_id,
+                "destination_device": receiver_id,
+                "current_hop": receiver_id,
+                "next_hop": None,
+                "protocol": "Security Layer / Verification",
+                "packet_state": "Rejected",
+                "security_status": crypto_status_label,
+                "explanation": f"Security verification failed at {receiver_id}: {crypto_failure_reason}",
+                "wire_details": wdest,
+                "timestamp": tdest
+            }
+            events.append(crypto_ev)
+        else:
+            deliver_ev = {
+                "session_id": session_id,
+                "message_id": message_id,
+                "step_index": dest_step_index,
+                "source_device": sender_id,
+                "destination_device": receiver_id,
+                "current_hop": receiver_id,
+                "next_hop": None,
+                "protocol": "Application Ingress",
+                "packet_state": "Delivered",
+                "security_status": crypto_status_label,
+                "explanation": f"Frame safely accepted by '{receiver_id}'. All cryptographic invariants and RBAC policies verified.",
+                "wire_details": wdest,
+                "timestamp": tdest
+            }
+            events.append(deliver_ev)
+
+    # Persist all events to database and attach valid primary IDs & frame IDs
+    for ev in events:
+        last_id, _ = execute_db(
+            """INSERT INTO simulation_events 
+               (session_id, message_id, step_index, source_device, destination_device, current_hop, next_hop, protocol, packet_state, security_status, explanation, wire_details_json, timestamp)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+            (
+                ev["session_id"], ev["message_id"], ev["step_index"], ev["source_device"],
+                ev["destination_device"], ev["current_hop"], ev["next_hop"], ev["protocol"],
+                ev["packet_state"], ev["security_status"], ev["explanation"],
+                json.dumps(ev.get("wire_details", {})), ev["timestamp"]
+            )
+        )
+        ev["id"] = str(last_id)
+        ev["frame_id"] = f"FRAME-{last_id:04d}"
 
     return {
         "success": final_status == "Delivered",
@@ -474,7 +574,7 @@ def simulate_industrial_message(
         "status": final_status,
         "rejection_reason": rejection_reason,
         "hops": hops,
-        "latency_ms": total_latency,
+        "latency_ms": round(current_ms, 2),
         "security": security_metadata,
         "events": events
     }

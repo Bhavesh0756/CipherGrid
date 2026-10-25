@@ -287,9 +287,57 @@ export const api = {
     return handleResponse(res);
   },
 
+  // Dedicated Cryptographic Packet Forensics Verification
+  async verifyPacketForensics(params: {
+    message_id?: string;
+    payload?: string;
+    sender_id?: string;
+    receiver_id?: string;
+    security_profile?: string;
+    digest?: string;
+    signature?: string;
+    ciphertext?: string;
+    nonce?: string;
+    tag?: string;
+    associated_data?: string;
+    message_type?: string;
+    packet_state?: string;
+    hops?: string[];
+    tamper_options?: {
+      active?: boolean;
+      tamper_payload?: boolean;
+      tampered_payload_text?: string;
+      tamper_ciphertext?: boolean;
+      tamper_tag?: boolean;
+      tamper_signature?: boolean;
+    };
+  }): Promise<any> {
+    const res = await fetch(`${BASE_URL}/security/verify-packet`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(params),
+    });
+    return handleResponse(res);
+  },
+
   // Events & Audit
-  async getPacketEvents(limit = 100): Promise<{ success: boolean; events: any[] }> {
-    const res = await fetch(`${BASE_URL}/events/packet-stream?limit=${limit}`);
+  async getPacketEvents(params?: {
+    limit?: number;
+    state?: string;
+    search?: string;
+    message_id?: string;
+  } | number): Promise<{ success: boolean; events: any[] }> {
+    const query = new URLSearchParams();
+    if (typeof params === 'number') {
+      query.set('limit', params.toString());
+    } else if (params) {
+      if (params.limit) query.set('limit', params.limit.toString());
+      if (params.state && params.state !== 'all') query.set('state', params.state);
+      if (params.search) query.set('search', params.search);
+      if (params.message_id) query.set('message_id', params.message_id);
+    }
+    const queryString = query.toString() ? `?${query.toString()}` : '';
+    const res = await fetch(`${BASE_URL}/events/packet-stream${queryString}`);
     return handleResponse(res);
   },
 
