@@ -219,6 +219,9 @@ export const NetworkPlant3DView: React.FC<NetworkPlant3DViewProps> = ({
         setIsAutoDrone(false);
         isAutoDroneRef.current = false;
         isTransitioningRef.current = false;
+        if (highlightedPath.length > 1) {
+          playSimulation();
+        }
       }
       return next;
     });
@@ -988,9 +991,20 @@ export const NetworkPlant3DView: React.FC<NetworkPlant3DViewProps> = ({
           photonStream.forEach((photon) => (photon.visible = true));
 
           if (isTransferPlaying) {
-            activePacketProgress += delta * packetSpeed;
-            if (activePacketProgress >= 1.0) {
-              activePacketProgress = 0.0;
+            if (activePacketProgress < 1.0) {
+              activePacketProgress += delta * packetSpeed;
+              if (activePacketProgress >= 1.0) {
+                activePacketProgress = 1.0;
+                // If in Chase Cam, packet transfer is complete: smoothly ease camera back up to tactical overview
+                if (isChaseCamRef.current) {
+                  isChaseCamRef.current = false;
+                  setIsChaseCam(false);
+                  setCameraMode('tactical');
+                  targetCamPosRef.current.set(0, 24, 30);
+                  targetLookAtRef.current.set(0, 0, 0);
+                  isTransitioningRef.current = true;
+                }
+              }
             }
           }
 
@@ -1003,9 +1017,14 @@ export const NetworkPlant3DView: React.FC<NetworkPlant3DViewProps> = ({
           // Position trailing photons in a stream behind the main packet
           photonStream.forEach((photon, idx) => {
             const trailOffset = (idx + 1) * 0.045;
-            const photonProgress = (activePacketProgress - trailOffset + 1.0) % 1.0;
-            const photonPoint = routeCurvePath.getPointAt(Math.min(photonProgress, 0.999));
-            photon.position.copy(photonPoint);
+            const rawProgress = activePacketProgress - trailOffset;
+            if (rawProgress < 0 || activePacketProgress >= 1.0) {
+              photon.visible = false;
+            } else {
+              photon.visible = true;
+              const photonPoint = routeCurvePath.getPointAt(Math.min(rawProgress, 0.999));
+              photon.position.copy(photonPoint);
+            }
           });
         }
       }
