@@ -400,6 +400,42 @@ def simulate_industrial_message(
         else "N/A - PACKET_DROPPED"
     )
 
+    # Extract realistic tamper differential (e.g., 55 -> 60 or 43.0 -> 56.0)
+    sim_tamper_diff = None
+    if diff_status in ["TAMPERED", "CIPHERTEXT_CORRUPTED"] or (final_status != "Delivered" and "tamper" in str(rejection_reason or "").lower()):
+        field_match = re.search(r'("?([a-zA-Z0-9_-]+)"?\s*:\s*)?(\b\d+(\.\d+)?\b)', sent_payload_str)
+        field_name = field_match.group(2) if (field_match and field_match.group(2)) else "temperature"
+        if field_match:
+            orig_str = field_match.group(3)
+            try:
+                if '.' in orig_str:
+                    orig_num = float(orig_str)
+                    injected_num = 60.0 if abs(orig_num - 55.0) < 0.01 else orig_num + 13.0
+                    injected_str = f"{injected_num:.1f}"
+                    delta_str = f"+{injected_num - orig_num:.1f}"
+                else:
+                    orig_num = int(orig_str)
+                    injected_num = 60 if orig_num == 55 else orig_num + 13
+                    injected_str = str(injected_num)
+                    delta_str = f"+{injected_num - orig_num}"
+            except Exception:
+                orig_str = "55.0"
+                injected_str = "60.0"
+                delta_str = "+5.0"
+        else:
+            orig_str = "55.0"
+            injected_str = "60.0"
+            delta_str = "+5.0"
+
+        sim_tamper_diff = {
+            "field": field_name,
+            "original_value": orig_str,
+            "tampered_value": injected_str,
+            "delta": delta_str,
+            "unit": "°C" if "temp" in field_name.lower() else "",
+            "explanation": f"In-transit manipulation: '{field_name}' altered from {orig_str} to {injected_str}. Cryptographic authentication tag mismatch triggered rejection."
+        }
+
     payload_diff_data = {
         "sent": {
             "source_device": sender_id,
@@ -417,6 +453,7 @@ def simulate_industrial_message(
         },
         "diff_status": diff_status,
         "is_modified": diff_status in ["TAMPERED", "CIPHERTEXT_CORRUPTED", "DROPPED"],
+        "tamper_diff": sim_tamper_diff,
         "reason": diff_reason,
         "decision": final_status,
     }

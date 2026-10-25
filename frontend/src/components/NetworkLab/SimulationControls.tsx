@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { api } from '../../services/api';
 import { useSimulatorStore } from '../../store/useSimulatorStore';
+import { TamperedValueCard } from './TamperedValueCard';
 
 interface DisplayLogEvent {
   id: string;
@@ -150,14 +151,15 @@ export const SimulationControls: React.FC = () => {
       destination_name: devices.find(d => d.id === lastResult.events?.[lastResult.events.length - 1]?.destination_device)?.name || 'SCADA Server',
       payload: lastResult.status === 'Delivered'
         ? (lastResult.events?.[0]?.wire_details?.raw_payload || '{"sensor": "TEMP-01", "temperature": 43.0, "unit": "C"}')
-        : (lastResult.rejection_reason?.includes('TAMPER') || lastResult.status?.includes('Tamper')
-            ? '{"sensor": "TEMP-01", "temperature": 56.0, "unit": "C"} [MITM_MUTATED]'
+        : (lastResult.rejection_reason?.toLowerCase().includes('tamper') || lastResult.status?.toLowerCase().includes('tamper')
+            ? `[REJECTED: ${lastResult.rejection_reason || 'Authentication tag mismatch: In-transit ciphertext or authentication tag was modified (tampered).'}]`
             : `[REJECTED: ${lastResult.rejection_reason || lastResult.status}]`),
       sha256: lastResult.status === 'Delivered' ? (lastResult.security?.digest?.hash_hex || '7a8f12c9b20e14a1f592d8e4') : 'MISMATCH_OR_DROPPED',
       timestamp: lastResult.events?.[lastResult.events.length - 1]?.timestamp || new Date().toISOString()
     },
-    diff_status: lastResult.status === 'Delivered' ? 'IDENTICAL' : (lastResult.rejection_reason?.includes('TAMPER') ? 'TAMPERED' : 'DROPPED'),
+    diff_status: lastResult.status === 'Delivered' ? 'IDENTICAL' : (lastResult.rejection_reason?.toLowerCase().includes('tamper') ? 'TAMPERED' : 'DROPPED'),
     is_modified: lastResult.status !== 'Delivered',
+    tamper_diff: (lastResult as any)?.payload_diff?.tamper_diff || null,
     reason: lastResult.rejection_reason || 'Cryptographic verification and delivery status evaluated.',
     decision: lastResult.status || 'Delivered'
   } : null);
@@ -533,6 +535,15 @@ export const SimulationControls: React.FC = () => {
                           >
                             {effectiveDiff.received.payload}
                           </div>
+
+                          {/* In-Flight Value Tampering Comparison (e.g. 55 -> 60) */}
+                          {(effectiveDiff.is_modified || effectiveDiff.diff_status === 'TAMPERED') && (
+                            <TamperedValueCard
+                              sentPayload={effectiveDiff.sent.payload}
+                              receivedPayload={effectiveDiff.received.payload}
+                              serverTamperDiff={(effectiveDiff as any).tamper_diff}
+                            />
+                          )}
                         </div>
 
                         <div className="mt-2.5 pt-2 border-t border-[#1E2430]/70 flex items-center justify-between text-[10px] text-slate-400">

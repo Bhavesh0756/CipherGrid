@@ -26,6 +26,7 @@ import {
 } from 'lucide-react';
 import { api } from '../services/api';
 import { useSimulatorStore } from '../store/useSimulatorStore';
+import { TamperedValueCard } from '../components/NetworkLab/TamperedValueCard';
 
 const SCENARIO_DEFS = [
   { id: 'normal', name: 'Normal Secure Communication', objective: 'Deliver authorized telemetry with AES-256-GCM authenticated encryption and RSA-PSS signature.' },
@@ -661,6 +662,15 @@ export const SecurityCenter: React.FC = () => {
                     ? workbenchResult.encryption.recovered_payload
                     : `[REJECTED: ${workbenchResult?.encryption?.status_message || 'Tampered or Invalid AEAD Tag'}]`}
                 </pre>
+
+                {/* In-flight tampered parameter differential (e.g. 55 -> 60) */}
+                {workbenchResult && !workbenchResult.encryption?.decryption_success && (
+                  <TamperedValueCard
+                    sentPayload={workbenchResult.payload || workbenchPayload}
+                    receivedPayload={workbenchResult.encryption?.recovered_payload}
+                    serverTamperDiff={workbenchResult.tamper_diff}
+                  />
+                )}
                 <div className={`text-[10px] font-bold ${
                   workbenchResult?.encryption?.decryption_success ? 'text-emerald-400' : 'text-rose-400'
                 }`}>
