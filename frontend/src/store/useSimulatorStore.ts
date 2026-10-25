@@ -516,7 +516,7 @@ export const useSimulatorStore = create<SimulatorStore>((set, get) => {
           });
         } else {
           clearTimer();
-          set({ playbackState: 'finished' });
+          set({ playbackState: 'finished', isSimulating: false });
         }
       }, intervalMs);
     },
@@ -533,11 +533,13 @@ export const useSimulatorStore = create<SimulatorStore>((set, get) => {
       if (currentIndex < events.length - 1) {
         const nextIndex = currentIndex + 1;
         const currentEv = events[nextIndex];
+        const isFinished = nextIndex === events.length - 1;
         set({
           currentStepIndex: nextIndex,
           selectedEvent: currentEv,
           activeHopId: currentEv.current_hop,
-          playbackState: nextIndex === events.length - 1 ? 'finished' : 'paused',
+          playbackState: isFinished ? 'finished' : 'paused',
+          isSimulating: !isFinished,
         });
       }
     },
@@ -546,6 +548,7 @@ export const useSimulatorStore = create<SimulatorStore>((set, get) => {
       clearTimer();
       set({
         playbackState: 'finished',
+        isSimulating: false,
         currentStepIndex: get().simulationEvents.length - 1,
       });
     },

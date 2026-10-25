@@ -169,6 +169,9 @@ export const NetworkPlant3DView: React.FC<NetworkPlant3DViewProps> = ({
   const lastControlsTarget = useRef<THREE.Vector3>(new THREE.Vector3(0, 0, 0));
   const activeHopIdRef = useRef<string | null>(activeHopId);
   activeHopIdRef.current = activeHopId;
+  const playbackStateRef = useRef<string>(playbackState);
+  playbackStateRef.current = playbackState;
+  const lastPlaybackStateRef = useRef<string>(playbackState);
 
   // Security status for packet trail styling
   const secStatus = (selectedEvent?.security_status || lastResult?.status || '').toLowerCase();
@@ -654,6 +657,7 @@ export const NetworkPlant3DView: React.FC<NetworkPlant3DViewProps> = ({
       end: THREE.Vector3;
       progress: number;
     }[] = [];
+    const terminalArrows: THREE.Group[] = [];
 
     const arrowColor = isPacketTampered ? 0xf43f5e : 0x00e5ff;
 
@@ -673,6 +677,7 @@ export const NetworkPlant3DView: React.FC<NetworkPlant3DViewProps> = ({
           termArrow.position.y += 0.32;
           termArrow.lookAt(endHop.x, conduitY + 0.32, endHop.z);
           scene.add(termArrow);
+          terminalArrows.push(termArrow);
 
           // 2. Streaming Directional Flow Arrows advancing along the straight conduit
           // 4 arrows per hop for a continuous, prominent marching stream: >>> >>>>
@@ -777,38 +782,80 @@ export const NetworkPlant3DView: React.FC<NetworkPlant3DViewProps> = ({
       rotatingBlades.forEach((b) => (b.rotation.x += delta * 6.5));
       rotatingFans.forEach((f) => (f.rotation.z += delta * 8.0));
 
-      // 1. Animate active packet transfer along straight route
-      if (routeCurvePath.curves.length > 0 && activePacketMesh) {
-        activePacketProgress += delta * packetSpeed;
-        if (activePacketProgress >= 1.0) {
-          activePacketProgress = 0.0;
-        }
+      const currentPlayback = playbackStateRef.current;
+      const isTransferPlaying = currentPlayback === 'playing';
+      const isTransferPaused = currentPlayback === 'paused';
+      const isTransferFinished = currentPlayback === 'finished' || currentPlayback === 'idle';
 
-        // Exact point on the straight multi-segment route
-        const pointOnRoute = routeCurvePath.getPointAt(activePacketProgress);
-        activePacketMesh.position.copy(pointOnRoute);
-        activePacketMesh.rotation.y += delta * 4.5;
-        activePacketMesh.rotation.z += delta * 3.0;
-
-        // Position trailing photons in a stream behind the main packet
-        photonStream.forEach((photon, idx) => {
-          const trailOffset = (idx + 1) * 0.045;
-          const photonProgress = (activePacketProgress - trailOffset + 1.0) % 1.0;
-          const photonPoint = routeCurvePath.getPointAt(photonProgress);
-          photon.position.copy(photonPoint);
+      // Reset progress when replaying or starting a new dispatch
+      if (lastPlaybackStateRef.current !== 'playing' && isTransferPlaying) {
+        activePacketProgress = 0.0;
+        routeArrows.forEach((arr, idx) => {
+          arr.progress = (idx % 4) * 0.25;
         });
       }
+      lastPlaybackStateRef.current = currentPlayback;
 
-      // 2. Animate 3D directional flow arrows moving towards target in direction of transfer
-      routeArrows.forEach((arr) => {
-        arr.progress += delta * 0.45;
-        if (arr.progress >= 0.86) {
-          arr.progress = 0.08;
+      // 1. Packet transfer along straight route
+      if (routeCurvePath.curves.length > 0 && activePacketMesh) {
+        if (isTransferFinished) {
+          activePacketMesh.visible = false;
+          photonStream.forEach((photon) => (photon.visible = false));
+        } else {
+          activePacketMesh.visible = true;
+          photonStream.forEach((photon) => (photon.visible = true));
+
+          if (isTransferPlaying) {
+            activePacketProgress += delta * packetSpeed;
+            if (activePacketProgress >= 1.0) {
+              activePacketProgress = 0.0;
+            }
+          }
+
+          // Exact point on the straight multi-segment route
+          const pointOnRoute = routeCurvePath.getPointAt(Math.min(activePacketProgress, 0.999));
+          activePacketMesh.position.copy(pointOnRoute);
+          activePacketMesh.rotation.y += delta * 4.5;
+          activePacketMesh.rotation.z += delta * 3.0;
+
+          // Position trailing photons in a stream behind the main packet
+          photonStream.forEach((photon, idx) => {
+            const trailOffset = (idx + 1) * 0.045;
+            const photonProgress = (activePacketProgress - trailOffset + 1.0) % 1.0;
+            const photonPoint = routeCurvePath.getPointAt(Math.min(photonProgress, 0.999));
+            photon.position.copy(photonPoint);
+          });
         }
-        arr.group.position.lerpVectors(arr.start, arr.end, arr.progress);
-        arr.group.position.y += 0.32;
-        arr.group.lookAt(arr.end.x, arr.start.y + 0.32, arr.end.z);
-      });
+      }
+
+      // 2. 3D directional flow arrows moving towards target in direction of transfer
+      if (isTransferFinished) {
+        // Stop and hide directional flow arrows when transfer completes
+        routeArrows.forEach((arr) => {
+          arr.group.visible = false;
+        });
+        terminalArrows.forEach((arr) => {
+          arr.visible = false;
+        });
+      } else {
+        // When transfer is playing or paused
+        terminalArrows.forEach((arr) => {
+          arr.visible = true;
+        });
+
+        routeArrows.forEach((arr) => {
+          arr.group.visible = true;
+          if (isTransferPlaying) {
+            arr.progress += delta * 0.45;
+            if (arr.progress >= 0.86) {
+              arr.progress = 0.08;
+            }
+          }
+          arr.group.position.lerpVectors(arr.start, arr.end, arr.progress);
+          arr.group.position.y += 0.32;
+          arr.group.lookAt(arr.end.x, arr.start.y + 0.32, arr.end.z);
+        });
+      }
 
       // 3. Animate background ambient particles along straight conduits
       ambientPulses.forEach((p) => {
