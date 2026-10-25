@@ -567,3 +567,245 @@ def test_plaintext_tampering_simulation_shows_mutated_received_ingress():
     assert "60.0" in dest_ev["wire_details"]["raw_payload"]
     assert "Tampered" in dest_ev["security_status"]
 
+
+# ─── Tests for All 4 Supported Cryptographic Profiles & Forensics ───
+
+def test_profile_plaintext_transmission(client):
+    """Verifies that Plaintext Transmission generates no cryptographic metadata,
+    and forensics reports all mechanisms as NOT_APPLICABLE.
+    """
+    sim_res = client.post("/api/messages/send", json={
+        "sender_id": "Sensor-01",
+        "receiver_id": "SCADA-Server",
+        "message_type": "Sensor Reading",
+        "payload": {"temp": 24.5, "pressure": 101.3},
+        "security_profile": "Plaintext Transmission"
+    })
+    assert sim_res.status_code == 200
+    msg = sim_res.get_json()
+    msg_id = msg["message_id"]
+
+    ev = msg["events"][0]["wire_details"]
+    assert ev.get("security_profile") == "Plaintext Transmission"
+    assert ev.get("nonce") is None
+    assert ev.get("tag") is None
+    assert ev.get("digest") is None
+    assert ev.get("signature") is None
+    assert ev.get("ciphertext") is None
+
+    # Verify endpoint
+    v_res = client.post("/api/security/verify-packet", json={"message_id": msg_id})
+    assert v_res.status_code == 200
+    v = v_res.get_json()
+    assert v["success"] is True
+    assert v["overall_valid"] is True
+    assert v["integrity"]["status"] == "NOT_APPLICABLE"
+    assert v["signature"]["status"] == "NOT_APPLICABLE"
+    assert v["authentication"]["status"] == "NOT_APPLICABLE"
+
+
+def test_profile_sha256_digest_only(client):
+    """Verifies that SHA-256 Digest Only calculates a real digest from canonical plaintext,
+    leaves nonce/tag/signature as None (N/A), and independently verifies the hash.
+    """
+    payload_data = {"sensor": "temp-01", "reading": 42.8}
+    sim_res = client.post("/api/messages/send", json={
+        "sender_id": "Sensor-01",
+        "receiver_id": "PLC-01",
+        "message_type": "Sensor Reading",
+        "payload": payload_data,
+        "security_profile": "SHA-256 Digest Only"
+    })
+    assert sim_res.status_code == 200
+    msg = sim_res.get_json()
+    msg_id = msg["message_id"]
+
+    ev = msg["events"][0]["wire_details"]
+    assert ev.get("security_profile") == "SHA-256 Digest Only"
+    assert ev.get("nonce") is None
+    assert ev.get("tag") is None
+    assert ev.get("signature") is None
+    assert ev.get("ciphertext") is None
+
+    # Independent SHA-256 calculation
+    import hashlib
+    import json
+    canonical_pt = json.dumps(payload_data, sort_keys=True, separators=(',', ':'))
+    expected_hash = hashlib.sha256(canonical_pt.encode('utf-8')).hexdigest()
+    assert ev.get("digest") == expected_hash
+
+    # Verify endpoint
+    v_res = client.post("/api/security/verify-packet", json={"message_id": msg_id})
+    assert v_res.status_code == 200
+    v = v_res.get_json()
+    assert v["success"] is True
+    assert v["overall_valid"] is True
+    assert v["integrity"]["status"] == "VERIFIED"
+    assert v["integrity"]["matches"] is True
+    assert v["signature"]["status"] == "NOT_APPLICABLE"
+    assert v["authentication"]["status"] == "NOT_APPLICABLE"
+
+
+def test_profile_aes_256_gcm(client):
+    """Verifies that AES-256-GCM generates a real 96-bit nonce, 128-bit auth tag,
+    and ciphertext, while digest and signature remain None (N/A).
+    Also performs independent AESGCM decryption using the sender's registered key.
+    """
+    import base64
+    from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+    from app.database.db import query_db
+
+    payload_data = {"valve_state": "OPEN", "flow_rate": 120.5}
+    sim_res = client.post("/api/messages/send", json={
+        "sender_id": "PLC-01",
+        "receiver_id": "SCADA-Server",
+        "message_type": "Device Status",
+        "payload": payload_data,
+        "security_profile": "AES-256-GCM"
+    })
+    assert sim_res.status_code == 200
+    msg = sim_res.get_json()
+    msg_id = msg["message_id"]
+
+    ev = msg["events"][0]["wire_details"]
+    assert ev.get("security_profile") == "AES-256-GCM"
+    assert ev.get("digest") is None
+    assert ev.get("signature") is None
+
+    nonce_b64 = ev.get("nonce")
+    tag_b64 = ev.get("tag")
+    ct_b64 = ev.get("ciphertext")
+    assert nonce_b64 is not None
+    assert tag_b64 is not None
+    assert ct_b64 is not None
+
+    # Nonce is 96-bit (12 bytes)
+    nonce_bytes = base64.b64decode(nonce_b64)
+    assert len(nonce_bytes) == 12
+
+    # Tag is 128-bit MAC (16 bytes)
+    tag_bytes = base64.b64decode(tag_b64)
+    assert len(tag_bytes) == 16
+
+    # Independent AES-GCM Decryption verification
+    sender = query_db("SELECT aes_key_hex FROM devices WHERE id = 'PLC-01'", one=True)
+    key_bytes = bytes.fromhex(sender["aes_key_hex"])
+    aesgcm = AESGCM(key_bytes)
+    aad_bytes = ev.get("associated_data", "").encode('utf-8')
+    raw_ct = base64.b64decode(ct_b64)
+    decrypted_bytes = aesgcm.decrypt(nonce_bytes, raw_ct + tag_bytes, aad_bytes)
+    assert "OPEN" in decrypted_bytes.decode('utf-8')
+
+    # Verify endpoint
+    v_res = client.post("/api/security/verify-packet", json={"message_id": msg_id})
+    assert v_res.status_code == 200
+    v = v_res.get_json()
+    assert v["success"] is True
+    assert v["overall_valid"] is True
+    assert v["integrity"]["status"] == "NOT_APPLICABLE"
+    assert v["signature"]["status"] == "NOT_APPLICABLE"
+    assert v["authentication"]["status"] == "AUTHENTICATED"
+    assert v["authentication"]["valid"] is True
+
+
+def test_profile_full_security_all_four_fields_generated(client):
+    """Verifies that AES-256-GCM + RSA-PSS + SHA-256 generates real values for all 4 fields:
+    GCM Nonce, Auth Tag, SHA-256 Digest, and RSA-PSS Signature.
+    Independently verifies digest, signature, and decryption.
+    """
+    import base64
+    from cryptography.hazmat.primitives import serialization
+    from app.database.db import query_db
+    from app.security.crypto_engine import rsa_pss_verify_signature
+
+    payload_data = {"cmd": "SETPOINT_UPDATE", "target_psi": 350.0}
+    sim_res = client.post("/api/messages/send", json={
+        "sender_id": "Sensor-01",
+        "receiver_id": "SCADA-Server",
+        "message_type": "Sensor Reading",
+        "payload": payload_data,
+        "security_profile": "AES-256-GCM + RSA-PSS + SHA-256"
+    })
+    assert sim_res.status_code == 200
+    msg = sim_res.get_json()
+    msg_id = msg["message_id"]
+
+    ev = msg["events"][0]["wire_details"]
+    assert ev.get("security_profile") == "AES-256-GCM + RSA-PSS + SHA-256"
+
+    # All 4 fields must be populated with authentic cryptographic values
+    assert ev.get("nonce") is not None
+    assert ev.get("tag") is not None
+    assert ev.get("digest") is not None
+    assert ev.get("signature") is not None
+    assert ev.get("ciphertext") is not None
+
+    # Independent RSA-PSS Signature Verification
+    sender = query_db("SELECT public_key_pem FROM devices WHERE id = 'Sensor-01'", one=True)
+    sig_ok, sig_msg = rsa_pss_verify_signature(ev["digest"], ev["signature"], sender["public_key_pem"])
+    assert sig_ok is True, sig_msg
+
+    # Verify endpoint
+    v_res = client.post("/api/security/verify-packet", json={"message_id": msg_id})
+    assert v_res.status_code == 200
+    v = v_res.get_json()
+    assert v["success"] is True
+    assert v["overall_valid"] is True
+    assert v["integrity"]["status"] == "VERIFIED"
+    assert v["signature"]["status"] == "VALID"
+    assert v["authentication"]["status"] == "AUTHENTICATED"
+
+
+def test_missing_data_reporting_when_mechanisms_expected(client):
+    """Verifies that when a mechanism is enabled in the profile but its data is missing,
+    the forensics engine clearly reports MISSING_DATA rather than silently treating it as not applicable.
+    """
+    # 1. SHA-256 expected, but digest omitted
+    res_sha = client.post("/api/security/verify-packet", json={
+        "payload": "temperature=50",
+        "sender_id": "Sensor-01",
+        "receiver_id": "PLC-01",
+        "security_profile": "SHA-256 Digest Only",
+        "digest": None
+    })
+    assert res_sha.status_code == 200
+    d_sha = res_sha.get_json()
+    assert d_sha["overall_valid"] is False
+    assert d_sha["integrity"]["status"] == "MISSING_DATA"
+    assert d_sha["rejection_details"]["reason_code"] == "ERR_MISSING_DIGEST"
+
+    # 2. AES-GCM expected, but nonce & tag omitted
+    res_gcm = client.post("/api/security/verify-packet", json={
+        "payload": "speed=3600",
+        "sender_id": "Sensor-01",
+        "receiver_id": "PLC-01",
+        "security_profile": "AES-256-GCM",
+        "ciphertext": "some_ciphertext",
+        "nonce": None,
+        "tag": None
+    })
+    assert res_gcm.status_code == 200
+    d_gcm = res_gcm.get_json()
+    assert d_gcm["overall_valid"] is False
+    assert d_gcm["authentication"]["status"] == "MISSING_DATA"
+    assert d_gcm["rejection_details"]["reason_code"] == "ERR_MISSING_AEAD_DATA"
+
+    # 3. RSA-PSS expected, but signature omitted
+    res_rsa = client.post("/api/security/verify-packet", json={
+        "payload": "status=NOMINAL",
+        "sender_id": "Sensor-01",
+        "receiver_id": "PLC-01",
+        "security_profile": "AES-256-GCM + RSA-PSS + SHA-256",
+        "digest": "abc",
+        "ciphertext": "def",
+        "nonce": "123",
+        "tag": "456",
+        "signature": None
+    })
+    assert res_rsa.status_code == 200
+    d_rsa = res_rsa.get_json()
+    assert d_rsa["overall_valid"] is False
+    assert d_rsa["signature"]["status"] == "MISSING_DATA"
+    assert d_rsa["rejection_details"]["reason_code"] == "ERR_MISSING_SIGNATURE"
+
+

@@ -80,8 +80,12 @@ export type MessageType =
 
 export type SecurityProfile =
   | 'Security Disabled'
+  | 'Plaintext Transmission'
   | 'Integrity Verified'
-  | 'Authenticated Secure Communication';
+  | 'SHA-256 Digest Only'
+  | 'AES-256-GCM'
+  | 'Authenticated Secure Communication'
+  | 'AES-256-GCM + RSA-PSS + SHA-256';
 
 export type PacketState =
   | 'Created'

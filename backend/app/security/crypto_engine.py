@@ -31,6 +31,25 @@ def reset_replay_cache():
     _PROCESSED_MESSAGE_IDS.clear()
     _PROCESSED_NONCES.clear()
 
+def normalize_security_profile(profile_str: Optional[str]) -> str:
+    """Normalizes security profile strings into one of the four supported standards:
+    - 'Plaintext Transmission'
+    - 'SHA-256 Digest Only'
+    - 'AES-256-GCM'
+    - 'AES-256-GCM + RSA-PSS + SHA-256'
+    """
+    if not profile_str:
+        return "Plaintext Transmission"
+    p = str(profile_str).strip().lower()
+    if "rsa" in p or ("aes" in p and "sha" in p) or "authenticated" in p or "full" in p:
+        return "AES-256-GCM + RSA-PSS + SHA-256"
+    elif "gcm" in p or "aes" in p or "encrypt" in p:
+        return "AES-256-GCM"
+    elif "sha" in p or "digest" in p or "integrity" in p:
+        return "SHA-256 Digest Only"
+    else:
+        return "Plaintext Transmission"
+
 def canonicalize_payload(payload: Any) -> str:
     """Produces deterministic serialized representation for hashing and signatures."""
     if isinstance(payload, dict):

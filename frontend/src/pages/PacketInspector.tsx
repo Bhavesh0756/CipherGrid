@@ -39,7 +39,7 @@ type ForensicsTab = 'dissector' | 'lifecycle' | 'forensics' | 'trace' | 'hex' | 
 interface ForensicsResult {
   overall_valid: boolean;
   integrity: {
-    status: 'VERIFIED' | 'MISMATCH' | 'NOT_APPLICABLE';
+    status: 'VERIFIED' | 'MISMATCH' | 'MISSING_DATA' | 'NOT_APPLICABLE';
     algorithm: string;
     expected_digest?: string;
     computed_digest?: string;
@@ -47,7 +47,7 @@ interface ForensicsResult {
     message: string;
   };
   signature: {
-    status: 'VALID' | 'INVALID' | 'NOT_APPLICABLE';
+    status: 'VALID' | 'INVALID' | 'MISSING_DATA' | 'PROCESSING_ERROR' | 'NOT_APPLICABLE';
     algorithm: string;
     signature_b64?: string;
     public_key_pem?: string;
@@ -55,7 +55,7 @@ interface ForensicsResult {
     message: string;
   };
   authentication: {
-    status: 'AUTHENTICATED' | 'TAG_MISMATCH' | 'NOT_APPLICABLE';
+    status: 'AUTHENTICATED' | 'TAG_MISMATCH' | 'MISSING_DATA' | 'PROCESSING_ERROR' | 'NOT_APPLICABLE';
     algorithm: string;
     ciphertext_b64?: string;
     nonce_b64?: string;
@@ -219,7 +219,7 @@ export const PacketInspector: React.FC = () => {
     loadEvents();
   }, [activeSessionId, filterState]);
 
-  const displayEvents = simulationEvents.length > 0 ? simulationEvents : dbEvents;
+  const displayEvents = dbEvents.length > 0 ? dbEvents : simulationEvents;
 
   const filteredEvents = useMemo(() => {
     return displayEvents.filter((ev) => {
@@ -239,6 +239,62 @@ export const PacketInspector: React.FC = () => {
   }, [displayEvents, filterState, searchQuery]);
 
   const activeEvent = selectedEvent || (filteredEvents.length > 0 ? filteredEvents[0] : null);
+
+  // Helper to determine cryptographic envelope field rendering
+  const getEnvelopeFieldStatus = (
+    field: 'nonce' | 'tag' | 'digest' | 'signature',
+    event: SimulationEvent | null
+  ) => {
+    if (!event) return { text: 'N/A', cls: 'text-slate-500 font-mono' };
+    const p = (event.details?.security_profile || '').toLowerCase();
+    const isGcmExpected = /gcm|aes|encrypt|authenticated/i.test(p);
+    const isShaExpected = /sha|digest|integrity|authenticated/i.test(p);
+    const isRsaExpected = /rsa|authenticated/i.test(p);
+
+    if (field === 'nonce') {
+      if (event.details?.nonce) {
+        return { text: event.details.nonce, cls: 'text-emerald-400 font-mono font-bold' };
+      }
+      if (isGcmExpected) {
+        return { text: 'Missing Data (Processing Error)', cls: 'text-rose-400 font-bold bg-rose-500/10 px-1.5 py-0.5 rounded border border-rose-500/30' };
+      }
+      return { text: 'N/A (Unencrypted)', cls: 'text-slate-500 font-mono' };
+    }
+
+    if (field === 'tag') {
+      if (event.details?.tag) {
+        return { text: event.details.tag, cls: 'text-amber-400 font-mono font-bold' };
+      }
+      if (isGcmExpected) {
+        return { text: 'Missing Data (Processing Error)', cls: 'text-rose-400 font-bold bg-rose-500/10 px-1.5 py-0.5 rounded border border-rose-500/30' };
+      }
+      return { text: 'N/A (No MAC)', cls: 'text-slate-500 font-mono' };
+    }
+
+    if (field === 'digest') {
+      if (event.details?.digest) {
+        const d = String(event.details.digest);
+        return { text: `${d.slice(0, 36)}...`, cls: 'text-purple-400 font-mono font-bold' };
+      }
+      if (isShaExpected) {
+        return { text: 'Missing Data (Not Generated)', cls: 'text-rose-400 font-bold bg-rose-500/10 px-1.5 py-0.5 rounded border border-rose-500/30' };
+      }
+      return { text: 'N/A (No Digest)', cls: 'text-slate-500 font-mono' };
+    }
+
+    if (field === 'signature') {
+      if (event.details?.signature) {
+        const s = String(event.details.signature);
+        return { text: `${s.slice(0, 32)}...`, cls: 'text-slate-300 font-mono font-bold' };
+      }
+      if (isRsaExpected) {
+        return { text: 'Missing Data (Not Generated)', cls: 'text-rose-400 font-bold bg-rose-500/10 px-1.5 py-0.5 rounded border border-rose-500/30' };
+      }
+      return { text: 'N/A (Unsigned)', cls: 'text-slate-500 font-mono' };
+    }
+
+    return { text: 'N/A', cls: 'text-slate-500 font-mono' };
+  };
 
   // Group events for the same message to render full chronological lifecycle
   const activePacketTimeline = useMemo(() => {
@@ -828,7 +884,7 @@ export const PacketInspector: React.FC = () => {
                       <Lock className="w-3.5 h-3.5 text-purple-400" />
                       <span>AEAD Cryptographic Envelope</span>
                     </div>
-                    <span className="text-[10px] text-slate-500">IEEE 802.1AR / NIST</span>
+                    <span className="text-[10px] text-slate-500 font-mono">IEEE 802.1AR / NIST</span>
                   </div>
                   <div className="space-y-1.5 text-slate-300 text-[11px]">
                     <div>
@@ -836,27 +892,31 @@ export const PacketInspector: React.FC = () => {
                     </div>
                     <div>
                       GCM Nonce (96-bit):{' '}
-                      <span className="text-emerald-400 break-all text-[10px] font-mono">
-                        {activeEvent.details?.nonce || 'N/A (Unencrypted)'}
-                      </span>
+                      {(() => {
+                        const s = getEnvelopeFieldStatus('nonce', activeEvent);
+                        return <span className={`break-all text-[10px] ${s.cls}`}>{s.text}</span>;
+                      })()}
                     </div>
                     <div>
                       Auth Tag (128-bit MAC):{' '}
-                      <span className="text-amber-400 break-all text-[10px] font-mono">
-                        {activeEvent.details?.tag || 'N/A (No MAC)'}
-                      </span>
+                      {(() => {
+                        const s = getEnvelopeFieldStatus('tag', activeEvent);
+                        return <span className={`break-all text-[10px] ${s.cls}`}>{s.text}</span>;
+                      })()}
                     </div>
                     <div>
                       SHA-256 Digest:{' '}
-                      <span className="text-purple-400 break-all text-[10px] font-mono">
-                        {activeEvent.details?.digest ? `${activeEvent.details.digest.slice(0, 36)}...` : 'N/A (No Digest)'}
-                      </span>
+                      {(() => {
+                        const s = getEnvelopeFieldStatus('digest', activeEvent);
+                        return <span className={`break-all text-[10px] ${s.cls}`}>{s.text}</span>;
+                      })()}
                     </div>
                     <div>
                       RSA-PSS Signature:{' '}
-                      <span className="text-slate-400 break-all text-[10px] font-mono">
-                        {activeEvent.details?.signature ? `${activeEvent.details.signature.slice(0, 32)}...` : 'N/A (Unsigned)'}
-                      </span>
+                      {(() => {
+                        const s = getEnvelopeFieldStatus('signature', activeEvent);
+                        return <span className={`break-all text-[10px] ${s.cls}`}>{s.text}</span>;
+                      })()}
                     </div>
                   </div>
                 </div>
@@ -987,17 +1047,21 @@ export const PacketInspector: React.FC = () => {
                           <span>1. Integrity (SHA-256)</span>
                           {forensicData.integrity.status === 'VERIFIED' ? (
                             <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                          ) : forensicData.integrity.status === 'NOT_APPLICABLE' ? (
+                            <Shield className="w-4 h-4 text-slate-500" />
                           ) : (
                             <XCircle className="w-4 h-4 text-rose-400" />
                           )}
                         </div>
                         <div className="mt-2 text-xs font-bold text-white">
                           {forensicData.integrity.status === 'VERIFIED' ? (
-                            <span className="text-emerald-400">DIGEST MATCH</span>
+                            <span className="text-emerald-400">VERIFIED</span>
                           ) : forensicData.integrity.status === 'MISMATCH' ? (
-                            <span className="text-rose-400">DIGEST MISMATCH</span>
+                            <span className="text-rose-400">VERIFICATION FAILED</span>
+                          ) : forensicData.integrity.status === 'MISSING_DATA' ? (
+                            <span className="text-rose-400">MISSING DATA</span>
                           ) : (
-                            <span className="text-slate-400">UNCHECKED</span>
+                            <span className="text-slate-400">NOT APPLICABLE</span>
                           )}
                         </div>
                         <p className="text-[10px] text-slate-400 mt-1 line-clamp-2">{forensicData.integrity.message}</p>
@@ -1009,19 +1073,25 @@ export const PacketInspector: React.FC = () => {
                           <span>2. Signature (RSA-PSS)</span>
                           {forensicData.signature.status === 'VALID' ? (
                             <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                          ) : forensicData.signature.status === 'INVALID' ? (
-                            <XCircle className="w-4 h-4 text-rose-400" />
-                          ) : (
+                          ) : forensicData.signature.status === 'NOT_APPLICABLE' ? (
                             <Shield className="w-4 h-4 text-slate-500" />
+                          ) : forensicData.signature.status === 'PROCESSING_ERROR' ? (
+                            <AlertTriangle className="w-4 h-4 text-amber-400" />
+                          ) : (
+                            <XCircle className="w-4 h-4 text-rose-400" />
                           )}
                         </div>
                         <div className="mt-2 text-xs font-bold text-white">
                           {forensicData.signature.status === 'VALID' ? (
-                            <span className="text-emerald-400">VALID SIGNATURE</span>
+                            <span className="text-emerald-400">VERIFIED</span>
                           ) : forensicData.signature.status === 'INVALID' ? (
-                            <span className="text-rose-400">INVALID SIGNATURE</span>
+                            <span className="text-rose-400">VERIFICATION FAILED</span>
+                          ) : forensicData.signature.status === 'MISSING_DATA' ? (
+                            <span className="text-rose-400">MISSING DATA</span>
+                          ) : forensicData.signature.status === 'PROCESSING_ERROR' ? (
+                            <span className="text-amber-400">PROCESSING ERROR</span>
                           ) : (
-                            <span className="text-slate-400">NOT SIGNED</span>
+                            <span className="text-slate-400">NOT APPLICABLE</span>
                           )}
                         </div>
                         <p className="text-[10px] text-slate-400 mt-1 line-clamp-2">{forensicData.signature.message}</p>
@@ -1033,19 +1103,25 @@ export const PacketInspector: React.FC = () => {
                           <span>3. AEAD Auth (GCM Tag)</span>
                           {forensicData.authentication.status === 'AUTHENTICATED' ? (
                             <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                          ) : forensicData.authentication.status === 'TAG_MISMATCH' ? (
-                            <XCircle className="w-4 h-4 text-rose-400" />
-                          ) : (
+                          ) : forensicData.authentication.status === 'NOT_APPLICABLE' ? (
                             <Lock className="w-4 h-4 text-slate-500" />
+                          ) : forensicData.authentication.status === 'PROCESSING_ERROR' ? (
+                            <AlertTriangle className="w-4 h-4 text-amber-400" />
+                          ) : (
+                            <XCircle className="w-4 h-4 text-rose-400" />
                           )}
                         </div>
                         <div className="mt-2 text-xs font-bold text-white">
                           {forensicData.authentication.status === 'AUTHENTICATED' ? (
-                            <span className="text-emerald-400">TAG AUTHENTICATED</span>
+                            <span className="text-emerald-400">VERIFIED</span>
                           ) : forensicData.authentication.status === 'TAG_MISMATCH' ? (
-                            <span className="text-rose-400">TAG MISMATCH</span>
+                            <span className="text-rose-400">VERIFICATION FAILED</span>
+                          ) : forensicData.authentication.status === 'MISSING_DATA' ? (
+                            <span className="text-rose-400">MISSING DATA</span>
+                          ) : forensicData.authentication.status === 'PROCESSING_ERROR' ? (
+                            <span className="text-amber-400">PROCESSING ERROR</span>
                           ) : (
-                            <span className="text-slate-400">PLAINTEXT</span>
+                            <span className="text-slate-400">NOT APPLICABLE</span>
                           )}
                         </div>
                         <p className="text-[10px] text-slate-400 mt-1 line-clamp-2">{forensicData.authentication.message}</p>
@@ -1480,9 +1556,10 @@ export const PacketInspector: React.FC = () => {
                     onChange={(e) => setDispatchProfile(e.target.value as SecurityProfile)}
                     className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white font-mono text-xs focus:outline-none focus:border-purple-400 cursor-pointer"
                   >
-                    <option value="Authenticated Secure Communication">AES-256-GCM + RSA-PSS</option>
-                    <option value="Integrity Verified">SHA-256 Integrity Verified</option>
-                    <option value="Security Disabled">Security Disabled (Plaintext)</option>
+                    <option value="AES-256-GCM + RSA-PSS + SHA-256">AES-256-GCM + RSA-PSS + SHA-256 (Full Security)</option>
+                    <option value="AES-256-GCM">AES-256-GCM (Authenticated Encryption)</option>
+                    <option value="SHA-256 Digest Only">SHA-256 Digest Only (Integrity Verified)</option>
+                    <option value="Plaintext Transmission">Plaintext Transmission (Unencrypted)</option>
                   </select>
                 </div>
               </div>

@@ -24,7 +24,8 @@ from ..security.crypto_engine import (
     aes_gcm_decrypt_payload,
     rsa_pss_sign_digest,
     rsa_pss_verify_signature,
-    check_replay_attack
+    check_replay_attack,
+    normalize_security_profile
 )
 from ..security.access_control import evaluate_device_access
 
@@ -163,14 +164,22 @@ def simulate_industrial_message(
     crypto_failure_reason = None
     crypto_status_label = "Plaintext"
 
-    if security_profile == "Security Disabled":
+    norm_profile = normalize_security_profile(security_profile)
+
+    if norm_profile == "Plaintext Transmission":
         security_status_label = "Plaintext Transmission (Insecure)"
-    elif security_profile == "Integrity Verified":
-        # SHA-256 Digest
+        crypto_status_label = "Plaintext"
+        security_metadata["profile"] = "Plaintext Transmission"
+
+    elif norm_profile == "SHA-256 Digest Only":
+        security_status_label = "SHA-256 Digest Only (Integrity Verified)"
+        security_metadata["profile"] = "SHA-256 Digest Only"
+        # SHA-256 Digest over canonical plaintext
         digest = compute_sha256_digest(canonical_data)
         security_metadata["digest"] = {
             "algorithm": "SHA-256",
-            "hash_hex": digest
+            "hash_hex": digest,
+            "target": "Canonical Plaintext"
         }
         
         # Scenario tampering test
@@ -187,12 +196,72 @@ def simulate_industrial_message(
             security_metadata["checks_passed"].append("SHA-256 Integrity Verified")
             crypto_status_label = "Integrity Verified"
 
-    elif security_profile == "Authenticated Secure Communication":
-        # SHA-256 Digest
+    elif norm_profile == "AES-256-GCM":
+        security_status_label = "AES-256-GCM (Authenticated Encryption)"
+        security_metadata["profile"] = "AES-256-GCM"
+        # AES-256-GCM AEAD Encryption (Confidentiality & Authentication Tag, Unsigned)
+        aes_key = sender.get("aes_key_hex")
+        if not aes_key:
+            crypto_failed = True
+            crypto_failure_reason = f"AES key missing for sender device '{sender_id}'."
+            crypto_status_label = "Processing Error"
+        else:
+            aad = f"id={message_id};src={sender_id};dst={receiver_id};type={message_type};ts={now}"
+            enc_res = aes_gcm_encrypt_payload(canonical_data, aes_key, associated_data=aad)
+            
+            security_metadata["encryption"] = {
+                "algorithm": "AES-256-GCM",
+                "ciphertext_b64": enc_res["ciphertext_b64"],
+                "nonce_b64": enc_res["nonce_b64"],
+                "tag_b64": enc_res["tag_b64"],
+                "associated_data": aad
+            }
+
+            # Replay Attack Check
+            is_replay, replay_msg = check_replay_attack(message_id, enc_res["nonce_b64"])
+            if scenario_id == "replay_attempt":
+                is_replay = True
+                replay_msg = f"REPLAY_ATTACK_DETECTED: Stale sequence or duplicate message ID '{message_id}' re-transmitted."
+
+            if is_replay:
+                crypto_failed = True
+                crypto_failure_reason = replay_msg
+                crypto_status_label = "Replay Attack Detected"
+
+            # Decryption and Verification at Receiver
+            decrypt_ct = enc_res["ciphertext_b64"]
+            decrypt_tag = enc_res["tag_b64"]
+
+            if scenario_id == "tampering":
+                raw_ct = list(base64.b64decode(decrypt_ct))
+                raw_ct[0] ^= 0xFF
+                decrypt_ct = base64.b64encode(bytes(raw_ct)).decode('ascii')
+            elif scenario_id == "bad_auth_tag":
+                raw_tag = list(base64.b64decode(decrypt_tag))
+                raw_tag[0] ^= 0xFF
+                decrypt_tag = base64.b64encode(bytes(raw_tag)).decode('ascii')
+
+            if not crypto_failed:
+                dec_ok, dec_pt, dec_msg = aes_gcm_decrypt_payload(
+                    decrypt_ct, enc_res["nonce_b64"], decrypt_tag, aes_key, associated_data=aad
+                )
+                if not dec_ok:
+                    crypto_failed = True
+                    crypto_failure_reason = dec_msg
+                    crypto_status_label = "AEAD Tag Mismatch (Tampered)"
+                else:
+                    security_metadata["checks_passed"].append("AES-256-GCM Decrypted & Authenticated")
+                    crypto_status_label = "AES-GCM Authenticated (Encrypted)"
+
+    elif norm_profile == "AES-256-GCM + RSA-PSS + SHA-256":
+        security_status_label = "AES-256-GCM + RSA-PSS + SHA-256 (Authenticated Secure Communication)"
+        security_metadata["profile"] = "AES-256-GCM + RSA-PSS + SHA-256"
+        # SHA-256 Digest over canonical plaintext
         digest = compute_sha256_digest(canonical_data)
         security_metadata["digest"] = {
             "algorithm": "SHA-256",
-            "hash_hex": digest
+            "hash_hex": digest,
+            "target": "Canonical Plaintext"
         }
 
         # RSA-PSS Digital Signature
@@ -512,7 +581,8 @@ def simulate_industrial_message(
         "sender_id": sender_id,
         "receiver_id": receiver_id,
         "message_type": message_type,
-        "security_profile": security_profile,
+        "security_profile": norm_profile,
+        "requested_profile": security_profile,
         "raw_payload": canonical_data,
         "digest": security_metadata.get("digest", {}).get("hash_hex") if security_metadata.get("digest") else None,
         "signature": security_metadata.get("signature", {}).get("signature_b64") if security_metadata.get("signature") else None,

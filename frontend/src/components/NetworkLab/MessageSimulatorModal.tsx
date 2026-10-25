@@ -188,9 +188,10 @@ export const MessageSimulatorModal: React.FC<MessageSimulatorModalProps> = ({ is
             <div>
               <label className="block text-[10px] uppercase font-bold text-slate-400 mb-1">Cryptographic Profile</label>
               <select value={securityProfile} onChange={(e) => setSecurityProfile(e.target.value as SecurityProfile)} className={inputClass}>
-                <option value="Authenticated Secure Communication">AES-256-GCM + RSA-PSS + SHA-256</option>
-                <option value="Integrity Verified">SHA-256 Digest Only</option>
-                <option value="Security Disabled">Plaintext (Insecure)</option>
+                <option value="Authenticated Secure Communication">AES-256-GCM + RSA-PSS + SHA-256 (Full Security)</option>
+                <option value="AES-256-GCM">AES-256-GCM (Authenticated Encryption)</option>
+                <option value="Integrity Verified">SHA-256 Digest Only (Integrity Verified)</option>
+                <option value="Plaintext Transmission">Plaintext Transmission (Unencrypted)</option>
               </select>
             </div>
           </div>
