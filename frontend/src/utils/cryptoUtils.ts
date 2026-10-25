@@ -145,21 +145,180 @@ export function getShortFingerprint(pem?: string, cachedFingerprint?: string): s
 }
 
 /**
- * Extracts the distinct prime modulus excerpt from an RSA PEM key by skipping the static ASN.1 header.
- * Standard RSA-2048 SubjectPublicKeyInfo header is 71 characters (including PEM label and ASN.1 OID prefix).
+ * Converts a Base64 string to a Uint8Array across browser and Node.js environments.
  */
-export function extractUniqueModulusExcerpt(pem?: string): string {
-  if (!pem) return '';
-  // Strip PEM armor
-  const stripped = pem
-    .replace('-----BEGIN PUBLIC KEY-----', '')
-    .replace('-----END PUBLIC KEY-----', '')
-    .replace(/\s+/g, '');
-
-  // Skip the standard ASN.1 33-byte (44 base64 chars) header: MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA
-  const headerPrefix = 'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA';
-  if (stripped.startsWith(headerPrefix)) {
-    return stripped.slice(headerPrefix.length, headerPrefix.length + 32);
+export function base64ToUint8Array(b64: string): Uint8Array {
+  const clean = b64.replace(/\s+/g, '');
+  const maybeBuffer = (globalThis as unknown as { Buffer?: { from: (str: string, enc: string) => Uint8Array } }).Buffer;
+  if (maybeBuffer && typeof maybeBuffer.from === 'function') {
+    return new Uint8Array(maybeBuffer.from(clean, 'base64'));
   }
-  return stripped.slice(0, 32);
+  if (typeof atob === 'function') {
+    const binary = atob(clean);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) {
+      bytes[i] = binary.charCodeAt(i);
+    }
+    return bytes;
+  }
+  throw new Error('No Base64 decoder available');
 }
+
+/**
+ * Converts a Uint8Array to a Base64 string across browser and Node.js environments.
+ */
+export function uint8ArrayToBase64(bytes: Uint8Array): string {
+  const maybeBuffer = (globalThis as unknown as { Buffer?: { from: (arr: Uint8Array) => { toString: (enc: string) => string } } }).Buffer;
+  if (maybeBuffer && typeof maybeBuffer.from === 'function') {
+    return maybeBuffer.from(bytes).toString('base64');
+  }
+  let binary = '';
+  for (let i = 0; i < bytes.length; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  return btoa(binary);
+}
+
+/**
+ * Encodes a Uint8Array to lowercase hexadecimal string.
+ */
+export function uint8ArrayToHex(bytes: Uint8Array): string {
+  let hex = '';
+  for (let i = 0; i < bytes.length; i++) {
+    hex += bytes[i].toString(16).padStart(2, '0');
+  }
+  return hex;
+}
+
+/**
+ * Helper to decode ASN.1 DER length octets.
+ */
+function readDerLength(bytes: Uint8Array, offset: number): { length: number; nextOffset: number } {
+  if (offset >= bytes.length) throw new Error('Unexpected EOF reading DER length');
+  const first = bytes[offset++];
+  if (first < 0x80) {
+    return { length: first, nextOffset: offset };
+  }
+  const numOctets = first & 0x7f;
+  if (numOctets === 0 || numOctets > 4 || offset + numOctets > bytes.length) {
+    throw new Error(`Invalid DER length numOctets: ${numOctets}`);
+  }
+  let length = 0;
+  for (let i = 0; i < numOctets; i++) {
+    length = (length * 256) + bytes[offset++];
+  }
+  return { length, nextOffset: offset };
+}
+
+/**
+ * Parses a PEM or DER-encoded RSA public key (SubjectPublicKeyInfo or PKCS#1 RSAPublicKey),
+ * extracts the RSA modulus n, and converts it to its unsigned big-endian byte representation.
+ * 
+ * In ASN.1 DER, integers are two's-complement signed. Positive RSA moduli with MSB=1
+ * include a leading 0x00 padding byte. This parser strips that sign byte to return
+ * the true unsigned big-endian byte array (e.g. exactly 256 bytes for RSA-2048).
+ */
+export function parseRsaPublicKeyModulus(pem?: string): Uint8Array | null {
+  if (!pem || typeof pem !== 'string') return null;
+  const b64 = pem.replace(/-----[^-]+-----/g, '').replace(/\s+/g, '');
+  if (!b64) return null;
+
+  try {
+    const bytes = base64ToUint8Array(b64);
+    let pos = 0;
+
+    // 1. Outer SEQUENCE
+    if (bytes[pos++] !== 0x30) return null;
+    const outerSeq = readDerLength(bytes, pos);
+    pos = outerSeq.nextOffset;
+
+    // Check if this is SubjectPublicKeyInfo (SEQUENCE algorithm, BIT STRING subjectPublicKey)
+    if (bytes[pos] === 0x30) {
+      // Skip AlgorithmIdentifier SEQUENCE
+      pos++;
+      const algSeq = readDerLength(bytes, pos);
+      pos = algSeq.nextOffset + algSeq.length;
+
+      // BIT STRING containing encapsulated RSAPublicKey
+      if (bytes[pos++] !== 0x03) return null;
+      const bitString = readDerLength(bytes, pos);
+      pos = bitString.nextOffset;
+
+      // Skip unused-bits count byte (typically 0x00)
+      if (pos >= bytes.length) return null;
+      pos++;
+
+      // Inside BIT STRING is the RSAPublicKey SEQUENCE
+      if (bytes[pos++] !== 0x30) return null;
+      const rsaSeq = readDerLength(bytes, pos);
+      pos = rsaSeq.nextOffset;
+    }
+
+    // RSAPublicKey starts with modulus INTEGER (tag 0x02)
+    if (bytes[pos++] !== 0x02) return null;
+    const modInt = readDerLength(bytes, pos);
+    pos = modInt.nextOffset;
+
+    let modBytes = bytes.subarray(pos, pos + modInt.length);
+
+    // Convert to unsigned big-endian byte representation:
+    // Strip leading 0x00 sign-padding byte if present
+    if (modBytes.length > 1 && modBytes[0] === 0x00) {
+      modBytes = modBytes.subarray(1);
+    }
+
+    return modBytes;
+  } catch {
+    return null;
+  }
+}
+
+export interface ModulusExcerpt {
+  hex: string;
+  hexPrefixed: string;
+  base64: string;
+  encodingLabel: string;
+  rawBytes: Uint8Array;
+  totalModulusBytes: number;
+  totalModulusBits: number;
+  excerptByteCount: number;
+}
+
+/**
+ * Extracts and returns structured excerpt data for the first 32 bytes of the RSA modulus n.
+ */
+export function getModulusExcerpt(pem?: string): ModulusExcerpt | null {
+  const modulus = parseRsaPublicKeyModulus(pem);
+  if (!modulus || modulus.length === 0) return null;
+
+  const excerpt = modulus.subarray(0, 32);
+  const hex = uint8ArrayToHex(excerpt);
+  const base64 = uint8ArrayToBase64(excerpt);
+
+  return {
+    hex,
+    hexPrefixed: `0x${hex}`,
+    base64,
+    encodingLabel: 'Hexadecimal (Big-Endian)',
+    rawBytes: excerpt,
+    totalModulusBytes: modulus.length,
+    totalModulusBits: modulus.length * 8,
+    excerptByteCount: excerpt.length,
+  };
+}
+
+/**
+ * Extracts the first 32 bytes of the RSA modulus n from SubjectPublicKeyInfo PEM,
+ * converted to its unsigned big-endian byte representation and formatted with a clear encoding.
+ */
+export function extractUniqueModulusExcerpt(
+  pem?: string,
+  format: 'hex-prefixed' | 'hex' | 'base64' = 'hex-prefixed'
+): string {
+  const excerpt = getModulusExcerpt(pem);
+  if (!excerpt) return '';
+  if (format === 'hex') return excerpt.hex;
+  if (format === 'base64') return excerpt.base64;
+  return excerpt.hexPrefixed;
+}
+

@@ -30,6 +30,7 @@ import {
   formatColonFingerprint,
   getShortFingerprint,
   extractUniqueModulusExcerpt,
+  getModulusExcerpt,
 } from '../utils/cryptoUtils';
 import { Device3DModal } from '../components/ThreeD/Device3DModal';
 
@@ -41,11 +42,11 @@ export const DeviceInventory: React.FC = () => {
   const [filterTrust, setFilterTrust] = useState<string>('all');
   const [filterPurdue, setFilterPurdue] = useState<string>('all');
   const [selectedKeyDev, setSelectedKeyDev] = useState<Device | null>(null);
-  const [copiedType, setCopiedType] = useState<'pem' | 'fingerprint' | null>(null);
+  const [copiedType, setCopiedType] = useState<'pem' | 'fingerprint' | 'modulus' | null>(null);
   const [isRotating, setIsRotating] = useState(false);
   const [digitalTwinDev, setDigitalTwinDev] = useState<Device | null>(null);
 
-  const copyToClipboard = (text: string, type: 'pem' | 'fingerprint') => {
+  const copyToClipboard = (text: string, type: 'pem' | 'fingerprint' | 'modulus') => {
     navigator.clipboard.writeText(text);
     setCopiedType(type);
     setTimeout(() => setCopiedType(null), 2000);
@@ -304,7 +305,7 @@ export const DeviceInventory: React.FC = () => {
       {selectedKeyDev && (() => {
         const devFp = selectedKeyDev.key_fingerprint || computeKeyFingerprint(selectedKeyDev.public_key_pem);
         const formattedFp = formatColonFingerprint(devFp);
-        const modulusExcerpt = extractUniqueModulusExcerpt(selectedKeyDev.public_key_pem);
+        const modulusExcerpt = getModulusExcerpt(selectedKeyDev.public_key_pem);
 
         return (
           <div className="fixed inset-0 z-50 bg-[#060913]/85 backdrop-blur-md flex items-center justify-center p-4">
@@ -389,13 +390,37 @@ export const DeviceInventory: React.FC = () => {
 
                 {/* Unique Modulus Excerpt */}
                 {modulusExcerpt && (
-                  <div className="p-3 bg-[#060913] rounded-xl border border-slate-800 text-[10px] space-y-1">
+                  <div className="p-3 bg-[#060913] rounded-xl border border-slate-800 text-[10px] space-y-2">
                     <div className="flex items-center justify-between text-slate-400 font-bold">
-                      <span>Distinct 2048-Bit Modulus Excerpt (First 32 bytes):</span>
-                      <span className="text-[9px] text-amber-400 font-normal">Differs per device</span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-white">Distinct 2048-Bit Modulus Excerpt (First 32 bytes):</span>
+                        <span className="text-[9px] px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-300 border border-amber-500/25 font-bold uppercase tracking-wider">
+                          Encoding: {modulusExcerpt.encodingLabel}
+                        </span>
+                      </div>
+                      <button
+                        onClick={() => copyToClipboard(modulusExcerpt.hexPrefixed, 'modulus')}
+                        className="inline-flex items-center gap-1 text-[10px] text-amber-400 hover:text-amber-300 font-bold cursor-pointer bg-amber-500/10 hover:bg-amber-500/20 px-2 py-0.5 rounded border border-amber-500/30 transition-all"
+                      >
+                        {copiedType === 'modulus' ? (
+                          <>
+                            <Check className="w-3 h-3 text-emerald-400" />
+                            <span className="text-emerald-400">Copied Hex!</span>
+                          </>
+                        ) : (
+                          <>
+                            <Copy className="w-3 h-3" />
+                            <span>Copy Hex</span>
+                          </>
+                        )}
+                      </button>
                     </div>
-                    <div className="font-mono text-amber-300 text-[10.5px] font-bold break-all bg-slate-900/50 p-2 rounded border border-slate-800/80">
-                      {modulusExcerpt}...
+                    <div className="font-mono text-amber-300 text-[10.5px] font-bold break-all bg-slate-900/60 p-2.5 rounded-lg border border-slate-800/80 select-all">
+                      {modulusExcerpt.hexPrefixed}
+                    </div>
+                    <div className="flex items-center justify-between text-[9px] text-slate-500 font-mono">
+                      <span>Unsigned Big-Endian Byte Representation &bull; {modulusExcerpt.totalModulusBits}-bit RSA Key</span>
+                      <span className="text-slate-400 font-medium">Base64: {modulusExcerpt.base64}</span>
                     </div>
                   </div>
                 )}

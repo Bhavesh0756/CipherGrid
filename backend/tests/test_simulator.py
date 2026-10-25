@@ -436,4 +436,86 @@ def test_packet_forensics_verification(client):
     assert "MISMATCH" in t_data["integrity"]["status"]
 
 
+def test_rsa_modulus_derivation_and_excerpt(client):
+    """Verifies that the RSA modulus n is correctly parsed from SubjectPublicKeyInfo DER
+    and the 32-byte unsigned big-endian excerpt matches the actual device public key modulus."""
+    from cryptography.hazmat.primitives import serialization
 
+    # 1. Fetch public key for a device
+    res = client.get("/api/devices/Sensor-01/public-key")
+    assert res.status_code == 200
+    pem_str = res.get_json()["public_key_pem"]
+
+    # 2. Extract actual modulus n via cryptography library
+    pub_key = serialization.load_pem_public_key(pem_str.encode("utf-8"))
+    n = pub_key.public_numbers().n
+    n_bytes = n.to_bytes((n.bit_length() + 7) // 8, "big")
+    assert len(n_bytes) == 256  # 2048-bit RSA key
+    expected_first_32_hex = n_bytes[:32].hex()
+    expected_first_32_b64 = base64.b64encode(n_bytes[:32]).decode("utf-8")
+
+    # 3. Independently parse ASN.1 DER SubjectPublicKeyInfo to extract modulus n
+    clean_b64 = "".join(line for line in pem_str.splitlines() if not line.startswith("-----"))
+    der_bytes = base64.b64decode(clean_b64)
+
+    # ASN.1 DER length decoder
+    def read_der_len(buf, offset):
+        first = buf[offset]
+        offset += 1
+        if first < 0x80:
+            return first, offset
+        num_octets = first & 0x7F
+        length = 0
+        for _ in range(num_octets):
+            length = (length << 8) | buf[offset]
+            offset += 1
+        return length, offset
+
+    pos = 0
+    assert der_bytes[pos] == 0x30  # Outer SEQUENCE
+    pos += 1
+    _, pos = read_der_len(der_bytes, pos)
+
+    assert der_bytes[pos] == 0x30  # AlgorithmIdentifier SEQUENCE
+    pos += 1
+    alg_len, pos = read_der_len(der_bytes, pos)
+    pos += alg_len
+
+    assert der_bytes[pos] == 0x03  # BIT STRING
+    pos += 1
+    _, pos = read_der_len(der_bytes, pos)
+    unused_bits = der_bytes[pos]
+    assert unused_bits == 0
+    pos += 1
+
+    assert der_bytes[pos] == 0x30  # RSAPublicKey SEQUENCE
+    pos += 1
+    _, pos = read_der_len(der_bytes, pos)
+
+    assert der_bytes[pos] == 0x02  # INTEGER modulus
+    pos += 1
+    mod_len, pos = read_der_len(der_bytes, pos)
+    parsed_mod_raw = der_bytes[pos:pos + mod_len]
+
+    # Convert to unsigned big-endian byte representation (strip leading 0x00 if present)
+    if parsed_mod_raw[0] == 0x00 and len(parsed_mod_raw) > 1:
+        parsed_mod = parsed_mod_raw[1:]
+    else:
+        parsed_mod = parsed_mod_raw
+
+    # Modulus must match actual key modulus exactly
+    assert parsed_mod == n_bytes
+    assert parsed_mod[:32].hex() == expected_first_32_hex
+    assert base64.b64encode(parsed_mod[:32]).decode("utf-8") == expected_first_32_b64
+
+    # 4. Verify rotation updates the modulus and yields a distinct excerpt
+    rot_res = client.post("/api/devices/Sensor-01/rotate-keys")
+    assert rot_res.status_code == 200
+    new_pem_str = rot_res.get_json()["public_key_pem"]
+    assert new_pem_str != pem_str
+
+    new_pub_key = serialization.load_pem_public_key(new_pem_str.encode("utf-8"))
+    new_n = new_pub_key.public_numbers().n
+    new_n_bytes = new_n.to_bytes((new_n.bit_length() + 7) // 8, "big")
+    assert new_n_bytes != n_bytes
+    assert new_n_bytes[:32].hex() != expected_first_32_hex
