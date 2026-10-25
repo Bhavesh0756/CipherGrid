@@ -185,6 +185,8 @@ export const NetworkPlant3DView: React.FC<NetworkPlant3DViewProps> = ({
   const targetCamPosRef = useRef<THREE.Vector3>(new THREE.Vector3(0, 24, 30));
   const targetLookAtRef = useRef<THREE.Vector3>(new THREE.Vector3(0, 0, 0));
   const isTransitioningRef = useRef<boolean>(false);
+  const transitionSpeedRef = useRef<number>(0.025);
+  const chaseArrivalHoldRef = useRef<number>(0);
   const droneAngleRef = useRef<number>(0);
   const isChaseCamRef = useRef<boolean>(isChaseCam);
   isChaseCamRef.current = isChaseCam;
@@ -197,6 +199,7 @@ export const NetworkPlant3DView: React.FC<NetworkPlant3DViewProps> = ({
     isAutoDroneRef.current = false;
     setIsChaseCam(false);
     isChaseCamRef.current = false;
+    transitionSpeedRef.current = 0.045;
     isTransitioningRef.current = true;
 
     if (mode === 'tactical') {
@@ -914,6 +917,7 @@ export const NetworkPlant3DView: React.FC<NetworkPlant3DViewProps> = ({
           isChaseCamRef.current = false;
           targetLookAtRef.current.set(p.x, 1.2, p.z);
           targetCamPosRef.current.set(p.x + 5.5, 5.5, p.z + 7.5);
+          transitionSpeedRef.current = 0.045;
           isTransitioningRef.current = true;
         }
       }
@@ -961,12 +965,13 @@ export const NetworkPlant3DView: React.FC<NetworkPlant3DViewProps> = ({
         camera.position.lerp(new THREE.Vector3(targetX, targetY, targetZ), 0.06);
         controls.target.lerp(new THREE.Vector3(0, 1.0, 0), 0.05);
       } else if (isTransitioningRef.current) {
-        // Smooth preset/focus lerp transition
-        camera.position.lerp(targetCamPosRef.current, 0.075);
-        controls.target.lerp(targetLookAtRef.current, 0.075);
+        // Slow, graceful, cinematic ease-out ascent back to tactical overview
+        const tSpeed = transitionSpeedRef.current || 0.022;
+        camera.position.lerp(targetCamPosRef.current, tSpeed);
+        controls.target.lerp(targetLookAtRef.current, tSpeed + 0.005);
         if (
-          camera.position.distanceTo(targetCamPosRef.current) < 0.15 &&
-          controls.target.distanceTo(targetLookAtRef.current) < 0.15
+          camera.position.distanceTo(targetCamPosRef.current) < 0.25 &&
+          controls.target.distanceTo(targetLookAtRef.current) < 0.25
         ) {
           isTransitioningRef.current = false;
         }
@@ -975,6 +980,7 @@ export const NetworkPlant3DView: React.FC<NetworkPlant3DViewProps> = ({
       // Reset progress when replaying or starting a new dispatch
       if (lastPlaybackStateRef.current !== 'playing' && isTransferPlaying) {
         activePacketProgress = 0.0;
+        chaseArrivalHoldRef.current = 0.0;
         routeArrows.forEach((arr, idx) => {
           arr.progress = (idx % 4) * 0.25;
         });
@@ -995,15 +1001,20 @@ export const NetworkPlant3DView: React.FC<NetworkPlant3DViewProps> = ({
               activePacketProgress += delta * packetSpeed;
               if (activePacketProgress >= 1.0) {
                 activePacketProgress = 1.0;
-                // If in Chase Cam, packet transfer is complete: smoothly ease camera back up to tactical overview
-                if (isChaseCamRef.current) {
-                  isChaseCamRef.current = false;
-                  setIsChaseCam(false);
-                  setCameraMode('tactical');
-                  targetCamPosRef.current.set(0, 24, 30);
-                  targetLookAtRef.current.set(0, 0, 0);
-                  isTransitioningRef.current = true;
-                }
+                chaseArrivalHoldRef.current = 0.0;
+              }
+            } else if (isChaseCamRef.current) {
+              // Packet reached destination: hold camera at destination for 0.8s dramatic arrival pause
+              chaseArrivalHoldRef.current += delta;
+              if (chaseArrivalHoldRef.current >= 0.8) {
+                isChaseCamRef.current = false;
+                setIsChaseCam(false);
+                setCameraMode('tactical');
+                targetCamPosRef.current.set(0, 24, 30);
+                targetLookAtRef.current.set(0, 0, 0);
+                transitionSpeedRef.current = 0.022; // Slow, majestic glide up
+                isTransitioningRef.current = true;
+                chaseArrivalHoldRef.current = 0.0;
               }
             }
           }
