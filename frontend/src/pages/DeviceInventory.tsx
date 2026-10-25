@@ -400,11 +400,6 @@ export const DeviceInventory: React.FC = () => {
                   </div>
                 )}
 
-                {/* Educational Note */}
-                <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl text-[11px] text-slate-300 leading-relaxed">
-                  <span className="font-bold text-amber-300">Why standard RSA PEM keys look similar at the top: </span>
-                  In the X.509 / PKCS#8 ASN.1 specification, all 2048-bit RSA public keys share the identical ASN.1 SubjectPublicKeyInfo header prefix (<code className="text-amber-300 bg-[#060913] px-1 py-0.5 rounded font-mono text-[10px]">MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA</code>) and public exponent ending (<code className="text-amber-300 bg-[#060913] px-1 py-0.5 rounded font-mono text-[10px]">IDAQAB</code>). The 2048-bit mathematical prime modulus inside is independently generated for each device, as verified by its unique SHA-256 fingerprint above.
-                </div>
 
                 {/* Raw PEM Keystore Box */}
                 <div className="space-y-1.5">
