@@ -123,6 +123,9 @@ export const NetworkPlant3DView: React.FC<NetworkPlant3DViewProps> = ({
     simulationEvents,
     selectedEvent,
     lastResult,
+    dispatchMessage,
+    setMessageModalOpen,
+    playSimulation,
   } = useSimulatorStore();
 
   const mountRef = useRef<HTMLDivElement>(null);
@@ -450,7 +453,10 @@ export const NetworkPlant3DView: React.FC<NetworkPlant3DViewProps> = ({
       scene.add(labelSprite);
     });
 
-    // ─── 8. 3D CONDUIT PIPES LINKING DEVICES ───
+    // ─── 8. STRAIGHT 3D CONDUIT PIPES LINKING DEVICES ───
+    // All lines connecting devices are completely STRAIGHT lines (no arches or curves)
+    const conduitY = 0.50;
+
     connections.forEach((conn) => {
       const srcPos = devicePosMap.get(conn.source_id);
       const dstPos = devicePosMap.get(conn.target_id);
@@ -470,74 +476,123 @@ export const NetworkPlant3DView: React.FC<NetworkPlant3DViewProps> = ({
         }
       }
 
-      const points = [
-        new THREE.Vector3(srcPos.x, 0.45, srcPos.z),
-        new THREE.Vector3((srcPos.x + dstPos.x) / 2, 0.85, (srcPos.z + dstPos.z) / 2),
-        new THREE.Vector3(dstPos.x, 0.45, dstPos.z),
-      ];
+      // Straight connection between devices
+      const start = new THREE.Vector3(srcPos.x, conduitY, srcPos.z);
+      const end = new THREE.Vector3(dstPos.x, conduitY, dstPos.z);
 
-      const curve = new THREE.CatmullRomCurve3(points);
-      const tubeRadius = isConduitOnRoute ? 0.08 : 0.035;
-      const tubeGeo = new THREE.TubeGeometry(curve, 32, tubeRadius, 8, false);
+      const straightLine = new THREE.LineCurve3(start, end);
+      const tubeRadius = isConduitOnRoute ? 0.085 : 0.038;
+      const tubeGeo = new THREE.TubeGeometry(straightLine, 1, tubeRadius, 8, false);
 
       const tubeColor = isConduitOnRoute
         ? isPacketTampered
           ? 0xf43f5e
           : 0xa855f7
-        : 0x06b6d4;
+        : 0x0284c7;
 
-      const tubeMat = new THREE.MeshBasicMaterial({
+      const tubeMat = new THREE.MeshStandardMaterial({
         color: tubeColor,
-        transparent: true,
-        opacity: isConduitOnRoute ? 0.95 : 0.65,
+        roughness: 0.25,
+        metalness: 0.85,
+        emissive: isConduitOnRoute ? (isPacketTampered ? 0x9f1239 : 0x6b21a8) : 0x032840,
+        emissiveIntensity: isConduitOnRoute ? 0.95 : 0.25,
       });
       const tubeMesh = new THREE.Mesh(tubeGeo, tubeMat);
       scene.add(tubeMesh);
-    });
 
-    // ─── 9. REAL-TIME 3D PACKET TRANSMISSION ANIMATION (Requirement 1) ───
-    // Build active transmission route spline curve from highlightedPath
-    let activeRouteCurve: THREE.CatmullRomCurve3 | null = null;
-    let activePacketMesh: THREE.Group | null = null;
-    let activePacketProgress = 0.0;
-    const packetSpeed = 0.55;
-
-    if (highlightedPath.length > 1) {
-      const routePoints: THREE.Vector3[] = [];
-      highlightedPath.forEach((id) => {
-        const p = devicePosMap.get(id);
-        if (p) routePoints.push(new THREE.Vector3(p.x, 0.95, p.z));
+      // Industrial metallic collars at both ends of the straight conduit
+      [start, end].forEach((pt) => {
+        const collarGeo = new THREE.CylinderGeometry(tubeRadius * 1.5, tubeRadius * 1.5, 0.12, 16);
+        collarGeo.rotateX(Math.PI / 2);
+        const collarMat = new THREE.MeshStandardMaterial({
+          color: 0x64748b,
+          metalness: 0.9,
+          roughness: 0.2,
+        });
+        const collar = new THREE.Mesh(collarGeo, collarMat);
+        collar.position.copy(pt);
+        collar.lookAt(pt === start ? end : start);
+        scene.add(collar);
       });
 
-      if (routePoints.length > 1) {
-        activeRouteCurve = new THREE.CatmullRomCurve3(routePoints);
+      // If conduit is on active route, add an inner glowing laser beam core
+      if (isConduitOnRoute) {
+        const laserMat = new THREE.LineBasicMaterial({
+          color: isPacketTampered ? 0xff4d4d : 0x38bdf8,
+          linewidth: 2,
+        });
+        const laserGeo = new THREE.BufferGeometry().setFromPoints([start, end]);
+        const laserLine = new THREE.Line(laserGeo, laserMat);
+        scene.add(laserLine);
+      }
+    });
 
-        // Active Packet Particle Group with dynamic point light
-        activePacketMesh = new THREE.Group();
+    // ─── 9. REAL-TIME 3D PACKET TRANSFER ANIMATION ALONG STRAIGHT ROUTE ───
+    // Build straight multi-segment route curve path (Hop-by-hop straight conduits)
+    const routeCurvePath = new THREE.CurvePath<THREE.Vector3>();
+    const routeWaypoints: THREE.Vector3[] = [];
 
-        // Glowing core sphere
-        const coreColor = isPacketTampered ? 0xf43f5e : 0x38bdf8;
-        const pCoreGeo = new THREE.SphereGeometry(0.24, 20, 20);
-        const pCoreMat = new THREE.MeshBasicMaterial({ color: coreColor });
-        const pCore = new THREE.Mesh(pCoreGeo, pCoreMat);
-        activePacketMesh.add(pCore);
+    if (highlightedPath.length > 1) {
+      for (let i = 0; i < highlightedPath.length; i++) {
+        const p = devicePosMap.get(highlightedPath[i]);
+        if (p) {
+          routeWaypoints.push(new THREE.Vector3(p.x, conduitY, p.z));
+        }
+      }
 
-        // Outer Aura Ring
-        const pAuraGeo = new THREE.TorusGeometry(0.36, 0.06, 12, 24);
-        const pAuraMat = new THREE.MeshBasicMaterial({ color: isPacketTampered ? 0xfb7185 : 0xa855f7 });
-        const pAura = new THREE.Mesh(pAuraGeo, pAuraMat);
-        activePacketMesh.add(pAura);
-
-        // Packet Light casting real illumination along path
-        const pLight = new THREE.PointLight(coreColor, 3.5, 6.0);
-        activePacketMesh.add(pLight);
-
-        activePacketMesh.position.copy(routePoints[0]);
-        scene.add(activePacketMesh);
+      for (let i = 0; i < routeWaypoints.length - 1; i++) {
+        const straightHop = new THREE.LineCurve3(routeWaypoints[i], routeWaypoints[i + 1]);
+        routeCurvePath.add(straightHop);
       }
     }
 
-    // Ambient background packet pulses along other conduits
+    let activePacketMesh: THREE.Group | null = null;
+    let activePacketProgress = 0.0;
+    const packetSpeed = 0.42;
+    const photonStream: THREE.Mesh[] = [];
+
+    if (routeCurvePath.curves.length > 0) {
+      // 1. Lead Master Packet
+      activePacketMesh = new THREE.Group();
+      const coreColor = isPacketTampered ? 0xf43f5e : 0x38bdf8;
+      const auraColor = isPacketTampered ? 0xfb7185 : 0xa855f7;
+
+      // Glowing Core Sphere
+      const pCoreGeo = new THREE.SphereGeometry(0.24, 20, 20);
+      const pCoreMat = new THREE.MeshBasicMaterial({ color: coreColor });
+      const pCore = new THREE.Mesh(pCoreGeo, pCoreMat);
+      activePacketMesh.add(pCore);
+
+      // Rotating Aura Torus Ring
+      const pAuraGeo = new THREE.TorusGeometry(0.40, 0.05, 12, 24);
+      const pAuraMat = new THREE.MeshBasicMaterial({ color: auraColor });
+      const pAura = new THREE.Mesh(pAuraGeo, pAuraMat);
+      activePacketMesh.add(pAura);
+
+      // Real-time Point Light casting illumination onto ground and devices
+      const pLight = new THREE.PointLight(coreColor, 4.0, 7.5);
+      activePacketMesh.add(pLight);
+
+      activePacketMesh.position.copy(routeWaypoints[0]);
+      scene.add(activePacketMesh);
+
+      // 2. Trailing Photon Stream (5 data packets streaming along the straight route)
+      const photonGeo = new THREE.SphereGeometry(0.12, 12, 12);
+      const photonMat = new THREE.MeshBasicMaterial({
+        color: auraColor,
+        transparent: true,
+        opacity: 0.85,
+      });
+
+      for (let i = 0; i < 5; i++) {
+        const photon = new THREE.Mesh(photonGeo, photonMat);
+        photon.position.copy(routeWaypoints[0]);
+        scene.add(photon);
+        photonStream.push(photon);
+      }
+    }
+
+    // Ambient background pulses along other straight conduits
     const ambientPulses: {
       mesh: THREE.Mesh;
       start: THREE.Vector3;
@@ -546,23 +601,26 @@ export const NetworkPlant3DView: React.FC<NetworkPlant3DViewProps> = ({
       speed: number;
     }[] = [];
 
-    const ambientGeo = new THREE.SphereGeometry(0.1, 12, 12);
-    const ambientMat = new THREE.MeshBasicMaterial({ color: 0x38bdf8 });
+    const ambientGeo = new THREE.SphereGeometry(0.08, 10, 10);
+    const ambientMat = new THREE.MeshBasicMaterial({ color: 0x38bdf8, transparent: true, opacity: 0.75 });
 
-    connections.slice(0, 10).forEach((conn, idx) => {
+    connections.slice(0, 12).forEach((conn, idx) => {
       const srcPos = devicePosMap.get(conn.source_id);
       const dstPos = devicePosMap.get(conn.target_id);
       if (!srcPos || !dstPos) return;
 
+      const start = new THREE.Vector3(srcPos.x, conduitY, srcPos.z);
+      const end = new THREE.Vector3(dstPos.x, conduitY, dstPos.z);
+
       const pMesh = new THREE.Mesh(ambientGeo, ambientMat);
-      pMesh.position.copy(srcPos);
+      pMesh.position.copy(start);
       scene.add(pMesh);
       ambientPulses.push({
         mesh: pMesh,
-        start: new THREE.Vector3(srcPos.x, 0.5, srcPos.z),
-        end: new THREE.Vector3(dstPos.x, 0.5, dstPos.z),
-        progress: (idx * 0.2) % 1.0,
-        speed: 0.35 + (idx % 3) * 0.12,
+        start,
+        end,
+        progress: (idx * 0.18) % 1.0,
+        speed: 0.3 + (idx % 3) * 0.1,
       });
     });
 
@@ -618,26 +676,33 @@ export const NetworkPlant3DView: React.FC<NetworkPlant3DViewProps> = ({
       rotatingBlades.forEach((b) => (b.rotation.x += delta * 6.5));
       rotatingFans.forEach((f) => (f.rotation.z += delta * 8.0));
 
-      // Animate active packet transfer along route
-      if (activeRouteCurve && activePacketMesh) {
+      // 1. Animate active packet transfer along straight route
+      if (routeCurvePath.curves.length > 0 && activePacketMesh) {
         activePacketProgress += delta * packetSpeed;
         if (activePacketProgress >= 1.0) {
           activePacketProgress = 0.0;
         }
 
-        const pointOnCurve = activeRouteCurve.getPointAt(activePacketProgress);
-        activePacketMesh.position.copy(pointOnCurve);
-        // Add subtle sinusoidal vertical bobbing to simulate packet wave
-        activePacketMesh.position.y += Math.sin(activePacketProgress * Math.PI * 6) * 0.18;
-        activePacketMesh.rotation.y += delta * 4.0;
+        // Exact point on the straight multi-segment route
+        const pointOnRoute = routeCurvePath.getPointAt(activePacketProgress);
+        activePacketMesh.position.copy(pointOnRoute);
+        activePacketMesh.rotation.y += delta * 4.5;
+        activePacketMesh.rotation.z += delta * 3.0;
+
+        // Position trailing photons in a stream behind the main packet
+        photonStream.forEach((photon, idx) => {
+          const trailOffset = (idx + 1) * 0.045;
+          const photonProgress = (activePacketProgress - trailOffset + 1.0) % 1.0;
+          const photonPoint = routeCurvePath.getPointAt(photonProgress);
+          photon.position.copy(photonPoint);
+        });
       }
 
-      // Animate background ambient particles
+      // 2. Animate background ambient particles along straight conduits
       ambientPulses.forEach((p) => {
         p.progress += delta * p.speed;
         if (p.progress >= 1.0) p.progress = 0;
         p.mesh.position.lerpVectors(p.start, p.end, p.progress);
-        p.mesh.position.y += Math.sin(p.progress * Math.PI) * 0.35;
       });
 
       controls.update();
@@ -666,6 +731,37 @@ export const NetworkPlant3DView: React.FC<NetworkPlant3DViewProps> = ({
     };
   }, [devices, connections, highlightedPath, activeHopId, selectedDevice?.id, isPacketTampered]);
 
+  // Handler to trigger quick live transmission test in 3D
+  const handleQuickDispatch = async () => {
+    if (devices.length < 2) return;
+    try {
+      const sender =
+        devices.find((d) => d.name.toLowerCase().includes('sensor')) || devices[0];
+      const receiver =
+        devices.find(
+          (d) =>
+            d.id !== sender.id &&
+            (d.name.toLowerCase().includes('scada') ||
+              d.name.toLowerCase().includes('server') ||
+              d.name.toLowerCase().includes('plc'))
+        ) || devices[devices.length - 1];
+
+      await dispatchMessage({
+        sender_id: sender.id,
+        receiver_id: receiver.id,
+        message_type: 'Telemetry Report',
+        payload: `3D Plant Telemetry Stream from ${sender.name} [${new Date().toLocaleTimeString()}]`,
+        security_profile: 'AES-256-GCM + RSA-PSS',
+        tamper_message: false,
+        tamper_signature: false,
+        tamper_tag: false,
+        replay_attack: false,
+      });
+    } catch {
+      setMessageModalOpen(true);
+    }
+  };
+
   return (
     <div className="relative w-full h-full flex flex-col bg-[#060913] select-none overflow-hidden">
       {/* 3D WebGL Canvas Container */}
@@ -680,7 +776,7 @@ export const NetworkPlant3DView: React.FC<NetworkPlant3DViewProps> = ({
               3D CYBER-PHYSICAL INDUSTRIAL PLANT
             </span>
             <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/30">
-              SYNCHRONIZED WITH 2D CANVAS
+              STRAIGHT CONDUITS
             </span>
           </div>
 
@@ -700,15 +796,25 @@ export const NetworkPlant3DView: React.FC<NetworkPlant3DViewProps> = ({
           </div>
         </div>
 
-        {/* Right Info Note */}
-        <div className="bg-[#090f1c]/90 backdrop-blur-md px-3.5 py-2 rounded-xl border border-slate-700/80 text-[11px] font-mono text-slate-300 pointer-events-auto flex items-center gap-2 shadow-xl">
-          <MousePointer className="w-3.5 h-3.5 text-cyan-400" />
-          <span>Click device model to open 360° Digital Twin</span>
+        {/* Right Info Note & Dispatch Action */}
+        <div className="flex items-center gap-2 pointer-events-auto">
+          <button
+            onClick={handleQuickDispatch}
+            className="bg-blue-600/90 hover:bg-blue-500 px-3.5 py-2 rounded-xl border border-blue-400/50 text-white text-[11px] font-mono flex items-center gap-2 shadow-xl cursor-pointer transition-all active:scale-95"
+            title="Dispatch a packet to watch 3D transfer animation along straight route conduits"
+          >
+            <Send className="w-3.5 h-3.5 text-cyan-200 animate-pulse" />
+            <span>DISPATCH 3D PACKET</span>
+          </button>
+          <div className="bg-[#090f1c]/90 backdrop-blur-md px-3.5 py-2 rounded-xl border border-slate-700/80 text-[11px] font-mono text-slate-300 flex items-center gap-2 shadow-xl">
+            <MousePointer className="w-3.5 h-3.5 text-cyan-400" />
+            <span>Click device for Digital Twin</span>
+          </div>
         </div>
       </div>
 
-      {/* Live 3D Packet Transmission Banner (Visible when packet is actively flying) */}
-      {isSimulating && highlightedPath.length > 1 && (
+      {/* Live 3D Packet Transmission Banner (Visible when route is active) */}
+      {highlightedPath.length > 1 && (
         <div className="absolute top-16 left-1/2 -translate-x-1/2 z-20 pointer-events-auto animate-in fade-in slide-in-from-top-4 duration-300">
           <div
             className={`px-5 py-2.5 rounded-2xl border backdrop-blur-xl shadow-2xl flex items-center gap-3.5 font-mono text-xs ${
@@ -720,7 +826,7 @@ export const NetworkPlant3DView: React.FC<NetworkPlant3DViewProps> = ({
             <div className="w-3 h-3 rounded-full bg-current animate-ping" />
             <div className="flex items-center gap-2">
               <span className="font-bold tracking-wide uppercase">
-                {isPacketTampered ? 'TAMPERED PACKET IN 3D TRANSIT' : 'ACTIVE PACKET TRANSMISSION'}
+                {isPacketTampered ? 'TAMPERED PACKET IN TRANSIT' : 'PACKET TRANSFER ALONG ROUTE'}
               </span>
               <span className="text-slate-400">&bull;</span>
               <span className="text-white font-bold">{highlightedPath.join(' ➔ ')}</span>
@@ -730,6 +836,13 @@ export const NetworkPlant3DView: React.FC<NetworkPlant3DViewProps> = ({
                 ACTIVE HOP: {activeHopId}
               </span>
             )}
+            <button
+              onClick={() => playSimulation()}
+              className="ml-1 p-1 hover:bg-white/10 rounded transition-colors cursor-pointer"
+              title="Replay packet transfer animation"
+            >
+              <RotateCcw className="w-3.5 h-3.5 text-white" />
+            </button>
           </div>
         </div>
       )}
