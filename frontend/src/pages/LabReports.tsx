@@ -31,8 +31,10 @@ export const LabReports: React.FC = () => {
     setRegenerateSuccess(false);
     try {
       await fetchLabReport(true);
-      setRegenerateSuccess(true);
-      setTimeout(() => setRegenerateSuccess(false), 3000);
+      if (!useSimulatorStore.getState().error) {
+        setRegenerateSuccess(true);
+        setTimeout(() => setRegenerateSuccess(false), 3000);
+      }
     } catch {
       // ignore
     } finally {
