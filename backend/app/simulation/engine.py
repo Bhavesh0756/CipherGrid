@@ -343,6 +343,84 @@ def simulate_industrial_message(
     audit_event_id = f"AUDIT-LOG-#{audit_id}"
 
     # Master cryptographic wire envelope
+    # ─── Payload Diff & In-Flight Interception Audit ───
+    import re
+    sent_payload_str = canonical_data
+    received_payload_str = canonical_data
+    diff_status = "IDENTICAL"  # "IDENTICAL" | "TAMPERED" | "SIGNATURE_FORGERY" | "CIPHERTEXT_CORRUPTED" | "REPLAYED" | "DROPPED"
+    diff_reason = "Cryptographic integrity intact; sent payload matches receiver ingress."
+
+    if scenario_id == "tampering" or (final_status != "Delivered" and "tamper" in str(crypto_status_label).lower()):
+        diff_status = "TAMPERED"
+        # Check if payload has numeric values (e.g., 43 -> 56)
+        match = re.search(r'(\b\d+(\.\d+)?\b)', sent_payload_str)
+        if match:
+            original_num_str = match.group(1)
+            try:
+                if '.' in original_num_str:
+                    injected_val = f"{float(original_num_str) + 13.0:.1f}"
+                else:
+                    injected_val = str(int(original_num_str) + 13)
+                received_payload_str = sent_payload_str[:match.start()] + injected_val + sent_payload_str[match.end():]
+            except Exception:
+                received_payload_str = sent_payload_str + " [INJECTED_OVERHEAT: 56.0°C]"
+        else:
+            received_payload_str = sent_payload_str + " [INJECTED_OVERHEAT: 56.0°C]"
+        diff_reason = "MITM In-Transit Tampering: Sensor value manipulated before arrival. Hash check failed."
+
+    elif scenario_id == "bad_signature" or "signature" in str(crypto_status_label).lower():
+        diff_status = "SIGNATURE_FORGERY"
+        received_payload_str = sent_payload_str
+        diff_reason = "Payload bytes untouched, but digital signature was forged or altered by non-repudiation check."
+
+    elif scenario_id == "bad_auth_tag" or "tag mismatch" in str(crypto_status_label).lower():
+        diff_status = "CIPHERTEXT_CORRUPTED"
+        received_payload_str = "[AEAD AUTHENTICATION TAG MISMATCH - CIPHERTEXT CORRUPTED]"
+        diff_reason = "AES-256-GCM authentication tag verification failed. Receiver rejected corrupted frame."
+
+    elif scenario_id == "replay_attempt" or "replay" in str(crypto_status_label).lower():
+        diff_status = "REPLAYED"
+        received_payload_str = sent_payload_str
+        diff_reason = f"Duplicate packet rejected: Duplicate message ID '{message_id}' re-transmitted with stale sequence."
+
+    elif not rbac_allowed or scenario_id == "unauthorized_device" or "unauthorized" in str(rejection_reason or "").lower():
+        diff_status = "DROPPED"
+        received_payload_str = f"[DROPPED AT PERIMETER SWITCH - {rbac_reason or 'Admission Violation'}]"
+        diff_reason = f"Packet rejected by admission control: {rbac_reason or 'Unauthorized device blocked.'}"
+
+    elif not path_found:
+        diff_status = "DROPPED"
+        received_payload_str = "[UNDELIVERED - CONDUIT SEVERED]"
+        diff_reason = "Network conduit missing or offline."
+
+    sent_hash = compute_sha256_digest(sent_payload_str)
+    received_hash = (
+        compute_sha256_digest(received_payload_str)
+        if not received_payload_str.startswith("[")
+        else "N/A - PACKET_DROPPED"
+    )
+
+    payload_diff_data = {
+        "sent": {
+            "source_device": sender_id,
+            "source_name": sender.get("name", sender_id),
+            "payload": sent_payload_str,
+            "sha256": sent_hash,
+            "timestamp": now,
+        },
+        "received": {
+            "destination_device": receiver_id,
+            "destination_name": receiver.get("name", receiver_id),
+            "payload": received_payload_str,
+            "sha256": received_hash,
+            "timestamp": now,
+        },
+        "diff_status": diff_status,
+        "is_modified": diff_status in ["TAMPERED", "CIPHERTEXT_CORRUPTED", "DROPPED"],
+        "reason": diff_reason,
+        "decision": final_status,
+    }
+
     shared_wire_envelope = {
         "message_id": message_id,
         "session_id": session_id,
@@ -367,6 +445,7 @@ def simulate_industrial_message(
         "audit_event_id": audit_event_id,
         "checks_passed": security_metadata["checks_passed"],
         "failure_reason": rejection_reason,
+        "payload_diff": payload_diff_data,
     }
 
     # Progressive timestamps for realistic packet timeline
@@ -577,5 +656,6 @@ def simulate_industrial_message(
         "path": hops,
         "latency_ms": round(current_ms, 2),
         "security": security_metadata,
+        "payload_diff": payload_diff_data,
         "events": events
     }
