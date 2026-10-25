@@ -123,8 +123,6 @@ export const NetworkPlant3DView: React.FC<NetworkPlant3DViewProps> = ({
     simulationEvents,
     selectedEvent,
     lastResult,
-    dispatchMessage,
-    setMessageModalOpen,
     playSimulation,
   } = useSimulatorStore();
 
@@ -731,91 +729,14 @@ export const NetworkPlant3DView: React.FC<NetworkPlant3DViewProps> = ({
     };
   }, [devices, connections, highlightedPath, activeHopId, selectedDevice?.id, isPacketTampered]);
 
-  // Handler to trigger quick live transmission test in 3D
-  const handleQuickDispatch = async () => {
-    if (devices.length < 2) return;
-    try {
-      const sender =
-        devices.find((d) => d.name.toLowerCase().includes('sensor')) || devices[0];
-      const receiver =
-        devices.find(
-          (d) =>
-            d.id !== sender.id &&
-            (d.name.toLowerCase().includes('scada') ||
-              d.name.toLowerCase().includes('server') ||
-              d.name.toLowerCase().includes('plc'))
-        ) || devices[devices.length - 1];
-
-      await dispatchMessage({
-        sender_id: sender.id,
-        receiver_id: receiver.id,
-        message_type: 'Telemetry Report',
-        payload: `3D Plant Telemetry Stream from ${sender.name} [${new Date().toLocaleTimeString()}]`,
-        security_profile: 'AES-256-GCM + RSA-PSS',
-        tamper_message: false,
-        tamper_signature: false,
-        tamper_tag: false,
-        replay_attack: false,
-      });
-    } catch {
-      setMessageModalOpen(true);
-    }
-  };
-
   return (
     <div className="relative w-full h-full flex flex-col bg-[#060913] select-none overflow-hidden">
       {/* 3D WebGL Canvas Container */}
       <div ref={mountRef} className="w-full h-full" />
 
-      {/* Top HUD: Plant Info & Live Transmission Telemetry Bar */}
-      <div className="absolute top-4 left-4 right-4 flex items-center justify-between pointer-events-none z-10">
-        <div className="bg-[#090f1c]/90 backdrop-blur-md px-4 py-2.5 rounded-2xl border border-slate-700/80 shadow-2xl pointer-events-auto flex items-center gap-4">
-          <div className="flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-pulse" />
-            <span className="text-xs font-bold text-white uppercase font-display tracking-wide">
-              3D CYBER-PHYSICAL INDUSTRIAL PLANT
-            </span>
-            <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/30">
-              STRAIGHT CONDUITS
-            </span>
-          </div>
-
-          <div className="hidden lg:flex items-center gap-3 text-[10.5px] font-mono text-slate-300 border-l border-slate-700 pl-3">
-            <span className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-amber-400" /> L0 Sensors
-            </span>
-            <span className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-blue-400" /> L1 Control
-            </span>
-            <span className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-purple-400" /> L2 SCADA
-            </span>
-            <span className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-emerald-400" /> L3 Operations
-            </span>
-          </div>
-        </div>
-
-        {/* Right Info Note & Dispatch Action */}
-        <div className="flex items-center gap-2 pointer-events-auto">
-          <button
-            onClick={handleQuickDispatch}
-            className="bg-blue-600/90 hover:bg-blue-500 px-3.5 py-2 rounded-xl border border-blue-400/50 text-white text-[11px] font-mono flex items-center gap-2 shadow-xl cursor-pointer transition-all active:scale-95"
-            title="Dispatch a packet to watch 3D transfer animation along straight route conduits"
-          >
-            <Send className="w-3.5 h-3.5 text-cyan-200 animate-pulse" />
-            <span>DISPATCH 3D PACKET</span>
-          </button>
-          <div className="bg-[#090f1c]/90 backdrop-blur-md px-3.5 py-2 rounded-xl border border-slate-700/80 text-[11px] font-mono text-slate-300 flex items-center gap-2 shadow-xl">
-            <MousePointer className="w-3.5 h-3.5 text-cyan-400" />
-            <span>Click device for Digital Twin</span>
-          </div>
-        </div>
-      </div>
-
       {/* Live 3D Packet Transmission Banner (Visible when route is active) */}
       {highlightedPath.length > 1 && (
-        <div className="absolute top-16 left-1/2 -translate-x-1/2 z-20 pointer-events-auto animate-in fade-in slide-in-from-top-4 duration-300">
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-20 pointer-events-auto animate-in fade-in slide-in-from-top-4 duration-300">
           <div
             className={`px-5 py-2.5 rounded-2xl border backdrop-blur-xl shadow-2xl flex items-center gap-3.5 font-mono text-xs ${
               isPacketTampered
