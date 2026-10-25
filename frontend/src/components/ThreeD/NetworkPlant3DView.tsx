@@ -590,6 +590,56 @@ export const NetworkPlant3DView: React.FC<NetworkPlant3DViewProps> = ({
       }
     }
 
+    // ─── 9.1 DIRECTIONAL 3D ARROWS ALONG TRANSMISSION ROUTE (MATCHING 2D ARROWS) ───
+    const routeArrows: {
+      mesh: THREE.Mesh;
+      start: THREE.Vector3;
+      end: THREE.Vector3;
+      progress: number;
+    }[] = [];
+
+    const arrowHeadGeo = new THREE.ConeGeometry(0.18, 0.42, 16);
+    arrowHeadGeo.rotateX(Math.PI / 2); // Orient cone tip along +Z so lookAt points in direction of travel
+    const arrowColor = isPacketTampered ? 0xf43f5e : 0x38bdf8;
+    const arrowMat = new THREE.MeshBasicMaterial({
+      color: arrowColor,
+      transparent: true,
+      opacity: 0.95,
+    });
+
+    if (highlightedPath.length > 1) {
+      for (let i = 0; i < highlightedPath.length - 1; i++) {
+        const fromId = highlightedPath[i];
+        const toId = highlightedPath[i + 1];
+        const p1 = devicePosMap.get(fromId);
+        const p2 = devicePosMap.get(toId);
+        if (p1 && p2) {
+          const startHop = new THREE.Vector3(p1.x, conduitY, p1.z);
+          const endHop = new THREE.Vector3(p2.x, conduitY, p2.z);
+
+          // 1. Static Terminal Arrowhead at destination port (like 2D markerEnd: ArrowClosed)
+          const termArrow = new THREE.Mesh(arrowHeadGeo, arrowMat);
+          termArrow.position.lerpVectors(startHop, endHop, 0.84);
+          termArrow.lookAt(endHop.x, conduitY, endHop.z);
+          scene.add(termArrow);
+
+          // 2. Animated Flow Arrows streaming towards target device in direction of transmission
+          for (let a = 0; a < 3; a++) {
+            const flowArrow = new THREE.Mesh(arrowHeadGeo, arrowMat);
+            flowArrow.position.copy(startHop);
+            flowArrow.lookAt(endHop.x, conduitY, endHop.z);
+            scene.add(flowArrow);
+            routeArrows.push({
+              mesh: flowArrow,
+              start: startHop,
+              end: endHop,
+              progress: a * 0.28,
+            });
+          }
+        }
+      }
+    }
+
     // Ambient background pulses along other straight conduits
     const ambientPulses: {
       mesh: THREE.Mesh;
@@ -696,7 +746,17 @@ export const NetworkPlant3DView: React.FC<NetworkPlant3DViewProps> = ({
         });
       }
 
-      // 2. Animate background ambient particles along straight conduits
+      // 2. Animate 3D directional flow arrows moving towards target in direction of transfer
+      routeArrows.forEach((arr) => {
+        arr.progress += delta * 0.55;
+        if (arr.progress >= 0.82) {
+          arr.progress = 0.08;
+        }
+        arr.mesh.position.lerpVectors(arr.start, arr.end, arr.progress);
+        arr.mesh.lookAt(arr.end.x, arr.start.y, arr.end.z);
+      });
+
+      // 3. Animate background ambient particles along straight conduits
       ambientPulses.forEach((p) => {
         p.progress += delta * p.speed;
         if (p.progress >= 1.0) p.progress = 0;
