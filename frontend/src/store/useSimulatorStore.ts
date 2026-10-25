@@ -113,7 +113,7 @@ interface SimulatorStore {
 
   // Lab Report
   labReport: LabReport | null;
-  fetchLabReport: () => Promise<void>;
+  fetchLabReport: (regenerate?: boolean) => Promise<void>;
 }
 
 const derivePurdueLevel = (type: string): PurdueLevel => {
@@ -691,9 +691,10 @@ export const useSimulatorStore = create<SimulatorStore>((set, get) => {
 
     // Lab Report
     labReport: null,
-    fetchLabReport: async () => {
+    fetchLabReport: async (regenerate?: boolean) => {
+      set({ isLoading: true, error: null });
       try {
-        const res = await api.getLabReport();
+        const res = await api.getLabReport(regenerate);
         const r = res.report;
         const mappedReport: LabReport = {
           title: r.title,
@@ -735,9 +736,9 @@ export const useSimulatorStore = create<SimulatorStore>((set, get) => {
           conclusion: r.conclusion,
         };
 
-        set({ labReport: mappedReport });
+        set({ labReport: mappedReport, isLoading: false });
       } catch (err: any) {
-        set({ error: err.message });
+        set({ error: err.message, isLoading: false });
       }
     },
   };

@@ -8,19 +8,41 @@ import csv
 import io
 import json
 from datetime import datetime, timezone
-from flask import Blueprint, jsonify, Response
+from flask import Blueprint, request, jsonify, Response
 from ..database.db import query_db
 
 reports_bp = Blueprint("reports", __name__, url_prefix="/api/reports")
 
-@reports_bp.route("/lab-report", methods=["GET"])
+@reports_bp.route("/lab-report", methods=["GET", "POST"])
 def generate_lab_report():
-    """Generates an engineering lab report summarizing topology, scenarios, and security checks."""
+    """Generates an engineering lab report summarizing topology, scenarios, and security checks.
+    Supports on-demand regeneration of baseline empirical security evaluations.
+    """
     now = datetime.now(timezone.utc).isoformat()
     
     devices = query_db("SELECT id, name, type, ip_address, role, trust_status, enabled FROM devices")
     connections = query_db("SELECT source_id, target_id, link_type, status, latency_ms FROM connections")
     scenarios = query_db("SELECT * FROM security_test_results ORDER BY timestamp DESC LIMIT 20")
+
+    should_regenerate = (
+        request.method == "POST" or
+        request.args.get("regenerate", "").lower() in ("true", "1") or
+        len(scenarios) == 0
+    )
+
+    if should_regenerate:
+        from ..simulation.scenarios import run_security_scenario
+        baseline_scenarios = [
+            "normal", "tampering", "bad_signature", "unauthorized_device",
+            "replay_attempt", "bad_auth_tag", "missing_path", "disabled_destination", "recovery"
+        ]
+        for sc_id in baseline_scenarios:
+            try:
+                run_security_scenario(sc_id)
+            except Exception:
+                pass
+        scenarios = query_db("SELECT * FROM security_test_results ORDER BY timestamp DESC LIMIT 20")
+
     for s in scenarios:
         if s.get("checks_executed"):
             try:

@@ -372,8 +372,10 @@ export const api = {
   },
 
   // Lab Report
-  async getLabReport(): Promise<{ success: boolean; report: any }> {
-    const res = await fetch(`${BASE_URL}/reports/lab-report`);
+  async getLabReport(regenerate?: boolean): Promise<{ success: boolean; report: any }> {
+    const res = await fetch(`${BASE_URL}/reports/lab-report${regenerate ? '?regenerate=true' : ''}`, {
+      method: regenerate ? 'POST' : 'GET',
+    });
     return handleResponse(res);
   },
 

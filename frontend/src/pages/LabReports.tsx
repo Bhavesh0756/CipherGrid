@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 /**
  * LabReports Component
  * Forensic auditing interface for generating IEC 62443 compliance scores, vulnerability breakdowns, and executive summaries.
@@ -19,10 +19,26 @@ import { useSimulatorStore } from '../store/useSimulatorStore';
 
 export const LabReports: React.FC = () => {
   const { labReport, fetchLabReport, isLoading } = useSimulatorStore();
+  const [isRegenerating, setIsRegenerating] = useState<boolean>(false);
+  const [regenerateSuccess, setRegenerateSuccess] = useState<boolean>(false);
 
   useEffect(() => {
     fetchLabReport();
-  }, [fetchLabReport]);
+  }, []);
+
+  const handleRegenerate = async () => {
+    setIsRegenerating(true);
+    setRegenerateSuccess(false);
+    try {
+      await fetchLabReport(true);
+      setRegenerateSuccess(true);
+      setTimeout(() => setRegenerateSuccess(false), 3000);
+    } catch {
+      // ignore
+    } finally {
+      setIsRegenerating(false);
+    }
+  };
 
   const handlePrint = () => window.print();
   const handleExportScenarios = () => window.open(api.getExportScenariosUrl(), '_blank');
@@ -45,6 +61,11 @@ export const LabReports: React.FC = () => {
                 <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
                   ISA/IEC 62443 COMPLIANT
                 </span>
+                {regenerateSuccess && (
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 animate-pulse font-semibold">
+                    Report Freshly Compiled!
+                  </span>
+                )}
               </div>
               <p className="text-[11px] text-slate-400 mt-0.5 font-mono">
                 Formal cybersecurity verification, threat evaluation scorecard & NIST SP 800-82 audit report
@@ -54,12 +75,16 @@ export const LabReports: React.FC = () => {
 
           <div className="flex items-center gap-2">
             <button
-              onClick={() => fetchLabReport()}
-              disabled={isLoading}
-              className="flex items-center gap-1.5 px-3 py-1.5 border border-slate-700 hover:bg-slate-800 rounded-lg text-slate-300 text-xs font-mono transition-colors cursor-pointer"
+              onClick={handleRegenerate}
+              disabled={isRegenerating || isLoading}
+              className={`flex items-center gap-1.5 px-3 py-1.5 border rounded-lg text-xs font-mono transition-all cursor-pointer ${
+                regenerateSuccess
+                  ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
+                  : 'border-slate-700 hover:bg-slate-800 text-slate-300'
+              }`}
             >
-              <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />
-              <span>Regenerate</span>
+              <RefreshCw className={`w-3.5 h-3.5 ${isRegenerating || isLoading ? 'animate-spin text-emerald-400' : ''}`} />
+              <span>{isRegenerating ? 'Regenerating...' : regenerateSuccess ? 'Regenerated!' : 'Regenerate'}</span>
             </button>
             <button
               onClick={handleExportScenarios}
