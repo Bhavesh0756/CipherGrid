@@ -352,21 +352,51 @@ def simulate_industrial_message(
 
     if scenario_id == "tampering" or (final_status != "Delivered" and "tamper" in str(crypto_status_label).lower()):
         diff_status = "TAMPERED"
-        # Check if payload has numeric values (e.g., 43 -> 56)
-        match = re.search(r'(\b\d+(\.\d+)?\b)', sent_payload_str)
-        if match:
-            original_num_str = match.group(1)
+        # Prioritize operational metric keys (temperature, pressure, speed, etc.) over device IDs (e.g. 01 in Sensor-01)
+        metric_match = re.search(
+            r'((?:["\']?(?:temperature|temp|pressure|speed|value|val|flow|level|rpm|voltage|current|setpoint)["\']?\s*[:=]\s*["\']?))(\b\d+(?:\.\d+)?\b)',
+            sent_payload_str,
+            re.IGNORECASE
+        )
+        generic_val_match = re.search(
+            r'((?:["\'][a-zA-Z0-9_-]+["\']\s*[:=]\s*["\']?))(\b\d+(?:\.\d+)?\b)',
+            sent_payload_str
+        )
+        num_match = re.search(r'(\b\d+(?:\.\d+)?\b)', sent_payload_str)
+
+        target_match = None
+        num_group_idx = 2
+        if metric_match:
+            target_match = metric_match
+            num_group_idx = 2
+        elif generic_val_match:
+            target_match = generic_val_match
+            num_group_idx = 2
+        elif num_match:
+            target_match = num_match
+            num_group_idx = 1
+
+        if target_match:
+            original_num_str = target_match.group(num_group_idx)
             try:
                 if '.' in original_num_str:
-                    injected_val = f"{float(original_num_str) + 13.0:.1f}"
+                    orig_f = float(original_num_str)
+                    injected_val = "60.0" if abs(orig_f - 55.0) < 0.01 else f"{orig_f + 13.0:.1f}"
                 else:
-                    injected_val = str(int(original_num_str) + 13)
-                received_payload_str = sent_payload_str[:match.start()] + injected_val + sent_payload_str[match.end():]
+                    orig_i = int(original_num_str)
+                    injected_val = "60" if orig_i == 55 else str(orig_i + 13)
+                start_pos = target_match.start(num_group_idx)
+                end_pos = target_match.end(num_group_idx)
+                received_payload_str = sent_payload_str[:start_pos] + injected_val + sent_payload_str[end_pos:]
             except Exception:
-                received_payload_str = sent_payload_str + " [INJECTED_OVERHEAT: 56.0°C]"
+                received_payload_str = sent_payload_str + " [INJECTED_OVERHEAT: 60.0°C]"
         else:
-            received_payload_str = sent_payload_str + " [INJECTED_OVERHEAT: 56.0°C]"
-        diff_reason = "MITM In-Transit Tampering: Sensor value manipulated before arrival. Hash check failed."
+            received_payload_str = sent_payload_str + " [INJECTED_OVERHEAT: 60.0°C]"
+
+        if final_status == "Delivered":
+            diff_reason = "VULNERABILITY EXPLOITED: Insecure Plaintext Channel! Attacker altered sensor telemetry in-transit. Receiver accepted the forged value without cryptographic authentication!"
+        else:
+            diff_reason = "MITM In-Transit Tampering: Sensor value manipulated before arrival. Cryptographic authentication failed."
 
     elif scenario_id == "bad_signature" or "signature" in str(crypto_status_label).lower():
         diff_status = "SIGNATURE_FORGERY"
@@ -403,37 +433,55 @@ def simulate_industrial_message(
     # Extract realistic tamper differential (e.g., 55 -> 60 or 43.0 -> 56.0)
     sim_tamper_diff = None
     if diff_status in ["TAMPERED", "CIPHERTEXT_CORRUPTED"] or (final_status != "Delivered" and "tamper" in str(rejection_reason or "").lower()):
-        field_match = re.search(r'("?([a-zA-Z0-9_-]+)"?\s*:\s*)?(\b\d+(\.\d+)?\b)', sent_payload_str)
-        field_name = field_match.group(2) if (field_match and field_match.group(2)) else "temperature"
-        if field_match:
-            orig_str = field_match.group(3)
-            try:
-                if '.' in orig_str:
-                    orig_num = float(orig_str)
-                    injected_num = 60.0 if abs(orig_num - 55.0) < 0.01 else orig_num + 13.0
-                    injected_str = f"{injected_num:.1f}"
-                    delta_str = f"+{injected_num - orig_num:.1f}"
-                else:
-                    orig_num = int(orig_str)
-                    injected_num = 60 if orig_num == 55 else orig_num + 13
-                    injected_str = str(injected_num)
-                    delta_str = f"+{injected_num - orig_num}"
-            except Exception:
-                orig_str = "55.0"
-                injected_str = "60.0"
-                delta_str = "+5.0"
+        metric_match = re.search(
+            r'["\']?(temperature|temp|pressure|speed|value|val|flow|level|rpm|voltage|current|setpoint)["\']?\s*[:=]\s*["\']?(\b\d+(?:\.\d+)?\b)',
+            sent_payload_str,
+            re.IGNORECASE
+        )
+        generic_val_match = re.search(
+            r'["\']([a-zA-Z0-9_-]+)["\']\s*[:=]\s*["\']?(\b\d+(?:\.\d+)?\b)',
+            sent_payload_str
+        )
+        if metric_match:
+            field_name = metric_match.group(1)
+            orig_str = metric_match.group(2)
+        elif generic_val_match:
+            field_name = generic_val_match.group(1)
+            orig_str = generic_val_match.group(2)
         else:
+            field_name = "temperature"
+            num_match = re.search(r'(\b\d+(?:\.\d+)?\b)', sent_payload_str)
+            orig_str = num_match.group(1) if num_match else "55.0"
+
+        try:
+            if '.' in orig_str:
+                orig_num = float(orig_str)
+                injected_num = 60.0 if abs(orig_num - 55.0) < 0.01 else orig_num + 13.0
+                injected_str = f"{injected_num:.1f}"
+                delta_str = f"+{injected_num - orig_num:.1f}"
+            else:
+                orig_num = int(orig_str)
+                injected_num = 60 if orig_num == 55 else orig_num + 13
+                injected_str = str(injected_num)
+                delta_str = f"+{injected_num - orig_num}"
+        except Exception:
             orig_str = "55.0"
             injected_str = "60.0"
             delta_str = "+5.0"
+
+        unit_str = "°C" if "temp" in field_name.lower() else (" PSI" if "press" in field_name.lower() else "")
+        if final_status == "Delivered":
+            explanation_str = f"PLAINTEXT VULNERABILITY EXPLOITED: Communication has no cryptographic authentication (Security Disabled). In-flight telemetry '{field_name}' was altered from {orig_str}{unit_str} to {injected_str}{unit_str}. Receiver blindly accepted the forged setpoint!"
+        else:
+            explanation_str = f"In-transit manipulation: '{field_name}' altered from {orig_str}{unit_str} to {injected_str}{unit_str}. Cryptographic authentication tag mismatch triggered rejection."
 
         sim_tamper_diff = {
             "field": field_name,
             "original_value": orig_str,
             "tampered_value": injected_str,
             "delta": delta_str,
-            "unit": "°C" if "temp" in field_name.lower() else "",
-            "explanation": f"In-transit manipulation: '{field_name}' altered from {orig_str} to {injected_str}. Cryptographic authentication tag mismatch triggered rejection."
+            "unit": unit_str,
+            "explanation": explanation_str
         }
 
     payload_diff_data = {
@@ -650,6 +698,14 @@ def simulate_industrial_message(
             }
             events.append(crypto_ev)
         else:
+            if diff_status == "TAMPERED":
+                wdest["raw_payload"] = received_payload_str
+                deliver_sec_status = "Tampered (Accepted - Plaintext Vulnerability)"
+                deliver_expl = f"CRITICAL SECURITY ALERT: Frame accepted by '{receiver_id}' with TAMPERED payload! Plaintext transmission provides zero cryptographic authentication/integrity checks."
+            else:
+                deliver_sec_status = crypto_status_label
+                deliver_expl = f"Frame safely accepted by '{receiver_id}'. All cryptographic invariants and RBAC policies verified."
+
             deliver_ev = {
                 "session_id": session_id,
                 "message_id": message_id,
@@ -660,8 +716,8 @@ def simulate_industrial_message(
                 "next_hop": None,
                 "protocol": "Application Ingress",
                 "packet_state": "Delivered",
-                "security_status": crypto_status_label,
-                "explanation": f"Frame safely accepted by '{receiver_id}'. All cryptographic invariants and RBAC policies verified.",
+                "security_status": deliver_sec_status,
+                "explanation": deliver_expl,
                 "wire_details": wdest,
                 "timestamp": tdest
             }

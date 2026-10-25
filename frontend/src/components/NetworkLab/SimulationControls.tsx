@@ -13,6 +13,7 @@ import {
 import { api } from '../../services/api';
 import { useSimulatorStore } from '../../store/useSimulatorStore';
 import { TamperedValueCard } from './TamperedValueCard';
+import { extractTamperedValueDiff } from '../../utils/tamperUtils';
 
 interface DisplayLogEvent {
   id: string;
@@ -138,29 +139,43 @@ export const SimulationControls: React.FC = () => {
   });
 
   const payloadDiff = lastResult?.payload_diff || (simulationEvents[simulationEvents.length - 1]?.details as any)?.payload_diff;
+  
+  const sentPayload = lastResult?.events?.[0]?.wire_details?.raw_payload || '{"sensor": "TEMP-01", "temperature": 55.0, "unit": "C"}';
+  const isDelivered = (lastResult?.status || payloadDiff?.decision) === 'Delivered';
+  const isTampered = lastResult?.scenario_id === 'tampering' ||
+    Boolean((lastResult as any)?.tampering_flags?.tamper_message) ||
+    Boolean(lastResult?.rejection_reason?.toLowerCase().includes('tamper')) ||
+    Boolean(lastResult?.status?.toLowerCase().includes('tamper')) ||
+    payloadDiff?.diff_status === 'TAMPERED';
+  const fallbackTamperDiff = isTampered ? extractTamperedValueDiff(sentPayload, undefined, null, isDelivered) : null;
+
   const effectiveDiff = payloadDiff || (lastResult ? {
     sent: {
       source_device: lastResult.events?.[0]?.source_device || 'PLC-01',
       source_name: devices.find(d => d.id === lastResult.events?.[0]?.source_device)?.name || lastResult.events?.[0]?.source_device || 'PLC-01',
-      payload: lastResult.events?.[0]?.wire_details?.raw_payload || '{"sensor": "TEMP-01", "temperature": 43.0, "unit": "C"}',
+      payload: sentPayload,
       sha256: lastResult.security?.digest?.hash_hex || '7a8f12c9b20e14a1f592d8e4',
       timestamp: lastResult.events?.[0]?.timestamp || new Date().toISOString()
     },
     received: {
       destination_device: lastResult.events?.[lastResult.events.length - 1]?.destination_device || 'SCADA Server',
       destination_name: devices.find(d => d.id === lastResult.events?.[lastResult.events.length - 1]?.destination_device)?.name || 'SCADA Server',
-      payload: lastResult.status === 'Delivered'
-        ? (lastResult.events?.[0]?.wire_details?.raw_payload || '{"sensor": "TEMP-01", "temperature": 43.0, "unit": "C"}')
-        : (lastResult.rejection_reason?.toLowerCase().includes('tamper') || lastResult.status?.toLowerCase().includes('tamper')
+      payload: isDelivered
+        ? (isTampered
+            ? (lastResult.events?.[lastResult.events.length - 1]?.wire_details?.raw_payload || fallbackTamperDiff?.mutatedPayload || sentPayload)
+            : sentPayload)
+        : (isTampered
             ? `[REJECTED: ${lastResult.rejection_reason || 'Authentication tag mismatch: In-transit ciphertext or authentication tag was modified (tampered).'}]`
             : `[REJECTED: ${lastResult.rejection_reason || lastResult.status}]`),
-      sha256: lastResult.status === 'Delivered' ? (lastResult.security?.digest?.hash_hex || '7a8f12c9b20e14a1f592d8e4') : 'MISMATCH_OR_DROPPED',
+      sha256: isDelivered ? (lastResult.security?.digest?.hash_hex || '7a8f12c9b20e14a1f592d8e4') : 'MISMATCH_OR_DROPPED',
       timestamp: lastResult.events?.[lastResult.events.length - 1]?.timestamp || new Date().toISOString()
     },
-    diff_status: lastResult.status === 'Delivered' ? 'IDENTICAL' : (lastResult.rejection_reason?.toLowerCase().includes('tamper') ? 'TAMPERED' : 'DROPPED'),
-    is_modified: lastResult.status !== 'Delivered',
-    tamper_diff: (lastResult as any)?.payload_diff?.tamper_diff || null,
-    reason: lastResult.rejection_reason || 'Cryptographic verification and delivery status evaluated.',
+    diff_status: isTampered ? 'TAMPERED' : (isDelivered ? 'IDENTICAL' : 'DROPPED'),
+    is_modified: isTampered || !isDelivered,
+    tamper_diff: (lastResult as any)?.payload_diff?.tamper_diff || fallbackTamperDiff || null,
+    reason: isTampered && isDelivered
+      ? 'VULNERABILITY EXPLOITED: Insecure Plaintext Channel! Attacker altered sensor telemetry in-transit. Receiver accepted the forged value without cryptographic authentication!'
+      : (lastResult.rejection_reason || 'Cryptographic verification and delivery status evaluated.'),
     decision: lastResult.status || 'Delivered'
   } : null);
 
@@ -427,144 +442,203 @@ export const SimulationControls: React.FC = () => {
                 {effectiveDiff ? (
                   <div className="space-y-3">
                     {/* Status Alert Banner */}
-                    <div
-                      className={`px-3.5 py-2 rounded-xl border flex items-center justify-between gap-3 text-xs ${
-                        effectiveDiff.diff_status === 'IDENTICAL'
-                          ? 'bg-emerald-950/40 border-emerald-500/40 text-emerald-300'
-                          : effectiveDiff.diff_status === 'TAMPERED'
-                          ? 'bg-rose-950/60 border-rose-500/60 text-rose-200 shadow-[0_0_15px_rgba(244,63,94,0.15)]'
-                          : effectiveDiff.diff_status === 'SIGNATURE_FORGERY'
-                          ? 'bg-amber-950/50 border-amber-500/50 text-amber-200'
-                          : 'bg-rose-950/40 border-rose-500/40 text-rose-300'
-                      }`}
-                    >
-                      <div className="flex items-center gap-2.5">
-                        {effectiveDiff.diff_status === 'IDENTICAL' ? (
-                          <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                        ) : (
-                          <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0 animate-pulse" />
-                        )}
-                        <div>
-                          <span className="font-bold uppercase tracking-wide">
-                            {effectiveDiff.diff_status === 'IDENTICAL'
-                              ? 'DATA INTEGRITY 100% INTACT'
+                    {(() => {
+                      const isPlaintextDeliveredTamper =
+                        effectiveDiff.decision === 'Delivered' &&
+                        (effectiveDiff.is_modified || effectiveDiff.diff_status === 'TAMPERED');
+
+                      return (
+                        <div
+                          className={`px-3.5 py-2 rounded-xl border flex items-center justify-between gap-3 text-xs ${
+                            effectiveDiff.diff_status === 'IDENTICAL'
+                              ? 'bg-emerald-950/40 border-emerald-500/40 text-emerald-300'
+                              : isPlaintextDeliveredTamper
+                              ? 'bg-amber-950/40 border-amber-500/50 text-amber-200 shadow-[0_0_15px_rgba(245,158,11,0.15)]'
                               : effectiveDiff.diff_status === 'TAMPERED'
-                              ? 'CRITICAL TAMPERING DETECTED IN-FLIGHT'
+                              ? 'bg-rose-950/60 border-rose-500/60 text-rose-200 shadow-[0_0_15px_rgba(244,63,94,0.15)]'
                               : effectiveDiff.diff_status === 'SIGNATURE_FORGERY'
-                              ? 'DIGITAL SIGNATURE FORGERY DETECTED'
-                              : effectiveDiff.diff_status === 'CIPHERTEXT_CORRUPTED'
-                              ? 'AEAD AUTHENTICATION TAG MISMATCH'
-                              : effectiveDiff.diff_status === 'REPLAYED'
-                              ? 'REPLAY ATTACK INTERCEPTED'
-                              : 'PACKET DROPPED BY ACCESS CONTROL'}
+                              ? 'bg-amber-950/50 border-amber-500/50 text-amber-200'
+                              : 'bg-rose-950/40 border-rose-500/40 text-rose-300'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2.5">
+                            {effectiveDiff.diff_status === 'IDENTICAL' ? (
+                              <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                            ) : isPlaintextDeliveredTamper ? (
+                              <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0 animate-pulse" />
+                            ) : (
+                              <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0 animate-pulse" />
+                            )}
+                            <div>
+                              <span className="font-bold uppercase tracking-wide">
+                                {effectiveDiff.diff_status === 'IDENTICAL'
+                                  ? 'DATA INTEGRITY 100% INTACT'
+                                  : isPlaintextDeliveredTamper
+                                  ? 'TAMPERED TELEMETRY ACCEPTED BY RECEIVER (PLAINTEXT VULNERABILITY EXPLOITED ⚠️)'
+                                  : effectiveDiff.diff_status === 'TAMPERED'
+                                  ? 'CRITICAL TAMPERING DETECTED IN-FLIGHT'
+                                  : effectiveDiff.diff_status === 'SIGNATURE_FORGERY'
+                                  ? 'DIGITAL SIGNATURE FORGERY DETECTED'
+                                  : effectiveDiff.diff_status === 'CIPHERTEXT_CORRUPTED'
+                                  ? 'AEAD AUTHENTICATION TAG MISMATCH'
+                                  : effectiveDiff.diff_status === 'REPLAYED'
+                                  ? 'REPLAY ATTACK INTERCEPTED'
+                                  : 'PACKET DROPPED BY ACCESS CONTROL'}
+                              </span>
+                              <span className="text-slate-400 mx-2">&bull;</span>
+                              <span className="text-slate-300 text-[11px] font-normal">{effectiveDiff.reason}</span>
+                            </div>
+                          </div>
+                          <span
+                            className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase shrink-0 ${
+                              isPlaintextDeliveredTamper
+                                ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
+                                : effectiveDiff.decision === 'Delivered'
+                                ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                                : 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
+                            }`}
+                          >
+                            RECEIVER: {isPlaintextDeliveredTamper ? 'Delivered (Tampered ⚠️)' : effectiveDiff.decision}
                           </span>
-                          <span className="text-slate-400 mx-2">&bull;</span>
-                          <span className="text-slate-300 text-[11px] font-normal">{effectiveDiff.reason}</span>
                         </div>
-                      </div>
-                      <span
-                        className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase shrink-0 ${
-                          effectiveDiff.decision === 'Delivered'
-                            ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
-                            : 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
-                        }`}
-                      >
-                        RECEIVER: {effectiveDiff.decision}
-                      </span>
-                    </div>
+                      );
+                    })()}
 
                     {/* Side-by-Side Comparison Columns */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      {/* Left: Original Sent Payload */}
-                      <div className="p-3 rounded-xl bg-[#10131A] border border-[#1E2430] flex flex-col justify-between">
-                        <div>
-                          <div className="flex items-center justify-between pb-2 border-b border-[#1E2430]">
-                            <div className="flex items-center gap-2">
-                              <span className="w-2 h-2 rounded-full bg-cyan-400" />
-                              <span className="font-bold text-white text-[11px]">ORIGINAL SENT (SOURCE)</span>
+                    {(() => {
+                      const isPlaintextDeliveredTamper =
+                        effectiveDiff.decision === 'Delivered' &&
+                        (effectiveDiff.is_modified || effectiveDiff.diff_status === 'TAMPERED');
+
+                      return (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          {/* Left: Original Sent Payload */}
+                          <div className="p-3 rounded-xl bg-[#10131A] border border-[#1E2430] flex flex-col justify-between">
+                            <div>
+                              <div className="flex items-center justify-between pb-2 border-b border-[#1E2430]">
+                                <div className="flex items-center gap-2">
+                                  <span className="w-2 h-2 rounded-full bg-cyan-400" />
+                                  <span className="font-bold text-white text-[11px]">ORIGINAL SENT (SOURCE)</span>
+                                </div>
+                                <span className="text-[10px] text-slate-400 font-mono">
+                                  {effectiveDiff.sent.source_name} ({effectiveDiff.sent.source_device})
+                                </span>
+                              </div>
+                              <div className="mt-2.5 p-2 rounded-lg bg-[#07090F] border border-slate-800 text-slate-200 font-mono text-[11px] whitespace-pre-wrap break-all select-text">
+                                {effectiveDiff.sent.payload}
+                              </div>
                             </div>
-                            <span className="text-[10px] text-slate-400 font-mono">
-                              {effectiveDiff.sent.source_name} ({effectiveDiff.sent.source_device})
-                            </span>
-                          </div>
-                          <div className="mt-2.5 p-2 rounded-lg bg-[#07090F] border border-slate-800 text-slate-200 font-mono text-[11px] whitespace-pre-wrap break-all select-text">
-                            {effectiveDiff.sent.payload}
-                          </div>
-                        </div>
 
-                        <div className="mt-2.5 pt-2 border-t border-[#1E2430]/70 flex items-center justify-between text-[10px] text-slate-400">
-                          <span className="truncate max-w-[220px]" title={effectiveDiff.sent.sha256}>
-                            SHA-256: <span className="text-cyan-400">{effectiveDiff.sent.sha256.slice(0, 16)}...</span>
-                          </span>
-                          <span className="px-1.5 py-0.2 rounded bg-cyan-950 text-cyan-300 border border-cyan-800/40 text-[9px] font-bold">
-                            ORIGIN INTACT
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Right: Received Wire Ingress Payload */}
-                      <div
-                        className={`p-3 rounded-xl border flex flex-col justify-between ${
-                          effectiveDiff.is_modified
-                            ? 'bg-rose-950/15 border-rose-500/40'
-                            : 'bg-[#10131A] border-[#1E2430]'
-                        }`}
-                      >
-                        <div>
-                          <div className="flex items-center justify-between pb-2 border-b border-[#1E2430]">
-                            <div className="flex items-center gap-2">
-                              <span
-                                className={`w-2 h-2 rounded-full ${
-                                  effectiveDiff.is_modified ? 'bg-rose-500 animate-ping' : 'bg-emerald-400'
-                                }`}
-                              />
-                              <span className="font-bold text-white text-[11px]">
-                                {effectiveDiff.is_modified ? 'RECEIVED INGRESS (TAMPERED)' : 'RECEIVED INGRESS (VERIFIED)'}
+                            <div className="mt-2.5 pt-2 border-t border-[#1E2430]/70 flex items-center justify-between text-[10px] text-slate-400">
+                              <span className="truncate max-w-[220px]" title={effectiveDiff.sent.sha256}>
+                                SHA-256: <span className="text-cyan-400">{effectiveDiff.sent.sha256.slice(0, 16)}...</span>
+                              </span>
+                              <span className="px-1.5 py-0.2 rounded bg-cyan-950 text-cyan-300 border border-cyan-800/40 text-[9px] font-bold">
+                                ORIGIN INTACT
                               </span>
                             </div>
-                            <span className="text-[10px] text-slate-400 font-mono">
-                              {effectiveDiff.received.destination_name} ({effectiveDiff.received.destination_device})
-                            </span>
                           </div>
+
+                          {/* Right: Received Wire Ingress Payload */}
                           <div
-                            className={`mt-2.5 p-2 rounded-lg font-mono text-[11px] whitespace-pre-wrap break-all select-text border ${
-                              effectiveDiff.is_modified
-                                ? 'bg-rose-950/30 border-rose-500/50 text-rose-200'
-                                : 'bg-[#07090F] border-slate-800 text-slate-200'
+                            className={`p-3 rounded-xl border flex flex-col justify-between ${
+                              isPlaintextDeliveredTamper
+                                ? 'bg-amber-950/20 border-amber-500/50 shadow-[0_0_15px_rgba(245,158,11,0.12)]'
+                                : effectiveDiff.is_modified
+                                ? 'bg-rose-950/15 border-rose-500/40'
+                                : 'bg-[#10131A] border-[#1E2430]'
                             }`}
                           >
-                            {effectiveDiff.received.payload}
+                            <div>
+                              <div className="flex items-center justify-between pb-2 border-b border-[#1E2430]">
+                                <div className="flex items-center gap-2">
+                                  <span
+                                    className={`w-2 h-2 rounded-full ${
+                                      isPlaintextDeliveredTamper
+                                        ? 'bg-amber-400 animate-pulse'
+                                        : effectiveDiff.is_modified
+                                        ? 'bg-rose-500 animate-ping'
+                                        : 'bg-emerald-400'
+                                    }`}
+                                  />
+                                  <span
+                                    className={`font-bold text-[11px] ${
+                                      isPlaintextDeliveredTamper
+                                        ? 'text-amber-300'
+                                        : effectiveDiff.is_modified
+                                        ? 'text-rose-300'
+                                        : 'text-white'
+                                    }`}
+                                  >
+                                    {isPlaintextDeliveredTamper
+                                      ? 'RECEIVED INGRESS (TAMPERED - ACCEPTED BY RECEIVER ⚠️)'
+                                      : effectiveDiff.is_modified
+                                      ? 'RECEIVED INGRESS (TAMPERED - REJECTED ❌)'
+                                      : 'RECEIVED INGRESS (VERIFIED ✅)'}
+                                  </span>
+                                </div>
+                                <span className="text-[10px] text-slate-400 font-mono">
+                                  {effectiveDiff.received.destination_name} ({effectiveDiff.received.destination_device})
+                                </span>
+                              </div>
+                              <div
+                                className={`mt-2.5 p-2 rounded-lg font-mono text-[11px] whitespace-pre-wrap break-all select-text border ${
+                                  isPlaintextDeliveredTamper
+                                    ? 'bg-amber-950/30 border-amber-500/50 text-amber-200'
+                                    : effectiveDiff.is_modified
+                                    ? 'bg-rose-950/30 border-rose-500/50 text-rose-200'
+                                    : 'bg-[#07090F] border-slate-800 text-slate-200'
+                                }`}
+                              >
+                                {effectiveDiff.received.payload}
+                              </div>
+
+                              {/* In-Flight Value Tampering Comparison (e.g. 55 -> 60) */}
+                              {(effectiveDiff.is_modified || effectiveDiff.diff_status === 'TAMPERED') && (
+                                <TamperedValueCard
+                                  sentPayload={effectiveDiff.sent.payload}
+                                  receivedPayload={effectiveDiff.received.payload}
+                                  serverTamperDiff={(effectiveDiff as any).tamper_diff}
+                                  isPlaintextAccepted={isPlaintextDeliveredTamper}
+                                />
+                              )}
+                            </div>
+
+                            <div className="mt-2.5 pt-2 border-t border-[#1E2430]/70 flex items-center justify-between text-[10px] text-slate-400">
+                              <span className="truncate max-w-[220px]" title={effectiveDiff.received.sha256}>
+                                SHA-256:{' '}
+                                <span
+                                  className={
+                                    isPlaintextDeliveredTamper
+                                      ? 'text-amber-400 font-bold'
+                                      : effectiveDiff.is_modified
+                                      ? 'text-rose-400 font-bold'
+                                      : 'text-emerald-400'
+                                  }
+                                >
+                                  {effectiveDiff.received.sha256.slice(0, 16)}...
+                                </span>
+                              </span>
+                              <span
+                                className={`px-1.5 py-0.2 rounded text-[9px] font-bold ${
+                                  isPlaintextDeliveredTamper
+                                    ? 'bg-amber-950 text-amber-300 border border-amber-600/60'
+                                    : effectiveDiff.is_modified
+                                    ? 'bg-rose-950 text-rose-300 border border-rose-700/60'
+                                    : 'bg-emerald-950 text-emerald-300 border border-emerald-800/40'
+                                }`}
+                              >
+                                {isPlaintextDeliveredTamper
+                                  ? 'TAMPERED VALUE ACCEPTED ⚠️'
+                                  : effectiveDiff.is_modified
+                                  ? 'INTEGRITY MISMATCH ❌'
+                                  : 'HASH MATCHED ✅'}
+                              </span>
+                            </div>
                           </div>
-
-                          {/* In-Flight Value Tampering Comparison (e.g. 55 -> 60) */}
-                          {(effectiveDiff.is_modified || effectiveDiff.diff_status === 'TAMPERED') && (
-                            <TamperedValueCard
-                              sentPayload={effectiveDiff.sent.payload}
-                              receivedPayload={effectiveDiff.received.payload}
-                              serverTamperDiff={(effectiveDiff as any).tamper_diff}
-                            />
-                          )}
                         </div>
-
-                        <div className="mt-2.5 pt-2 border-t border-[#1E2430]/70 flex items-center justify-between text-[10px] text-slate-400">
-                          <span className="truncate max-w-[220px]" title={effectiveDiff.received.sha256}>
-                            SHA-256:{' '}
-                            <span className={effectiveDiff.is_modified ? 'text-rose-400 font-bold' : 'text-emerald-400'}>
-                              {effectiveDiff.received.sha256.slice(0, 16)}...
-                            </span>
-                          </span>
-                          <span
-                            className={`px-1.5 py-0.2 rounded text-[9px] font-bold ${
-                              effectiveDiff.is_modified
-                                ? 'bg-rose-950 text-rose-300 border border-rose-700/60'
-                                : 'bg-emerald-950 text-emerald-300 border border-emerald-800/40'
-                            }`}
-                          >
-                            {effectiveDiff.is_modified ? 'INTEGRITY MISMATCH ❌' : 'HASH MATCHED ✅'}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
+                      );
+                    })()}
                   </div>
                 ) : (
                   <div className="text-slate-400 italic py-6 text-center">

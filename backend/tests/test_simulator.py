@@ -519,3 +519,51 @@ def test_rsa_modulus_derivation_and_excerpt(client):
     new_n_bytes = new_n.to_bytes((new_n.bit_length() + 7) // 8, "big")
     assert new_n_bytes != n_bytes
     assert new_n_bytes[:32].hex() != expected_first_32_hex
+
+def test_plaintext_tampering_simulation_shows_mutated_received_ingress():
+    """Verify that tampering during Plaintext (Security Disabled) simulation delivers
+
+    to the receiver, but the received ingress payload accurately reflects the forged value.
+    """
+    from app.simulation.engine import simulate_industrial_message
+
+    sent_payload = '{"source": "Sensor-01", "temperature": 55.0, "status": "normal"}'
+    res = simulate_industrial_message(
+        sender_id="Sensor-01",
+        receiver_id="PLC-01",
+        message_type="Sensor Reading",
+        raw_payload=sent_payload,
+        security_profile="Security Disabled",
+        scenario_id="tampering"
+    )
+
+    # Insecure plaintext has no HMAC or digital signatures, so receiver accepts the packet
+    assert res["status"] == "Delivered"
+    assert res["success"] is True
+
+    # The payload diff must report TAMPERED with distinct mutated ingress payload
+    diff = res["payload_diff"]
+    assert diff["diff_status"] == "TAMPERED"
+    assert diff["is_modified"] is True
+    assert diff["decision"] == "Delivered"
+    assert "VULNERABILITY EXPLOITED" in diff["reason"]
+
+    # Source sent 55.0, but destination received 60.0
+    assert "55.0" in diff["sent"]["payload"]
+    assert "60.0" in diff["received"]["payload"]
+    assert diff["sent"]["payload"] != diff["received"]["payload"]
+
+    # Tamper differential details
+    t_diff = diff["tamper_diff"]
+    assert t_diff is not None
+    assert t_diff["field"] == "temperature"
+    assert t_diff["original_value"] == "55.0"
+    assert t_diff["tampered_value"] == "60.0"
+    assert t_diff["delta"] == "+5.0"
+
+    # Destination delivery event wire details must also reflect the tampered payload
+    dest_ev = res["events"][-1]
+    assert dest_ev["packet_state"] == "Delivered"
+    assert "60.0" in dest_ev["wire_details"]["raw_payload"]
+    assert "Tampered" in dest_ev["security_status"]
+
