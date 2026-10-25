@@ -441,17 +441,40 @@ export const useSimulatorStore = create<SimulatorStore>((set, get) => {
           explanation: ev.explanation || '',
         }));
 
+        // Robust route path extraction from backend result.path, result.hops, or sequential event hops
+        let resolvedPath: string[] = [];
+        if (Array.isArray(result.path) && result.path.length > 0) {
+          resolvedPath = result.path;
+        } else if (Array.isArray((result as any).hops) && (result as any).hops.length > 0) {
+          resolvedPath = (result as any).hops;
+        } else if (mappedEvents.length > 0) {
+          const hopOrder: string[] = [];
+          mappedEvents.forEach((ev) => {
+            if (ev.current_hop && !hopOrder.includes(ev.current_hop)) {
+              hopOrder.push(ev.current_hop);
+            }
+            if (ev.next_hop && !hopOrder.includes(ev.next_hop)) {
+              hopOrder.push(ev.next_hop);
+            }
+          });
+          resolvedPath = hopOrder;
+        }
+
+        if (resolvedPath.length < 2 && params.sender_id && params.receiver_id) {
+          resolvedPath = [params.sender_id, params.receiver_id];
+        }
+
         set({
           isSimulating: false,
           activeSessionId: result.session_id,
           activeMessageId: result.message_id,
           simulationEvents: mappedEvents,
           selectedEvent: mappedEvents[0] || null,
-          highlightedPath: result.path || [],
+          highlightedPath: resolvedPath,
           lastResult: result,
           currentStepIndex: 0,
           playbackState: 'playing',
-          activeHopId: result.path?.[0] || null,
+          activeHopId: resolvedPath[0] || null,
         });
 
         get().playSimulation();

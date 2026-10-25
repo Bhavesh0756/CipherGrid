@@ -574,6 +574,7 @@ def simulate_industrial_message(
         "status": final_status,
         "rejection_reason": rejection_reason,
         "hops": hops,
+        "path": hops,
         "latency_ms": round(current_ms, 2),
         "security": security_metadata,
         "events": events

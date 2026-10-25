@@ -492,13 +492,29 @@ export const NetworkPlant3DView: React.FC<NetworkPlant3DViewProps> = ({
       scene.add(labelSprite);
     });
 
+    // Helper to get device 3D position safely across IDs, names, and slug formats
+    const getPos = (idOrName: string): THREE.Vector3 | undefined => {
+      if (!idOrName) return undefined;
+      if (devicePosMap.has(idOrName)) return devicePosMap.get(idOrName);
+      const norm = idOrName.toLowerCase().replace(/[\s_-]+/g, '');
+      for (const [key, pos] of devicePosMap.entries()) {
+        if (key.toLowerCase().replace(/[\s_-]+/g, '') === norm) return pos;
+      }
+      const matched = devices.find((d) => {
+        const dNormId = d.id.toLowerCase().replace(/[\s_-]+/g, '');
+        const dNormName = d.name.toLowerCase().replace(/[\s_-]+/g, '');
+        return dNormId === norm || dNormName === norm;
+      });
+      return matched ? devicePosMap.get(matched.id) : undefined;
+    };
+
     // ─── 8. STRAIGHT 3D CONDUIT PIPES LINKING DEVICES ───
     // All lines connecting devices are completely STRAIGHT lines (no arches or curves)
     const conduitY = 0.50;
 
     connections.forEach((conn) => {
-      const srcPos = devicePosMap.get(conn.source_id);
-      const dstPos = devicePosMap.get(conn.target_id);
+      const srcPos = getPos(conn.source_id);
+      const dstPos = getPos(conn.target_id);
       if (!srcPos || !dstPos) return;
 
       // Check if this conduit is on the active packet transmission route
@@ -573,7 +589,7 @@ export const NetworkPlant3DView: React.FC<NetworkPlant3DViewProps> = ({
 
     if (highlightedPath.length > 1) {
       for (let i = 0; i < highlightedPath.length; i++) {
-        const p = devicePosMap.get(highlightedPath[i]);
+        const p = getPos(highlightedPath[i]);
         if (p) {
           routeWaypoints.push(new THREE.Vector3(p.x, conduitY, p.z));
         }
@@ -645,8 +661,8 @@ export const NetworkPlant3DView: React.FC<NetworkPlant3DViewProps> = ({
       for (let i = 0; i < highlightedPath.length - 1; i++) {
         const fromId = highlightedPath[i];
         const toId = highlightedPath[i + 1];
-        const p1 = devicePosMap.get(fromId);
-        const p2 = devicePosMap.get(toId);
+        const p1 = getPos(fromId);
+        const p2 = getPos(toId);
         if (p1 && p2) {
           const startHop = new THREE.Vector3(p1.x, conduitY, p1.z);
           const endHop = new THREE.Vector3(p2.x, conduitY, p2.z);
@@ -690,8 +706,8 @@ export const NetworkPlant3DView: React.FC<NetworkPlant3DViewProps> = ({
     const ambientMat = new THREE.MeshBasicMaterial({ color: 0x38bdf8, transparent: true, opacity: 0.75 });
 
     connections.slice(0, 12).forEach((conn, idx) => {
-      const srcPos = devicePosMap.get(conn.source_id);
-      const dstPos = devicePosMap.get(conn.target_id);
+      const srcPos = getPos(conn.source_id);
+      const dstPos = getPos(conn.target_id);
       if (!srcPos || !dstPos) return;
 
       const start = new THREE.Vector3(srcPos.x, conduitY, srcPos.z);
