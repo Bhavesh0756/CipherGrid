@@ -850,39 +850,7 @@ export const NetworkPlant3DView: React.FC<NetworkPlant3DViewProps> = ({
       {/* 3D WebGL Canvas Container */}
       <div ref={mountRef} className="w-full h-full" />
 
-      {/* Live 3D Packet Transmission Banner (Visible when route is active) */}
-      {highlightedPath.length > 1 && (
-        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-20 pointer-events-auto animate-in fade-in slide-in-from-top-4 duration-300">
-          <div
-            className={`px-5 py-2.5 rounded-2xl border backdrop-blur-xl shadow-2xl flex items-center gap-3.5 font-mono text-xs ${
-              isPacketTampered
-                ? 'bg-rose-950/90 border-rose-500/80 text-rose-200'
-                : 'bg-purple-950/90 border-purple-500/80 text-purple-200'
-            }`}
-          >
-            <div className="w-3 h-3 rounded-full bg-current animate-ping" />
-            <div className="flex items-center gap-2">
-              <span className="font-bold tracking-wide uppercase">
-                {isPacketTampered ? 'TAMPERED PACKET IN TRANSIT' : 'PACKET TRANSFER ALONG ROUTE'}
-              </span>
-              <span className="text-slate-400">&bull;</span>
-              <span className="text-white font-bold">{highlightedPath.join(' ➔ ')}</span>
-            </div>
-            {activeHopId && (
-              <span className="px-2 py-0.5 rounded bg-black/40 text-[10px] border border-white/20">
-                ACTIVE HOP: {activeHopId}
-              </span>
-            )}
-            <button
-              onClick={() => playSimulation()}
-              className="ml-1 p-1 hover:bg-white/10 rounded transition-colors cursor-pointer"
-              title="Replay packet transfer animation"
-            >
-              <RotateCcw className="w-3.5 h-3.5 text-white" />
-            </button>
-          </div>
-        </div>
-      )}
+
 
       {/* Hover Info Tooltip */}
       {hoveredDev && (
