@@ -6,6 +6,7 @@ import {
   AlertTriangle,
   ArrowRight,
   Box,
+  Camera,
   Compass,
   Eye,
   Layers,
@@ -15,10 +16,12 @@ import {
   Network,
   Radio,
   RotateCcw,
+  RotateCw,
   Send,
   Shield,
   ShieldAlert,
   Sparkles,
+  Video,
   Zap,
 } from 'lucide-react';
 import { useSimulatorStore } from '../../store/useSimulatorStore';
@@ -164,6 +167,11 @@ export const NetworkPlant3DView: React.FC<NetworkPlant3DViewProps> = ({
   const mountRef = useRef<HTMLDivElement>(null);
   const [hoveredDev, setHoveredDev] = useState<Device | null>(null);
 
+  // Cinematic Camera State
+  const [cameraMode, setCameraMode] = useState<'tactical' | 'topdown' | 'runway'>('tactical');
+  const [isChaseCam, setIsChaseCam] = useState<boolean>(false);
+  const [isAutoDrone, setIsAutoDrone] = useState<boolean>(false);
+
   // Preserve user's camera view across path updates
   const lastCameraPos = useRef<THREE.Vector3>(new THREE.Vector3(0, 24, 30));
   const lastControlsTarget = useRef<THREE.Vector3>(new THREE.Vector3(0, 0, 0));
@@ -172,6 +180,66 @@ export const NetworkPlant3DView: React.FC<NetworkPlant3DViewProps> = ({
   const playbackStateRef = useRef<string>(playbackState);
   playbackStateRef.current = playbackState;
   const lastPlaybackStateRef = useRef<string>(playbackState);
+
+  // Cinematic Camera Target & Animation Refs
+  const targetCamPosRef = useRef<THREE.Vector3>(new THREE.Vector3(0, 24, 30));
+  const targetLookAtRef = useRef<THREE.Vector3>(new THREE.Vector3(0, 0, 0));
+  const isTransitioningRef = useRef<boolean>(false);
+  const droneAngleRef = useRef<number>(0);
+  const isChaseCamRef = useRef<boolean>(isChaseCam);
+  isChaseCamRef.current = isChaseCam;
+  const isAutoDroneRef = useRef<boolean>(isAutoDrone);
+  isAutoDroneRef.current = isAutoDrone;
+
+  const applyCameraPreset = (mode: 'tactical' | 'topdown' | 'runway') => {
+    setCameraMode(mode);
+    setIsAutoDrone(false);
+    isAutoDroneRef.current = false;
+    setIsChaseCam(false);
+    isChaseCamRef.current = false;
+    isTransitioningRef.current = true;
+
+    if (mode === 'tactical') {
+      targetCamPosRef.current.set(0, 24, 30);
+      targetLookAtRef.current.set(0, 0, 0);
+    } else if (mode === 'topdown') {
+      targetCamPosRef.current.set(0, 38, 0.05);
+      targetLookAtRef.current.set(0, 0, 0);
+    } else if (mode === 'runway') {
+      targetCamPosRef.current.set(0, 4.5, 22);
+      targetLookAtRef.current.set(0, 1.5, 0);
+    }
+  };
+
+  const toggleChaseCam = () => {
+    setIsChaseCam((prev) => {
+      const next = !prev;
+      isChaseCamRef.current = next;
+      if (next) {
+        setIsAutoDrone(false);
+        isAutoDroneRef.current = false;
+        isTransitioningRef.current = false;
+      }
+      return next;
+    });
+  };
+
+  const toggleAutoDrone = () => {
+    setIsAutoDrone((prev) => {
+      const next = !prev;
+      isAutoDroneRef.current = next;
+      if (next) {
+        setIsChaseCam(false);
+        isChaseCamRef.current = false;
+        isTransitioningRef.current = false;
+      }
+      return next;
+    });
+  };
+
+  const resetCamera = () => {
+    applyCameraPreset('tactical');
+  };
 
   // Comprehensive attack/tamper/unauthorized detection
   const isPacketTampered = (() => {
@@ -833,8 +901,26 @@ export const NetworkPlant3DView: React.FC<NetworkPlant3DViewProps> = ({
         setSelectedDevice(hit);
         if (onSelectDevice) onSelectDevice(hit);
         if (onOpenDigitalTwin) onOpenDigitalTwin(hit);
+
+        // Smooth cinematic focus zoom onto the selected device
+        const p = getPos(hit.id);
+        if (p) {
+          setIsAutoDrone(false);
+          isAutoDroneRef.current = false;
+          setIsChaseCam(false);
+          isChaseCamRef.current = false;
+          targetLookAtRef.current.set(p.x, 1.2, p.z);
+          targetCamPosRef.current.set(p.x + 5.5, 5.5, p.z + 7.5);
+          isTransitioningRef.current = true;
+        }
       }
     };
+
+    controls.addEventListener('start', () => {
+      isTransitioningRef.current = false;
+      setIsAutoDrone(false);
+      isAutoDroneRef.current = false;
+    });
 
     renderer.domElement.addEventListener('mousemove', handlePointerMove);
     renderer.domElement.addEventListener('click', handleClick);
@@ -854,6 +940,34 @@ export const NetworkPlant3DView: React.FC<NetworkPlant3DViewProps> = ({
       const isTransferPlaying = currentPlayback === 'playing';
       const isTransferPaused = currentPlayback === 'paused';
       const isTransferFinished = currentPlayback === 'finished' || currentPlayback === 'idle';
+
+      // ─── CINEMATIC CAMERA SYSTEM INTERPOLATION ───
+      if (isChaseCamRef.current && isTransferPlaying && activePacketMesh && activePacketMesh.visible) {
+        // Chase Cam: smooth follow behind the travelling packet
+        const pPos = activePacketMesh.position;
+        controls.target.lerp(new THREE.Vector3(pPos.x, pPos.y + 0.3, pPos.z), 0.08);
+        const chasePos = new THREE.Vector3(pPos.x, pPos.y + 4.8, pPos.z + 8.2);
+        camera.position.lerp(chasePos, 0.055);
+      } else if (isAutoDroneRef.current) {
+        // Drone Tour: smooth 360-degree orbital fly-around
+        droneAngleRef.current += delta * 0.20;
+        const orbitRadius = 32;
+        const targetX = Math.sin(droneAngleRef.current) * orbitRadius;
+        const targetZ = Math.cos(droneAngleRef.current) * orbitRadius;
+        const targetY = 20 + Math.sin(droneAngleRef.current * 0.7) * 3.5;
+        camera.position.lerp(new THREE.Vector3(targetX, targetY, targetZ), 0.06);
+        controls.target.lerp(new THREE.Vector3(0, 1.0, 0), 0.05);
+      } else if (isTransitioningRef.current) {
+        // Smooth preset/focus lerp transition
+        camera.position.lerp(targetCamPosRef.current, 0.075);
+        controls.target.lerp(targetLookAtRef.current, 0.075);
+        if (
+          camera.position.distanceTo(targetCamPosRef.current) < 0.15 &&
+          controls.target.distanceTo(targetLookAtRef.current) < 0.15
+        ) {
+          isTransitioningRef.current = false;
+        }
+      }
 
       // Reset progress when replaying or starting a new dispatch
       if (lastPlaybackStateRef.current !== 'playing' && isTransferPlaying) {
@@ -966,6 +1080,89 @@ export const NetworkPlant3DView: React.FC<NetworkPlant3DViewProps> = ({
       <div ref={mountRef} className="w-full h-full" />
 
 
+
+      {/* Cinematic Camera Toolbar Overlay */}
+      <div className="absolute top-4 right-4 z-20 flex items-center gap-1.5 p-1.5 rounded-2xl bg-[#090f1e]/90 border border-slate-700/60 backdrop-blur-xl shadow-2xl">
+        <span className="text-[10px] font-mono text-slate-400 font-semibold px-2 uppercase tracking-wider flex items-center gap-1">
+          <Camera className="w-3.5 h-3.5 text-cyan-400" />
+          Camera
+        </span>
+
+        <button
+          onClick={() => applyCameraPreset('tactical')}
+          className={`px-2.5 py-1.5 rounded-xl text-xs font-mono flex items-center gap-1.5 transition-all cursor-pointer ${
+            cameraMode === 'tactical' && !isAutoDrone && !isChaseCam
+              ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/50 shadow-[0_0_12px_rgba(6,182,212,0.3)]'
+              : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+          }`}
+          title="Tactical 45° Isometric Overview"
+        >
+          <Layers className="w-3.5 h-3.5" />
+          <span>Tactical 45°</span>
+        </button>
+
+        <button
+          onClick={() => applyCameraPreset('topdown')}
+          className={`px-2.5 py-1.5 rounded-xl text-xs font-mono flex items-center gap-1.5 transition-all cursor-pointer ${
+            cameraMode === 'topdown' && !isAutoDrone && !isChaseCam
+              ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/50 shadow-[0_0_12px_rgba(6,182,212,0.3)]'
+              : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+          }`}
+          title="Top-Down Bird's Eye Architectural Map"
+        >
+          <Compass className="w-3.5 h-3.5" />
+          <span>Top-Down</span>
+        </button>
+
+        <button
+          onClick={() => applyCameraPreset('runway')}
+          className={`px-2.5 py-1.5 rounded-xl text-xs font-mono flex items-center gap-1.5 transition-all cursor-pointer ${
+            cameraMode === 'runway' && !isAutoDrone && !isChaseCam
+              ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/50 shadow-[0_0_12px_rgba(6,182,212,0.3)]'
+              : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+          }`}
+          title="Floor Level Runway Perspective"
+        >
+          <Eye className="w-3.5 h-3.5" />
+          <span>Runway</span>
+        </button>
+
+        <div className="h-4 w-[1px] bg-slate-800 mx-1" />
+
+        <button
+          onClick={toggleChaseCam}
+          className={`px-2.5 py-1.5 rounded-xl text-xs font-mono flex items-center gap-1.5 transition-all cursor-pointer ${
+            isChaseCam
+              ? 'bg-purple-500/25 text-purple-300 border border-purple-500/60 shadow-[0_0_14px_rgba(168,85,247,0.35)]'
+              : 'text-slate-400 hover:text-purple-300 hover:bg-purple-950/40'
+          }`}
+          title="Follow Packet POV during Transmission"
+        >
+          <Video className={`w-3.5 h-3.5 ${isChaseCam ? 'text-purple-400 animate-pulse' : ''}`} />
+          <span>Chase Cam</span>
+        </button>
+
+        <button
+          onClick={toggleAutoDrone}
+          className={`px-2.5 py-1.5 rounded-xl text-xs font-mono flex items-center gap-1.5 transition-all cursor-pointer ${
+            isAutoDrone
+              ? 'bg-emerald-500/25 text-emerald-300 border border-emerald-500/60 shadow-[0_0_14px_rgba(16,185,129,0.35)]'
+              : 'text-slate-400 hover:text-emerald-300 hover:bg-emerald-950/40'
+          }`}
+          title="360° Drone Showcase Tour"
+        >
+          <RotateCw className={`w-3.5 h-3.5 ${isAutoDrone ? 'text-emerald-400 animate-spin' : ''}`} />
+          <span>Drone Tour</span>
+        </button>
+
+        <button
+          onClick={resetCamera}
+          className="p-1.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800/60 transition-all cursor-pointer ml-1"
+          title="Reset Camera View"
+        >
+          <RotateCcw className="w-3.5 h-3.5" />
+        </button>
+      </div>
 
       {/* Hover Info Tooltip */}
       {hoveredDev && (
