@@ -84,16 +84,21 @@ def get_device_public_key(device_id):
 @devices_bp.route("/<device_id>/rotate-keys", methods=["POST"])
 def rotate_device_keys(device_id):
     """Rotates cryptographic RSA-2048 keypair and AES-256 key for a registered device."""
-    device = query_db("SELECT id, name FROM devices WHERE id = ?", (device_id,), one=True)
+    device = query_db(
+        "SELECT id, name FROM devices WHERE id = ? OR LOWER(id) = LOWER(?) OR LOWER(name) = LOWER(?)",
+        (device_id, device_id, device_id),
+        one=True
+    )
     if not device:
         return jsonify({"success": False, "error": f"Device '{device_id}' not found."}), 404
 
+    actual_id = device["id"]
     now = datetime.now(timezone.utc).isoformat()
-    pub_pem, priv_pem, aes_key_hex = generate_device_keys(device_id)
+    pub_pem, priv_pem, aes_key_hex = generate_device_keys(actual_id)
 
     execute_db(
         "UPDATE devices SET public_key_pem = ?, private_key_pem = ?, aes_key_hex = ?, updated_at = ? WHERE id = ?",
-        (pub_pem, priv_pem, aes_key_hex, now, device_id)
+        (pub_pem, priv_pem, aes_key_hex, now, actual_id)
     )
 
     fingerprint = compute_key_fingerprint(pub_pem)
@@ -101,13 +106,13 @@ def rotate_device_keys(device_id):
     execute_db(
         """INSERT INTO audit_logs (timestamp, source_device, event_type, security_result, decision, details_json)
            VALUES (?, ?, 'DEVICE_KEY_ROTATED', 'SUCCESS', 'INFO', ?)""",
-        (now, device_id, json.dumps({"action": "KEY_ROTATION", "new_fingerprint": fingerprint}))
+        (now, actual_id, json.dumps({"action": "KEY_ROTATION", "new_fingerprint": fingerprint}))
     )
 
     return jsonify({
         "success": True,
-        "message": f"Cryptographic keys for device '{device_id}' successfully rotated.",
-        "device_id": device_id,
+        "message": f"Cryptographic keys for device '{actual_id}' successfully rotated.",
+        "device_id": actual_id,
         "public_key_pem": pub_pem,
         "fingerprint": fingerprint,
         "key_fingerprint_sha256": fingerprint,

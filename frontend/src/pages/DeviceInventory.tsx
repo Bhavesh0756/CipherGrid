@@ -35,7 +35,7 @@ import {
 import { Device3DModal } from '../components/ThreeD/Device3DModal';
 
 export const DeviceInventory: React.FC = () => {
-  const { devices, updateDevice, deleteDevice, setSelectedDevice, setActiveSection, fetchTopology } =
+  const { devices, updateDevice, deleteDevice, setSelectedDevice, setActiveSection, fetchTopology, rotateDeviceKeys } =
     useSimulatorStore();
 
   const [searchTerm, setSearchTerm] = useState('');
@@ -44,6 +44,7 @@ export const DeviceInventory: React.FC = () => {
   const [selectedKeyDev, setSelectedKeyDev] = useState<Device | null>(null);
   const [copiedType, setCopiedType] = useState<'pem' | 'fingerprint' | 'modulus' | null>(null);
   const [isRotating, setIsRotating] = useState(false);
+  const [rotationFeedback, setRotationFeedback] = useState<{ success: boolean; message: string; timestamp?: string } | null>(null);
   const [digitalTwinDev, setDigitalTwinDev] = useState<Device | null>(null);
 
   const copyToClipboard = (text: string, type: 'pem' | 'fingerprint' | 'modulus') => {
@@ -339,6 +340,30 @@ export const DeviceInventory: React.FC = () => {
               </div>
 
               <div className="p-6 space-y-4 max-h-[75vh] overflow-y-auto">
+                {/* Key Rotation Live Alert Banner */}
+                {rotationFeedback && (
+                  <div
+                    className={`p-3 rounded-xl border flex items-center justify-between text-xs animate-in fade-in duration-200 ${
+                      rotationFeedback.success
+                        ? 'bg-emerald-950/40 border-emerald-500/50 text-emerald-300 shadow-[0_0_15px_rgba(16,185,129,0.15)]'
+                        : 'bg-rose-950/40 border-rose-500/50 text-rose-300 shadow-[0_0_15px_rgba(244,63,94,0.15)]'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      {rotationFeedback.success ? (
+                        <CheckCircle className="w-4 h-4 text-emerald-400 shrink-0" />
+                      ) : (
+                        <ShieldAlert className="w-4 h-4 text-rose-400 shrink-0" />
+                      )}
+                      <span className="font-semibold">{rotationFeedback.message}</span>
+                    </div>
+                    {rotationFeedback.timestamp && (
+                      <span className="text-[10px] font-mono text-emerald-400/80 shrink-0">
+                        {rotationFeedback.timestamp}
+                      </span>
+                    )}
+                  </div>
+                )}
                 {/* Unique Cryptographic Fingerprint */}
                 <div className="p-3.5 bg-[#060913] rounded-xl border border-slate-800 space-y-2">
                   <div className="flex items-center justify-between">
@@ -461,19 +486,30 @@ export const DeviceInventory: React.FC = () => {
                 <div className="flex items-center gap-2">
                   <button
                     onClick={async () => {
+                      if (!selectedKeyDev) return;
                       setIsRotating(true);
+                      setRotationFeedback(null);
                       try {
-                        const res = await api.rotateDeviceKeys(selectedKeyDev.id);
-                        await fetchTopology();
-                        if (res.public_key_pem) {
+                        const res = await rotateDeviceKeys(selectedKeyDev.id);
+                        if (res && res.public_key_pem) {
                           setSelectedKeyDev({
                             ...selectedKeyDev,
                             public_key_pem: res.public_key_pem,
-                            key_fingerprint: res.fingerprint,
+                            key_fingerprint: res.fingerprint || res.key_fingerprint_sha256,
                           });
+                          setRotationFeedback({
+                            success: true,
+                            message: `RSA-2048 keypair rotated! Distinct modulus excerpt & SHA-256 fingerprint generated.`,
+                            timestamp: new Date().toLocaleTimeString(),
+                          });
+                        } else {
+                          throw new Error('Rotation response missing public key PEM.');
                         }
-                      } catch {
-                        // ignore
+                      } catch (err: any) {
+                        setRotationFeedback({
+                          success: false,
+                          message: err.message || 'Key rotation request failed. Check server connection.',
+                        });
                       } finally {
                         setIsRotating(false);
                       }
@@ -485,7 +521,10 @@ export const DeviceInventory: React.FC = () => {
                     <span>{isRotating ? 'Generating RSA-2048…' : 'Rotate Keypair'}</span>
                   </button>
                   <button
-                    onClick={() => setSelectedKeyDev(null)}
+                    onClick={() => {
+                      setSelectedKeyDev(null);
+                      setRotationFeedback(null);
+                    }}
                     className="px-4 py-1.5 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-xs font-semibold transition-colors cursor-pointer"
                   >
                     Close Key

@@ -11,6 +11,7 @@ import {
   Network,
   Power,
   Radio,
+  RefreshCw,
   Router as RouterIcon,
   Save,
   Shield,
@@ -18,6 +19,7 @@ import {
   Thermometer,
   Trash2,
   X,
+  CheckCircle2,
 } from 'lucide-react';
 import { Device, DeviceRole, DeviceType, PurdueLevel, TrustStatus } from '../../types';
 import { useSimulatorStore } from '../../store/useSimulatorStore';
@@ -93,9 +95,11 @@ const getDefaultDescription = (type: DeviceType, name: string, purdue: string) =
 };
 
 export const DeviceInspector: React.FC<DeviceInspectorProps> = ({ device, onClose }) => {
-  const { updateDevice, deleteDevice, connections } = useSimulatorStore();
+  const { updateDevice, deleteDevice, connections, rotateDeviceKeys } = useSimulatorStore();
   const [activeTab, setActiveTab] = useState<'overview' | 'ports' | 'configuration'>('overview');
   const [show3DModal, setShow3DModal] = useState(false);
+  const [isRotatingKey, setIsRotatingKey] = useState(false);
+  const [rotateFeedback, setRotateFeedback] = useState<{ success: boolean; text: string } | null>(null);
 
   const [formData, setFormData] = useState({
     name: device.name,
@@ -312,15 +316,39 @@ export const DeviceInspector: React.FC<DeviceInspectorProps> = ({ device, onClos
             </div>
 
             {/* Public Key Fingerprint */}
-            <div className="p-2.5 bg-[#10131A] border border-[#1E2430] rounded-lg">
-              <div className="flex items-center justify-between mb-1">
+            <div className="p-2.5 bg-[#10131A] border border-[#1E2430] rounded-lg space-y-2">
+              <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1.5 text-amber-400 text-[10px] font-mono font-medium uppercase">
                   <Key className="w-3 h-3" />
                   <span>RSA-2048 Public Key</span>
                 </div>
-                <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">
-                  Unique Key
-                </span>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                    Unique Key
+                  </span>
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      setIsRotatingKey(true);
+                      setRotateFeedback(null);
+                      try {
+                        await rotateDeviceKeys(device.id);
+                        setRotateFeedback({ success: true, text: 'Keypair rotated!' });
+                        setTimeout(() => setRotateFeedback(null), 3500);
+                      } catch (err: any) {
+                        setRotateFeedback({ success: false, text: err.message || 'Rotation failed' });
+                      } finally {
+                        setIsRotatingKey(false);
+                      }
+                    }}
+                    disabled={isRotatingKey}
+                    className="flex items-center gap-1 px-2 py-0.5 rounded bg-amber-600/20 hover:bg-amber-600/30 text-amber-300 border border-amber-500/40 text-[9px] font-mono font-bold transition-all cursor-pointer disabled:opacity-50"
+                    title="Generate fresh RSA-2048 & AES-256 keys for this device"
+                  >
+                    <RefreshCw className={`w-2.5 h-2.5 ${isRotatingKey ? 'animate-spin' : ''}`} />
+                    <span>{isRotatingKey ? 'Generating…' : 'Rotate Keypair'}</span>
+                  </button>
+                </div>
               </div>
               <div className="font-mono text-[9.5px] bg-[#090A0F] p-2 rounded border border-[#1E2430] space-y-1">
                 <div className="flex items-center justify-between text-slate-400 text-[9px]">
@@ -332,6 +360,25 @@ export const DeviceInspector: React.FC<DeviceInspectorProps> = ({ device, onClos
                     ? `SHA256:${(device.key_fingerprint || computeKeyFingerprint(device.public_key_pem)).slice(0, 24)}...`
                     : 'Key Not Provisioned'}
                 </div>
+                {rotateFeedback && (
+                  <div
+                    className={`pt-1.5 mt-1 border-t border-[#1E2430] text-[9.5px] flex items-center gap-1.5 animate-in fade-in ${
+                      rotateFeedback.success ? 'text-emerald-400 font-bold' : 'text-rose-400 font-bold'
+                    }`}
+                  >
+                    {rotateFeedback.success ? (
+                      <>
+                        <CheckCircle2 className="w-3 h-3 text-emerald-400 shrink-0" />
+                        <span>Fresh RSA-2048 keypair generated & enrolled!</span>
+                      </>
+                    ) : (
+                      <>
+                        <ShieldAlert className="w-3 h-3 text-rose-400 shrink-0" />
+                        <span>{rotateFeedback.text}</span>
+                      </>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
 

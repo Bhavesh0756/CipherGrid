@@ -48,6 +48,7 @@ interface SimulatorStore {
   fetchTopology: () => Promise<void>;
   setSelectedDevice: (device: Device | null) => void;
   updateDevice: (id: string, updates: Partial<Device>) => Promise<void>;
+  rotateDeviceKeys: (id: string) => Promise<any>;
   createDevice: (device: Partial<Device>) => Promise<void>;
   deleteDevice: (id: string) => Promise<void>;
   saveTopology: () => Promise<void>;
@@ -225,6 +226,34 @@ export const useSimulatorStore = create<SimulatorStore>((set, get) => {
         });
       } catch (err: any) {
         set({ error: err.message });
+      }
+    },
+
+    rotateDeviceKeys: async (id: string) => {
+      try {
+        const res = await api.rotateDeviceKeys(id);
+        if (res && res.public_key_pem) {
+          const currentDevices = get().devices.map((d) =>
+            d.id === id || d.id.toLowerCase() === id.toLowerCase()
+              ? {
+                  ...d,
+                  public_key_pem: res.public_key_pem,
+                  key_fingerprint: res.fingerprint || res.key_fingerprint_sha256,
+                }
+              : d
+          );
+          const updatedDev = currentDevices.find((d) => d.id === id || d.id.toLowerCase() === id.toLowerCase()) || null;
+          set({
+            devices: currentDevices,
+            selectedDevice: get().selectedDevice && (get().selectedDevice?.id === id || get().selectedDevice?.id.toLowerCase() === id.toLowerCase())
+              ? updatedDev
+              : get().selectedDevice,
+          });
+        }
+        return res;
+      } catch (err: any) {
+        set({ error: err.message || 'Failed to rotate device keypair.' });
+        throw err;
       }
     },
 
