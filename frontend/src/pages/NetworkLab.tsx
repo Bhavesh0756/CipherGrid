@@ -19,6 +19,7 @@ import {
 import '@xyflow/react/dist/style.css';
 
 import {
+  Box,
   Crosshair,
   Link2,
   Maximize2,
@@ -38,6 +39,8 @@ import { IndustrialNode } from '../components/NetworkLab/IndustrialNode';
 import { LaserEdge } from '../components/NetworkLab/LaserEdge';
 import { MessageSimulatorModal } from '../components/NetworkLab/MessageSimulatorModal';
 import { SimulationControls } from '../components/NetworkLab/SimulationControls';
+import { NetworkPlant3DView } from '../components/ThreeD/NetworkPlant3DView';
+import { Device3DModal } from '../components/ThreeD/Device3DModal';
 import { useSimulatorStore } from '../store/useSimulatorStore';
 import { Device, DeviceType, PurdueLevel } from '../types';
 
@@ -76,6 +79,8 @@ const NetworkLabContent: React.FC = () => {
 
   const [activeTool, setActiveTool] = useState<'select' | 'connect' | 'slice'>('select');
   const [isPaletteOpen, setIsPaletteOpen] = useState(false);
+  const [labViewMode, setLabViewMode] = useState<'2d' | '3d'>('2d');
+  const [twinDevice, setTwinDevice] = useState<Device | null>(null);
 
   const [zoomLevel, setZoomLevel] = useState<number>(95);
 
@@ -505,6 +510,31 @@ const NetworkLabContent: React.FC = () => {
                 </button>
               </div>
 
+              {/* 2D / 3D Cyber-Physical Switch */}
+              <div className="flex items-center p-0.5 bg-[#141824] border border-[#1E2430] rounded-lg">
+                <button
+                  onClick={() => setLabViewMode('2d')}
+                  className={`px-2.5 py-1 rounded-md text-[10.5px] font-mono font-bold transition-all cursor-pointer ${
+                    labViewMode === '2d'
+                      ? 'bg-blue-600 text-white shadow-sm'
+                      : 'text-slate-400 hover:text-white'
+                  }`}
+                >
+                  2D TOPOLOGY
+                </button>
+                <button
+                  onClick={() => setLabViewMode('3d')}
+                  className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10.5px] font-mono font-bold transition-all cursor-pointer ${
+                    labViewMode === '3d'
+                      ? 'bg-cyan-600 text-white shadow-sm'
+                      : 'text-slate-400 hover:text-white'
+                  }`}
+                >
+                  <Box className="w-3.5 h-3.5 text-cyan-300" />
+                  <span>3D PLANT</span>
+                </button>
+              </div>
+
               {/* Maximize */}
               <button
                 onClick={handleFitView}
@@ -516,82 +546,91 @@ const NetworkLabContent: React.FC = () => {
             </div>
           </div>
 
-          {/* React Flow Container */}
+          {/* React Flow or 3D Plant Container */}
           <div className="flex-1 w-full h-full relative bg-[#090A0F]">
-            {/* Side Floating ADD Button when Palette is closed */}
-            {!isPaletteOpen && (
-              <button
-                onClick={() => setIsPaletteOpen(true)}
-                className="absolute left-0 top-1/2 -translate-y-1/2 z-20 bg-[#10131A] hover:bg-blue-600 border border-l-0 border-[#1E2430] hover:border-blue-500 text-slate-300 hover:text-white py-3.5 px-2 rounded-r-xl shadow-xl flex flex-col items-center gap-2 cursor-pointer transition-all group backdrop-blur-md"
-                title="Open Device Palette"
-              >
-                <Plus className="w-4 h-4 text-blue-400 group-hover:text-white transition-colors" />
-                <span className="[writing-mode:vertical-lr] text-[9.5px] font-mono font-bold tracking-widest text-slate-300 group-hover:text-white">
-                  ADD DEVICE
-                </span>
-              </button>
-            )}
+            {labViewMode === '3d' ? (
+              <NetworkPlant3DView
+                onSelectDevice={setSelectedDevice}
+                onOpenDigitalTwin={setTwinDevice}
+              />
+            ) : (
+              <>
+                {/* Side Floating ADD Button when Palette is closed */}
+                {!isPaletteOpen && (
+                  <button
+                    onClick={() => setIsPaletteOpen(true)}
+                    className="absolute left-0 top-1/2 -translate-y-1/2 z-20 bg-[#10131A] hover:bg-blue-600 border border-l-0 border-[#1E2430] hover:border-blue-500 text-slate-300 hover:text-white py-3.5 px-2 rounded-r-xl shadow-xl flex flex-col items-center gap-2 cursor-pointer transition-all group backdrop-blur-md"
+                    title="Open Device Palette"
+                  >
+                    <Plus className="w-4 h-4 text-blue-400 group-hover:text-white transition-colors" />
+                    <span className="[writing-mode:vertical-lr] text-[9.5px] font-mono font-bold tracking-widest text-slate-300 group-hover:text-white">
+                      ADD DEVICE
+                    </span>
+                  </button>
+                )}
 
-            {activeTool === 'slice' && (
-              <div className="absolute top-3 left-1/2 -translate-x-1/2 z-20 px-4 py-1.5 rounded-full bg-rose-950/90 border border-rose-500/70 text-rose-200 font-mono text-[11px] flex items-center gap-2.5 shadow-2xl backdrop-blur-md">
-                <Scissors className="w-4 h-4 text-rose-400 animate-pulse" />
-                <span>SLICE MODE ACTIVE — Click on any connection wire to cut & delete it</span>
-                <button
-                  onClick={() => setActiveTool('select')}
-                  className="ml-2 px-2 py-0.5 rounded bg-rose-900 hover:bg-rose-800 text-white text-[10px] cursor-pointer"
+                {activeTool === 'slice' && (
+                  <div className="absolute top-3 left-1/2 -translate-x-1/2 z-20 px-4 py-1.5 rounded-full bg-rose-950/90 border border-rose-500/70 text-rose-200 font-mono text-[11px] flex items-center gap-2.5 shadow-2xl backdrop-blur-md">
+                    <Scissors className="w-4 h-4 text-rose-400 animate-pulse" />
+                    <span>SLICE MODE ACTIVE — Click on any connection wire to cut & delete it</span>
+                    <button
+                      onClick={() => setActiveTool('select')}
+                      className="ml-2 px-2 py-0.5 rounded bg-rose-900 hover:bg-rose-800 text-white text-[10px] cursor-pointer"
+                    >
+                      Done
+                    </button>
+                  </div>
+                )}
+
+                <ReactFlow
+                  nodes={nodes}
+                  edges={edges}
+                  onNodeDragStop={onNodeDragStop}
+                  onNodeClick={onNodeClick}
+                  onEdgeClick={onEdgeClick}
+                  onPaneClick={onPaneClick}
+                  onConnect={onConnect}
+                  onEdgesChange={onEdgesChange}
+                  onDragOver={onDragOver}
+                  onDrop={onDrop}
+                  nodeTypes={nodeTypes}
+                  edgeTypes={edgeTypes}
+                  defaultViewport={{ x: 10, y: 10, zoom: 0.8 }}
+                  snapToGrid
+                  snapGrid={[16, 16]}
+                  minZoom={0.5}
+                  maxZoom={1.5}
                 >
-                  Done
-                </button>
-              </div>
+                  <Background
+                    variant={BackgroundVariant.Dots}
+                    gap={24}
+                    size={1.5}
+                    color="#1E2430"
+                  />
+                  <MiniMap
+                    position="bottom-right"
+                    nodeStrokeWidth={1}
+                    maskColor="rgba(9, 10, 15, 0.75)"
+                    nodeColor={(node: any) => {
+                      switch (node.data?.device?.device_type) {
+                        case 'PLC': return '#3b82f6';
+                        case 'SCADA Server': return '#3b82f6';
+                        case 'Industrial Gateway': return '#3b82f6';
+                        case 'Untrusted Device': return '#f43f5e';
+                        default: return '#475569';
+                      }
+                    }}
+                    className="!bg-[#10131A] !border !border-[#1E2430] !rounded-xl overflow-hidden !m-4 shadow-lg"
+                    style={{ width: 130, height: 80 }}
+                  />
+                  <Controls
+                    showInteractive={false}
+                    position="bottom-right"
+                    className="!bg-[#10131A] !border !border-[#1E2430] !rounded-lg !mr-4 !mb-26 shadow-lg"
+                  />
+                </ReactFlow>
+              </>
             )}
-
-            <ReactFlow
-              nodes={nodes}
-              edges={edges}
-              onNodeDragStop={onNodeDragStop}
-              onNodeClick={onNodeClick}
-              onEdgeClick={onEdgeClick}
-              onPaneClick={onPaneClick}
-              onConnect={onConnect}
-              onEdgesChange={onEdgesChange}
-              onDragOver={onDragOver}
-              onDrop={onDrop}
-              nodeTypes={nodeTypes}
-              edgeTypes={edgeTypes}
-              defaultViewport={{ x: 10, y: 10, zoom: 0.8 }}
-              snapToGrid
-              snapGrid={[16, 16]}
-              minZoom={0.5}
-              maxZoom={1.5}
-            >
-              <Background
-                variant={BackgroundVariant.Dots}
-                gap={24}
-                size={1.5}
-                color="#1E2430"
-              />
-              <MiniMap
-                position="bottom-right"
-                nodeStrokeWidth={1}
-                maskColor="rgba(9, 10, 15, 0.75)"
-                nodeColor={(node: any) => {
-                  switch (node.data?.device?.device_type) {
-                    case 'PLC': return '#3b82f6';
-                    case 'SCADA Server': return '#3b82f6';
-                    case 'Industrial Gateway': return '#3b82f6';
-                    case 'Untrusted Device': return '#f43f5e';
-                    default: return '#475569';
-                  }
-                }}
-                className="!bg-[#10131A] !border !border-[#1E2430] !rounded-xl overflow-hidden !m-4 shadow-lg"
-                style={{ width: 130, height: 80 }}
-              />
-              <Controls
-                showInteractive={false}
-                position="bottom-right"
-                className="!bg-[#10131A] !border !border-[#1E2430] !rounded-lg !mr-4 !mb-26 shadow-lg"
-              />
-            </ReactFlow>
           </div>
         </div>
 
@@ -612,6 +651,14 @@ const NetworkLabContent: React.FC = () => {
         isOpen={isMessageModalOpen}
         onClose={() => setMessageModalOpen(false)}
       />
+
+      {/* Device 3D Digital Twin Modal */}
+      {twinDevice && (
+        <Device3DModal
+          device={twinDevice}
+          onClose={() => setTwinDevice(null)}
+        />
+      )}
     </div>
   );
 };

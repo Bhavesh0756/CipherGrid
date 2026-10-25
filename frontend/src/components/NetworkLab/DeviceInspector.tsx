@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   Activity,
+  Box,
   Cpu,
   Eye,
   HardDrive,
@@ -21,6 +22,7 @@ import {
 import { Device, DeviceRole, DeviceType, PurdueLevel, TrustStatus } from '../../types';
 import { useSimulatorStore } from '../../store/useSimulatorStore';
 import { computeKeyFingerprint } from '../../utils/cryptoUtils';
+import { Device3DModal } from '../ThreeD/Device3DModal';
 
 interface DeviceInspectorProps {
   device: Device;
@@ -93,6 +95,7 @@ const getDefaultDescription = (type: DeviceType, name: string, purdue: string) =
 export const DeviceInspector: React.FC<DeviceInspectorProps> = ({ device, onClose }) => {
   const { updateDevice, deleteDevice, connections } = useSimulatorStore();
   const [activeTab, setActiveTab] = useState<'overview' | 'ports' | 'configuration'>('overview');
+  const [show3DModal, setShow3DModal] = useState(false);
 
   const [formData, setFormData] = useState({
     name: device.name,
@@ -143,8 +146,8 @@ export const DeviceInspector: React.FC<DeviceInspectorProps> = ({ device, onClos
     try {
       const actionsList = formData.allowed_actions
         .split(',')
-        .map((a) => a.trim())
-        .filter((a) => a.length > 0);
+        .map((a: string) => a.trim())
+        .filter((a: string) => a.length > 0);
 
       await updateDevice(device.id, {
         name: formData.name.trim(),
@@ -266,6 +269,15 @@ export const DeviceInspector: React.FC<DeviceInspectorProps> = ({ device, onClos
       <div className="flex-1 overflow-y-auto px-4 py-3 text-xs">
         {activeTab === 'overview' && (
           <div className="space-y-3.5">
+            {/* 3D Digital Twin Simulation Action Button */}
+            <button
+              onClick={() => setShow3DModal(true)}
+              className="w-full flex items-center justify-center gap-2 px-3 py-2.5 bg-gradient-to-r from-blue-600/20 to-cyan-600/20 hover:from-blue-600/30 hover:to-cyan-600/30 border border-cyan-500/40 text-cyan-300 rounded-xl text-xs font-mono font-bold transition-all shadow-md cursor-pointer hover:border-cyan-400 group"
+            >
+              <Box className="w-4 h-4 text-cyan-400 group-hover:rotate-12 transition-transform" />
+              <span>3D DIGITAL TWIN SIMULATION</span>
+            </button>
+
             <div className="space-y-2">
               <div className="flex items-center justify-between py-1 border-b border-[#1E2430]/60">
                 <span className="text-slate-400 text-[11px] shrink-0">IP Address</span>
@@ -508,6 +520,13 @@ export const DeviceInspector: React.FC<DeviceInspectorProps> = ({ device, onClos
           </form>
         )}
       </div>
+
+      {show3DModal && (
+        <Device3DModal
+          device={device}
+          onClose={() => setShow3DModal(false)}
+        />
+      )}
     </aside>
   );
 };

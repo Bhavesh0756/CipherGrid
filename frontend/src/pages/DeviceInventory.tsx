@@ -4,6 +4,7 @@ import React, { useState } from 'react';
  * Manages industrial field hardware asset tracking, IP allocation, Purdue level assignment, and operational statuses.
  */
 import {
+  Box,
   Check,
   CheckCircle,
   Copy,
@@ -30,6 +31,7 @@ import {
   getShortFingerprint,
   extractUniqueModulusExcerpt,
 } from '../utils/cryptoUtils';
+import { Device3DModal } from '../components/ThreeD/Device3DModal';
 
 export const DeviceInventory: React.FC = () => {
   const { devices, updateDevice, deleteDevice, setSelectedDevice, setActiveSection, fetchTopology } =
@@ -41,6 +43,7 @@ export const DeviceInventory: React.FC = () => {
   const [selectedKeyDev, setSelectedKeyDev] = useState<Device | null>(null);
   const [copiedType, setCopiedType] = useState<'pem' | 'fingerprint' | null>(null);
   const [isRotating, setIsRotating] = useState(false);
+  const [digitalTwinDev, setDigitalTwinDev] = useState<Device | null>(null);
 
   const copyToClipboard = (text: string, type: 'pem' | 'fingerprint') => {
     navigator.clipboard.writeText(text);
@@ -266,6 +269,14 @@ export const DeviceInventory: React.FC = () => {
                           </button>
                         )}
                         <button
+                          onClick={() => setDigitalTwinDev(d)}
+                          className="px-2 py-1 text-[10.5px] font-semibold text-purple-300 hover:text-purple-200 bg-purple-500/10 hover:bg-purple-500/20 rounded-lg border border-purple-500/30 transition-all cursor-pointer flex items-center gap-1"
+                          title="Inspect 3D Digital Twin Simulation"
+                        >
+                          <Box className="w-3 h-3 text-purple-400" />
+                          <span>3D</span>
+                        </button>
+                        <button
                           onClick={() => handleInspectOnCanvas(d)}
                           className="px-2.5 py-1 text-[10.5px] font-semibold text-cyan-400 hover:text-cyan-300 bg-cyan-500/10 hover:bg-cyan-500/20 rounded-lg border border-cyan-500/30 transition-all cursor-pointer flex items-center gap-1"
                         >
@@ -465,6 +476,14 @@ export const DeviceInventory: React.FC = () => {
           </div>
         );
       })()}
+
+      {/* Device 3D Digital Twin Modal */}
+      {digitalTwinDev && (
+        <Device3DModal
+          device={digitalTwinDev}
+          onClose={() => setDigitalTwinDev(null)}
+        />
+      )}
     </div>
   );
 };
