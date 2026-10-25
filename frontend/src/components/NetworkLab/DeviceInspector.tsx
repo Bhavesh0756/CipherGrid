@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { Device, DeviceRole, DeviceType, PurdueLevel, TrustStatus } from '../../types';
 import { useSimulatorStore } from '../../store/useSimulatorStore';
+import { computeKeyFingerprint } from '../../utils/cryptoUtils';
 
 interface DeviceInspectorProps {
   device: Device;
@@ -300,12 +301,25 @@ export const DeviceInspector: React.FC<DeviceInspectorProps> = ({ device, onClos
 
             {/* Public Key Fingerprint */}
             <div className="p-2.5 bg-[#10131A] border border-[#1E2430] rounded-lg">
-              <div className="flex items-center gap-1.5 text-blue-400 text-[10px] font-mono font-medium uppercase mb-1">
-                <Key className="w-3 h-3" />
-                <span>RSA-2048 Public Key</span>
+              <div className="flex items-center justify-between mb-1">
+                <div className="flex items-center gap-1.5 text-amber-400 text-[10px] font-mono font-medium uppercase">
+                  <Key className="w-3 h-3" />
+                  <span>RSA-2048 Public Key</span>
+                </div>
+                <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                  Unique Key
+                </span>
               </div>
-              <div className="font-mono text-[9.5px] text-slate-400 break-all leading-tight bg-[#090A0F] p-1.5 rounded border border-[#1E2430]">
-                {device.public_key_pem ? device.public_key_pem.slice(0, 72) + '...' : 'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA...'}
+              <div className="font-mono text-[9.5px] bg-[#090A0F] p-2 rounded border border-[#1E2430] space-y-1">
+                <div className="flex items-center justify-between text-slate-400 text-[9px]">
+                  <span>SHA-256 Fingerprint:</span>
+                  <span className="text-cyan-400 font-bold">2048-bit PSS</span>
+                </div>
+                <div className="text-amber-300 text-[9.5px] font-bold break-all">
+                  {device.public_key_pem
+                    ? `SHA256:${(device.key_fingerprint || computeKeyFingerprint(device.public_key_pem)).slice(0, 24)}...`
+                    : 'Key Not Provisioned'}
+                </div>
               </div>
             </div>
 

@@ -6,11 +6,18 @@
 # - DELETE /api/devices/<id>: Decommissions device and updates network topology adjacency matrix.
 
 import json
+import hashlib
 from datetime import datetime, timezone
 from flask import Blueprint, request, jsonify
 from ..database.db import query_db, execute_db, generate_device_keys
 
 devices_bp = Blueprint("devices", __name__, url_prefix="/api/devices")
+
+def compute_key_fingerprint(pem_str: str) -> str:
+    """Computes standard SHA-256 cryptographic digest of a public key PEM string."""
+    if not pem_str or not isinstance(pem_str, str):
+        return ""
+    return hashlib.sha256(pem_str.encode("utf-8")).hexdigest()
 
 @devices_bp.route("", methods=["GET"])
 def get_all_devices():
@@ -22,6 +29,7 @@ def get_all_devices():
                 d["allowed_actions"] = json.loads(d["allowed_actions"])
             except Exception:
                 d["allowed_actions"] = []
+        d["key_fingerprint"] = compute_key_fingerprint(d.get("public_key_pem"))
     return jsonify({"success": True, "devices": devices, "total": len(devices)})
 
 @devices_bp.route("/<device_id>", methods=["GET"])
@@ -41,6 +49,7 @@ def get_device(device_id):
         except Exception:
             device["allowed_actions"] = []
 
+    device["key_fingerprint"] = compute_key_fingerprint(device.get("public_key_pem"))
     return jsonify({"success": True, "device": device})
 
 @devices_bp.route("", methods=["POST"])
@@ -86,7 +95,28 @@ def register_device():
         (now, dev_id, json.dumps({"name": name, "type": dev_type, "role": role, "trust_status": trust_status}))
     )
 
-    return jsonify({"success": True, "message": f"Device '{dev_id}' registered successfully."}), 201
+    fingerprint = compute_key_fingerprint(pub_pem)
+    return jsonify({
+        "success": True,
+        "message": f"Device '{dev_id}' registered successfully.",
+        "device": {
+            "id": dev_id,
+            "name": name,
+            "type": dev_type,
+            "ip_address": ip_address,
+            "mac_address": mac_address,
+            "role": role,
+            "trust_status": trust_status,
+            "enabled": enabled == 1,
+            "allowed_actions": allowed_actions,
+            "public_key_pem": pub_pem,
+            "key_fingerprint": fingerprint,
+            "x_pos": x_pos,
+            "y_pos": y_pos,
+            "created_at": now,
+            "updated_at": now
+        }
+    }), 201
 
 @devices_bp.route("/<device_id>", methods=["PUT"])
 def update_device(device_id):

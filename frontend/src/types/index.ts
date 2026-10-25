@@ -48,6 +48,7 @@ export interface Device {
   is_enabled: boolean;
   allowed_actions: string[];
   public_key_pem?: string;
+  key_fingerprint?: string;
   position_x: number;
   position_y: number;
 }

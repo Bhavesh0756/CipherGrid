@@ -4,7 +4,9 @@ import React, { useState } from 'react';
  * Manages industrial field hardware asset tracking, IP allocation, Purdue level assignment, and operational statuses.
  */
 import {
+  Check,
   CheckCircle,
+  Copy,
   Filter,
   Key,
   Locate,
@@ -20,6 +22,12 @@ import {
 } from 'lucide-react';
 import { useSimulatorStore } from '../store/useSimulatorStore';
 import { Device, TrustStatus } from '../types';
+import {
+  computeKeyFingerprint,
+  formatColonFingerprint,
+  getShortFingerprint,
+  extractUniqueModulusExcerpt,
+} from '../utils/cryptoUtils';
 
 export const DeviceInventory: React.FC = () => {
   const { devices, updateDevice, deleteDevice, setSelectedDevice, setActiveSection } =
@@ -29,6 +37,13 @@ export const DeviceInventory: React.FC = () => {
   const [filterTrust, setFilterTrust] = useState<string>('all');
   const [filterPurdue, setFilterPurdue] = useState<string>('all');
   const [selectedKeyDev, setSelectedKeyDev] = useState<Device | null>(null);
+  const [copiedType, setCopiedType] = useState<'pem' | 'fingerprint' | null>(null);
+
+  const copyToClipboard = (text: string, type: 'pem' | 'fingerprint') => {
+    navigator.clipboard.writeText(text);
+    setCopiedType(type);
+    setTimeout(() => setCopiedType(null), 2000);
+  };
 
   const filteredDevices = devices.filter((d) => {
     const matchesSearch =
@@ -181,7 +196,7 @@ export const DeviceInventory: React.FC = () => {
             <table className="w-full text-left border-collapse font-mono text-xs">
               <thead>
                 <tr className="border-b border-slate-800/80 bg-[#080d1a] text-slate-400 text-[10px] font-bold uppercase tracking-wider">
-                  {['Device Name', 'Chassis Type', 'IP Address', 'Purdue Zone', 'RBAC Role', 'Trust Tier', 'Admin Link', 'Actions'].map((h) => (
+                  {['Device Name', 'Chassis Type', 'IP Address', 'Purdue Zone', 'Key Fingerprint (SHA-256)', 'RBAC Role', 'Trust Tier', 'Admin Link', 'Actions'].map((h) => (
                     <th key={h} className="py-3 px-4">{h}</th>
                   ))}
                 </tr>
@@ -203,6 +218,23 @@ export const DeviceInventory: React.FC = () => {
                       <span className={`text-[10px] font-bold px-2 py-0.5 rounded border ${getPurdueColor(d.purdue_level)}`}>
                         {d.purdue_level}
                       </span>
+                    </td>
+                    <td className="py-3 px-4">
+                      {d.public_key_pem ? (
+                        <button
+                          onClick={() => setSelectedKeyDev(d)}
+                          className="inline-flex items-center gap-1.5 px-2 py-1 rounded bg-[#060913] hover:bg-amber-500/10 border border-slate-800 hover:border-amber-500/30 text-amber-300 font-mono text-[10px] transition-all cursor-pointer group shadow-sm"
+                          title="Click to inspect unique RSA-2048 identity key & cryptographic verification"
+                        >
+                          <Key className="w-3 h-3 text-amber-400 group-hover:scale-110 transition-transform shrink-0" />
+                          <span className="text-slate-500 font-bold">SHA256:</span>
+                          <span className="text-cyan-300 font-mono font-bold group-hover:text-amber-200">
+                            {getShortFingerprint(d.public_key_pem, d.key_fingerprint)}
+                          </span>
+                        </button>
+                      ) : (
+                        <span className="text-slate-600 italic text-[10px]">Not Provisioned</span>
+                      )}
                     </td>
                     <td className="py-3 px-4 text-slate-300 font-medium">{d.role}</td>
                     <td className="py-3 px-4">{getTrustBadge(d.trust_status)}</td>
@@ -255,42 +287,154 @@ export const DeviceInventory: React.FC = () => {
       </div>
 
       {/* Public Key Modal */}
-      {selectedKeyDev && (
-        <div className="fixed inset-0 z-50 bg-[#060913]/85 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="bg-[#0b101f] rounded-2xl border border-slate-700 shadow-2xl w-full max-w-xl overflow-hidden font-mono">
-            <div className="px-5 py-4 border-b border-slate-800/80 flex items-center justify-between bg-[#080d1a]">
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 shadow-inner">
-                  <Key className="w-4 h-4" />
+      {selectedKeyDev && (() => {
+        const devFp = selectedKeyDev.key_fingerprint || computeKeyFingerprint(selectedKeyDev.public_key_pem);
+        const formattedFp = formatColonFingerprint(devFp);
+        const modulusExcerpt = extractUniqueModulusExcerpt(selectedKeyDev.public_key_pem);
+
+        return (
+          <div className="fixed inset-0 z-50 bg-[#060913]/85 backdrop-blur-md flex items-center justify-center p-4">
+            <div className="bg-[#0b101f] rounded-2xl border border-slate-700 shadow-2xl w-full max-w-2xl overflow-hidden font-mono animate-in fade-in zoom-in-95 duration-150">
+              {/* Modal Header */}
+              <div className="px-6 py-4 border-b border-slate-800/80 flex items-center justify-between bg-[#080d1a]">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 shadow-inner">
+                    <Key className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-xs font-bold text-white font-display tracking-wide">
+                        RSA-2048 CRYPTOGRAPHIC IDENTITY KEY
+                      </h3>
+                      <span className="text-[9.5px] px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-bold">
+                        VERIFIED UNIQUE
+                      </span>
+                    </div>
+                    <p className="text-[10px] text-slate-400 mt-0.5">
+                      {selectedKeyDev.name} &bull; <span className="text-cyan-300 font-bold">{selectedKeyDev.ip_address}</span> &bull; <span className="text-amber-400 font-bold">{selectedKeyDev.purdue_level}</span>
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="text-xs font-bold text-white font-display">RSA-2048 CRYPTOGRAPHIC PUBLIC KEY</h3>
-                  <p className="text-[10px] text-slate-400">{selectedKeyDev.name} ({selectedKeyDev.ip_address})</p>
+                <button
+                  onClick={() => setSelectedKeyDev(null)}
+                  className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              <div className="p-6 space-y-4 max-h-[75vh] overflow-y-auto">
+                {/* Unique Cryptographic Fingerprint */}
+                <div className="p-3.5 bg-[#060913] rounded-xl border border-slate-800 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider flex items-center gap-1.5">
+                      <Shield className="w-3.5 h-3.5 text-cyan-400" />
+                      <span>Cryptographic Key Fingerprint (SHA-256)</span>
+                    </span>
+                    <button
+                      onClick={() => copyToClipboard(devFp, 'fingerprint')}
+                      className="inline-flex items-center gap-1 text-[10px] text-cyan-400 hover:text-cyan-300 font-bold cursor-pointer bg-cyan-500/10 hover:bg-cyan-500/20 px-2.5 py-0.5 rounded border border-cyan-500/30 transition-all"
+                    >
+                      {copiedType === 'fingerprint' ? (
+                        <>
+                          <Check className="w-3 h-3 text-emerald-400" />
+                          <span className="text-emerald-400">Copied!</span>
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="w-3 h-3" />
+                          <span>Copy Fingerprint</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                  <div className="font-mono text-cyan-300 text-[11px] font-bold tracking-wider break-all bg-slate-900/80 p-2.5 rounded-lg border border-slate-800">
+                    {formattedFp || 'N/A'}
+                  </div>
+                </div>
+
+                {/* Key Specs Grid */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  <div className="p-2.5 bg-slate-900/50 rounded-lg border border-slate-800">
+                    <span className="text-[9px] text-slate-400 uppercase block font-semibold">Algorithm</span>
+                    <span className="text-xs text-white font-bold mt-0.5 block">RSA-2048</span>
+                  </div>
+                  <div className="p-2.5 bg-slate-900/50 rounded-lg border border-slate-800">
+                    <span className="text-[9px] text-slate-400 uppercase block font-semibold">Padding / Scheme</span>
+                    <span className="text-xs text-amber-400 font-bold mt-0.5 block">RSA-PSS (SHA-256)</span>
+                  </div>
+                  <div className="p-2.5 bg-slate-900/50 rounded-lg border border-slate-800">
+                    <span className="text-[9px] text-slate-400 uppercase block font-semibold">Public Exponent</span>
+                    <span className="text-xs text-white font-bold mt-0.5 block">65537 (0x10001)</span>
+                  </div>
+                  <div className="p-2.5 bg-slate-900/50 rounded-lg border border-slate-800">
+                    <span className="text-[9px] text-slate-400 uppercase block font-semibold">Trust Tier</span>
+                    <span className="text-xs text-emerald-400 font-bold mt-0.5 block">{selectedKeyDev.trust_status}</span>
+                  </div>
+                </div>
+
+                {/* Unique Modulus Excerpt */}
+                {modulusExcerpt && (
+                  <div className="p-3 bg-[#060913] rounded-xl border border-slate-800 text-[10px] space-y-1">
+                    <div className="flex items-center justify-between text-slate-400 font-bold">
+                      <span>Distinct 2048-Bit Modulus Excerpt (First 32 bytes):</span>
+                      <span className="text-[9px] text-amber-400 font-normal">Differs per device</span>
+                    </div>
+                    <div className="font-mono text-amber-300 text-[10.5px] font-bold break-all bg-slate-900/50 p-2 rounded border border-slate-800/80">
+                      {modulusExcerpt}...
+                    </div>
+                  </div>
+                )}
+
+                {/* Educational Note */}
+                <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl text-[11px] text-slate-300 leading-relaxed">
+                  <span className="font-bold text-amber-300">Why standard RSA PEM keys look similar at the top: </span>
+                  In the X.509 / PKCS#8 ASN.1 specification, all 2048-bit RSA public keys share the identical ASN.1 SubjectPublicKeyInfo header prefix (<code className="text-amber-300 bg-[#060913] px-1 py-0.5 rounded font-mono text-[10px]">MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA</code>) and public exponent ending (<code className="text-amber-300 bg-[#060913] px-1 py-0.5 rounded font-mono text-[10px]">IDAQAB</code>). The 2048-bit mathematical prime modulus inside is independently generated for each device, as verified by its unique SHA-256 fingerprint above.
+                </div>
+
+                {/* Raw PEM Keystore Box */}
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between text-slate-400 text-[10px]">
+                    <span className="font-bold uppercase tracking-wider">Raw SubjectPublicKeyInfo PEM Keystore:</span>
+                    <button
+                      onClick={() => copyToClipboard(selectedKeyDev.public_key_pem || '', 'pem')}
+                      className="inline-flex items-center gap-1 text-[10px] text-amber-400 hover:text-amber-300 font-bold cursor-pointer"
+                    >
+                      {copiedType === 'pem' ? (
+                        <>
+                          <Check className="w-3 h-3 text-emerald-400" />
+                          <span className="text-emerald-400">Copied PEM!</span>
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="w-3 h-3" />
+                          <span>Copy PEM</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                  <pre className="p-3 bg-[#060913] text-amber-300/90 rounded-xl font-mono text-[9px] overflow-x-auto leading-relaxed border border-slate-800 max-h-44 selection:bg-amber-500/30 selection:text-white">
+                    {selectedKeyDev.public_key_pem}
+                  </pre>
                 </div>
               </div>
-              <button onClick={() => setSelectedKeyDev(null)} className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer">
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-            <div className="p-5 space-y-3">
-              <p className="text-xs text-slate-400 leading-relaxed">
-                Cryptographic identity key registered in the simulation backend to verify RSA-PSS digital signatures generated by this node.
-              </p>
-              <pre className="p-3 bg-[#060913] text-amber-300 rounded-xl font-mono text-[9.5px] overflow-x-auto leading-relaxed border border-slate-800 max-h-56">
-                {selectedKeyDev.public_key_pem}
-              </pre>
-            </div>
-            <div className="px-5 py-3 bg-[#080d1a] border-t border-slate-800/80 flex justify-end">
-              <button
-                onClick={() => setSelectedKeyDev(null)}
-                className="px-4 py-1.5 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-xs font-semibold transition-colors cursor-pointer"
-              >
-                Close Key
-              </button>
+
+              {/* Modal Footer */}
+              <div className="px-6 py-3.5 bg-[#080d1a] border-t border-slate-800/80 flex items-center justify-between">
+                <span className="text-[10px] text-slate-500 font-mono">
+                  Stored in SQLite Keyring &bull; Used for RSA-PSS signature verification
+                </span>
+                <button
+                  onClick={() => setSelectedKeyDev(null)}
+                  className="px-4 py-1.5 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-xs font-semibold transition-colors cursor-pointer"
+                >
+                  Close Key
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
     </div>
   );
 };

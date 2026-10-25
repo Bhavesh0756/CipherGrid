@@ -4,6 +4,7 @@ import { create } from 'zustand';
  * Manages active devices, network topologies, simulation speed, real-time message queues, and user interface modes.
  */
 import { api } from '../services/api';
+import { computeKeyFingerprint } from '../utils/cryptoUtils';
 import type {
   AuditLog,
   Connection,
@@ -179,6 +180,7 @@ export const useSimulatorStore = create<SimulatorStore>((set, get) => {
           is_enabled: Boolean(d.enabled),
           allowed_actions: Array.isArray(d.allowed_actions) ? d.allowed_actions : [],
           public_key_pem: d.public_key_pem,
+          key_fingerprint: d.key_fingerprint || (d.public_key_pem ? computeKeyFingerprint(d.public_key_pem) : undefined),
           position_x: Number(d.x_pos ?? 100),
           position_y: Number(d.y_pos ?? 100),
         }));
@@ -243,7 +245,7 @@ export const useSimulatorStore = create<SimulatorStore>((set, get) => {
           position_y: newDev.position_y ?? 250,
         };
 
-        await api.createDevice({
+        const res: any = await api.createDevice({
           id: fullNewDevice.id,
           name: fullNewDevice.name,
           type: fullNewDevice.device_type,
@@ -258,9 +260,15 @@ export const useSimulatorStore = create<SimulatorStore>((set, get) => {
         });
 
         // Add to local state preserving all existing positions & connections
+        const createdDev: Device = {
+          ...fullNewDevice,
+          public_key_pem: res?.device?.public_key_pem,
+          key_fingerprint: res?.device?.key_fingerprint || (res?.device?.public_key_pem ? computeKeyFingerprint(res.device.public_key_pem) : undefined),
+        };
+
         set((state) => ({
-          devices: [...state.devices, fullNewDevice],
-          selectedDevice: fullNewDevice,
+          devices: [...state.devices, createdDev],
+          selectedDevice: createdDev,
         }));
 
         // Persist the combined topology to SQLite so existing devices & paths never reset
