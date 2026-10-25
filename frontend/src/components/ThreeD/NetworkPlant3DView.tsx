@@ -981,6 +981,9 @@ export const NetworkPlant3DView: React.FC<NetworkPlant3DViewProps> = ({
       if (lastPlaybackStateRef.current !== 'playing' && isTransferPlaying) {
         activePacketProgress = 0.0;
         chaseArrivalHoldRef.current = 0.0;
+        if (isChaseCamRef.current) {
+          isTransitioningRef.current = false;
+        }
         routeArrows.forEach((arr, idx) => {
           arr.progress = (idx % 4) * 0.25;
         });
@@ -1007,9 +1010,7 @@ export const NetworkPlant3DView: React.FC<NetworkPlant3DViewProps> = ({
               // Packet reached destination: hold camera at destination for 0.8s dramatic arrival pause
               chaseArrivalHoldRef.current += delta;
               if (chaseArrivalHoldRef.current >= 0.8) {
-                isChaseCamRef.current = false;
-                setIsChaseCam(false);
-                setCameraMode('tactical');
+                // Smoothly glide up to overview without deselecting Chase Cam (persists until manually deselected)
                 targetCamPosRef.current.set(0, 24, 30);
                 targetLookAtRef.current.set(0, 0, 0);
                 transitionSpeedRef.current = 0.022; // Slow, majestic glide up
