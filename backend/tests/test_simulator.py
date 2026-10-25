@@ -227,6 +227,8 @@ def test_api_dashboard_stats(client):
     assert res.status_code == 200
     stats = res.get_json()
     assert stats["total_devices"] >= 6
+    assert "devices_summary" in stats
+    assert stats["devices_summary"]["online"] >= 1
     assert "security_pass_rate_pct" in stats
 
 def test_api_lab_report(client):
@@ -235,3 +237,160 @@ def test_api_lab_report(client):
     report = res.get_json()["report"]
     assert "Secure Industrial Control System" in report["title"]
     assert len(report["cryptographic_mechanisms"]) == 5
+
+def test_api_security_hash_and_verify(client):
+    payload = "voltage=230.5;frequency=50.0"
+    res = client.post("/api/security/hash", json={"payload": payload})
+    assert res.status_code == 200
+    data = res.get_json()
+    assert data["success"] is True
+    digest = data["digest"]
+    assert len(digest) == 64
+
+    # Verify matching digest
+    v_res = client.post("/api/security/hash/verify", json={"payload": payload, "expected_digest": digest})
+    assert v_res.status_code == 200
+    assert v_res.get_json()["valid"] is True
+
+    # Tampered payload fails verification
+    f_res = client.post("/api/security/hash/verify", json={"payload": payload + "!", "expected_digest": digest})
+    assert f_res.status_code == 200
+    assert f_res.get_json()["valid"] is False
+
+def test_api_security_sign_and_verify(client):
+    payload = "COMMAND=TRIP_BREAKER_4"
+    res = client.post("/api/security/sign", json={"device_id": "PLC-01", "payload": payload})
+    assert res.status_code == 200
+    data = res.get_json()
+    assert data["success"] is True
+    sig = data["signature_b64"]
+    assert len(sig) > 60
+
+    # Authentic signature passes
+    v_res = client.post("/api/security/verify-signature", json={
+        "device_id": "PLC-01",
+        "payload": payload,
+        "signature_b64": sig
+    })
+    assert v_res.status_code == 200
+    assert v_res.get_json()["valid"] is True
+
+    # Modified payload fails signature verification
+    bad_v_res = client.post("/api/security/verify-signature", json={
+        "device_id": "PLC-01",
+        "payload": payload + "_MODIFIED",
+        "signature_b64": sig
+    })
+    assert bad_v_res.status_code == 200
+    assert bad_v_res.get_json()["valid"] is False
+
+def test_api_security_interactive_workbench(client):
+    res = client.post("/api/security/verify", json={
+        "device_id": "Sensor-01",
+        "payload": "temp=38.2",
+        "tamper_ciphertext": False
+    })
+    assert res.status_code == 200
+    data = res.get_json()
+    assert data["pipeline_verdict"]["intact"] is True
+    assert data["encryption"]["decryption_success"] is True
+
+    # With ciphertext tampering, decryption fails authentic verification
+    t_res = client.post("/api/security/verify", json={
+        "device_id": "Sensor-01",
+        "payload": "temp=38.2",
+        "tamper_ciphertext": True
+    })
+    assert t_res.status_code == 200
+    t_data = t_res.get_json()
+    assert t_data["encryption"]["decryption_success"] is False
+    assert t_data["pipeline_verdict"]["intact"] is False
+
+def test_api_device_public_key_isolated(client):
+    res = client.get("/api/devices/Sensor-01/public-key")
+    assert res.status_code == 200
+    data = res.get_json()
+    assert data["success"] is True
+    assert "public_key_pem" in data
+    assert "key_fingerprint_sha256" in data
+    # Ensure private key is NEVER leaked in public key endpoint
+    assert "private_key_pem" not in data
+
+def test_api_notifications_from_audit_logs(client):
+    res = client.get("/api/events/notifications")
+    assert res.status_code == 200
+    data = res.get_json()
+    assert data["success"] is True
+    assert isinstance(data["notifications"], list)
+
+def test_api_device_key_rotation(client):
+    """Verifies backend key rotation produces new RSA keypair and isolates private key."""
+    # 1. Fetch initial public key
+    orig_res = client.get("/api/devices/Sensor-01/public-key")
+    assert orig_res.status_code == 200
+    orig_fp = orig_res.get_json()["key_fingerprint_sha256"]
+
+    # 2. Rotate keys
+    rot_res = client.post("/api/devices/Sensor-01/rotate-keys")
+    assert rot_res.status_code == 200
+    rot_data = rot_res.get_json()
+    assert rot_data["success"] is True
+    new_fp = rot_data["fingerprint"]
+    assert new_fp != orig_fp
+    assert "private_key_pem" not in rot_data
+
+    # 3. Verify newly signed payload verifies with new rotated public key
+    payload = "test_rotation_payload"
+    sign_res = client.post("/api/security/sign", json={"device_id": "Sensor-01", "payload": payload})
+    assert sign_res.status_code == 200
+    sig = sign_res.get_json()["signature_b64"]
+
+    v_res = client.post("/api/security/verify-signature", json={
+        "device_id": "Sensor-01",
+        "payload": payload,
+        "signature_b64": sig
+    })
+    assert v_res.status_code == 200
+    assert v_res.get_json()["valid"] is True
+
+def test_devices_have_distinct_keys(client):
+    """Verifies that all registered devices have unique, non-shared public keys and fingerprints."""
+    res = client.get("/api/devices")
+    assert res.status_code == 200
+    devices = res.get_json()["devices"]
+    assert len(devices) >= 5
+
+    fingerprints = set()
+    public_keys = set()
+    for d in devices:
+        fp = d.get("key_fingerprint")
+        pk = d.get("public_key_pem")
+        assert fp is not None, f"Device {d['id']} missing key_fingerprint"
+        assert pk is not None, f"Device {d['id']} missing public_key_pem"
+        assert "PRIVATE KEY" not in pk, f"Private key leaked in device record for {d['id']}"
+        fingerprints.add(fp)
+        public_keys.add(pk)
+
+    assert len(fingerprints) == len(devices), "Duplicate device key fingerprints detected!"
+    assert len(public_keys) == len(devices), "Duplicate device public keys detected!"
+
+def test_api_security_error_handling(client):
+    """Tests invalid inputs, non-existent devices, and missing records."""
+    # Non-existent device for public key
+    bad_dev_res = client.get("/api/devices/NON_EXISTENT_999/public-key")
+    assert bad_dev_res.status_code == 404
+
+    # Non-existent device for signing
+    bad_sign_res = client.post("/api/security/sign", json={"device_id": "NON_EXISTENT_999", "payload": "xyz"})
+    assert bad_sign_res.status_code == 404
+
+    # Invalid signature format for verification
+    bad_sig_res = client.post("/api/security/verify-signature", json={
+        "device_id": "Sensor-01",
+        "payload": "test",
+        "signature_b64": "NOT_A_VALID_BASE64_SIGNATURE"
+    })
+    assert bad_sig_res.status_code == 200
+    assert bad_sig_res.get_json()["valid"] is False
+
+

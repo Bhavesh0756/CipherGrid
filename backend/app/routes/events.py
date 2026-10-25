@@ -73,6 +73,51 @@ def get_audit_logs():
         "logs": logs
     })
 
+@events_bp.route("/notifications", methods=["GET"])
+def get_recent_notifications():
+    """Generates authentic security notifications derived from SQLite audit_logs."""
+    limit = int(request.args.get("limit", 15))
+    logs = query_db(
+        "SELECT id, timestamp, event_type, source_device, destination_device, security_result, decision, rejection_reason, details_json "
+        "FROM audit_logs ORDER BY timestamp DESC LIMIT ?",
+        (limit,)
+    )
+
+    notifications = []
+    for log in logs:
+        is_rejection = log.get("decision") == "REJECTED" or log.get("security_result") == "SECURITY_ALERT"
+        notif_type = "warning" if is_rejection else "success" if log.get("decision") == "ACCEPTED" else "info"
+
+        event_type = log.get("event_type", "SECURITY_EVENT")
+        src = log.get("source_device", "Unknown Node")
+        dst = log.get("destination_device")
+
+        if is_rejection:
+            title = f"Security Policy Violation: {src}"
+            desc = log.get("rejection_reason") or f"Packet from {src} was dropped by the industrial firewall."
+        elif "DEVICE_ENROLLED" in event_type:
+            title = f"New Device Registered: {src}"
+            desc = f"Virtual node '{src}' provisioned with unique RSA-2048 identity key."
+            notif_type = "info"
+        elif "CRYPTO_WORKBENCH" in event_type:
+            title = "Cryptographic Pipeline Verified"
+            desc = f"Live AES-GCM and RSA-PSS test completed for {src}."
+            notif_type = "info"
+        else:
+            title = f"Packet Delivered: {src} ➔ {dst or 'Target'}"
+            desc = f"Authentic payload verified via AES-256-GCM AEAD and RSA-PSS signature."
+
+        notifications.append({
+            "id": f"log-{log['id']}",
+            "title": title,
+            "description": desc,
+            "time": log.get("timestamp", ""),
+            "type": notif_type,
+            "unread": is_rejection
+        })
+
+    return jsonify({"success": True, "notifications": notifications, "total": len(notifications)})
+
 @events_bp.route("/packet-stream", methods=["GET"])
 def get_packet_events():
     """Retrieves simulation packet events for the Packet Inspector table."""

@@ -36,7 +36,7 @@ export const PacketInspector: React.FC = () => {
         source_id: ev.source_device,
         destination_id: ev.destination_device,
         current_hop: ev.current_hop,
-        message_type: 'Sensor Reading',
+        message_type: ev.wire_details?.message_type || 'Industrial Telemetry',
         packet_state: ev.packet_state,
         security_status: ev.security_status,
         details: ev.wire_details || {},
@@ -308,11 +308,11 @@ export const PacketInspector: React.FC = () => {
                   <Lock className="w-3.5 h-3.5 text-purple-400" />
                 </div>
                 <div className="space-y-1.5 text-slate-300 text-[11px]">
-                  <div>Profile: <span className="text-slate-200 font-medium">{activeEvent.details?.security_profile || 'AES-256-GCM AEAD'}</span></div>
-                  <div>GCM Nonce (96-bit): <span className="text-emerald-400 break-all text-[10px]">{activeEvent.details?.nonce || 'd4a8f9c120e54b679a12c8e3'}</span></div>
-                  <div>Auth Tag (128-bit): <span className="text-amber-400 break-all text-[10px]">{activeEvent.details?.tag || '9e5c7a1023bc49ef8712da05'}</span></div>
-                  <div>SHA-256 Digest: <span className="text-purple-400 break-all text-[10px]">{activeEvent.details?.digest?.slice(0, 36) || '8f43a921c...'}...</span></div>
-                  <div>RSA-PSS Signature: <span className="text-slate-400 text-[10px]">{activeEvent.details?.signature ? `${activeEvent.details.signature.slice(0, 32)}...` : '2048-bit Signed Valid'}</span></div>
+                  <div>Profile: <span className="text-slate-200 font-medium">{activeEvent.details?.security_profile || (activeEvent.security_status ? 'AES-256-GCM AEAD' : 'N/A')}</span></div>
+                  <div>GCM Nonce (96-bit): <span className="text-emerald-400 break-all text-[10px]">{activeEvent.details?.nonce || 'N/A (Unencrypted)'}</span></div>
+                  <div>Auth Tag (128-bit): <span className="text-amber-400 break-all text-[10px]">{activeEvent.details?.tag || 'N/A (No MAC)'}</span></div>
+                  <div>SHA-256 Digest: <span className="text-purple-400 break-all text-[10px]">{activeEvent.details?.digest ? `${activeEvent.details.digest.slice(0, 36)}...` : 'N/A'}</span></div>
+                  <div>RSA-PSS Signature: <span className="text-slate-400 text-[10px]">{activeEvent.details?.signature ? `${activeEvent.details.signature.slice(0, 32)}...` : 'N/A (Unsigned)'}</span></div>
                 </div>
               </div>
 

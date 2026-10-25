@@ -22,36 +22,6 @@ interface DisplayLogEvent {
   status: 'Accepted' | 'Rejected';
 }
 
-const DEFAULT_SAMPLE_EVENTS: DisplayLogEvent[] = [
-  {
-    id: 'sample-1',
-    time: '23:41:12',
-    type: 'Info',
-    source: 'PLC-01 (192.168.1.10)',
-    destination: 'SCADA-Server (192.168.1.5)',
-    message: 'Read holding registers [AES-256-GCM AEAD]',
-    status: 'Accepted',
-  },
-  {
-    id: 'sample-2',
-    time: '23:41:10',
-    type: 'Warning',
-    source: 'Rogue-Probe (192.168.1.99)',
-    destination: 'PLC-01 (192.168.1.10)',
-    message: 'Unauthorized CIP command dropped [ACL violation]',
-    status: 'Rejected',
-  },
-  {
-    id: 'sample-3',
-    time: '23:41:05',
-    type: 'Info',
-    source: 'SCADA-Server (192.168.1.5)',
-    destination: 'PLC-01 (192.168.1.10)',
-    message: 'Digital signature verified [RSA-PSS 2048-bit]',
-    status: 'Accepted',
-  },
-];
-
 export const SimulationControls: React.FC = () => {
   const {
     devices,
@@ -154,9 +124,7 @@ export const SimulationControls: React.FC = () => {
     ? []
     : realEvents.length > 0
     ? realEvents
-    : dbEvents.length > 0
-    ? dbEvents
-    : DEFAULT_SAMPLE_EVENTS;
+    : dbEvents;
 
   const filteredEvents = displayedEvents.filter((evt) => {
     if (filterType === 'all') return true;

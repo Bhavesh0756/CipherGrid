@@ -12,6 +12,7 @@ import {
   Locate,
   Network,
   Power,
+  RefreshCw,
   Search,
   Server,
   Shield,
@@ -20,6 +21,7 @@ import {
   X,
   Zap,
 } from 'lucide-react';
+import { api } from '../services/api';
 import { useSimulatorStore } from '../store/useSimulatorStore';
 import { Device, TrustStatus } from '../types';
 import {
@@ -30,7 +32,7 @@ import {
 } from '../utils/cryptoUtils';
 
 export const DeviceInventory: React.FC = () => {
-  const { devices, updateDevice, deleteDevice, setSelectedDevice, setActiveSection } =
+  const { devices, updateDevice, deleteDevice, setSelectedDevice, setActiveSection, fetchTopology } =
     useSimulatorStore();
 
   const [searchTerm, setSearchTerm] = useState('');
@@ -38,6 +40,7 @@ export const DeviceInventory: React.FC = () => {
   const [filterPurdue, setFilterPurdue] = useState<string>('all');
   const [selectedKeyDev, setSelectedKeyDev] = useState<Device | null>(null);
   const [copiedType, setCopiedType] = useState<'pem' | 'fingerprint' | null>(null);
+  const [isRotating, setIsRotating] = useState(false);
 
   const copyToClipboard = (text: string, type: 'pem' | 'fingerprint') => {
     navigator.clipboard.writeText(text);
@@ -424,12 +427,39 @@ export const DeviceInventory: React.FC = () => {
                 <span className="text-[10px] text-slate-500 font-mono">
                   Stored in SQLite Keyring &bull; Used for RSA-PSS signature verification
                 </span>
-                <button
-                  onClick={() => setSelectedKeyDev(null)}
-                  className="px-4 py-1.5 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-xs font-semibold transition-colors cursor-pointer"
-                >
-                  Close Key
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={async () => {
+                      setIsRotating(true);
+                      try {
+                        const res = await api.rotateDeviceKeys(selectedKeyDev.id);
+                        await fetchTopology();
+                        if (res.public_key_pem) {
+                          setSelectedKeyDev({
+                            ...selectedKeyDev,
+                            public_key_pem: res.public_key_pem,
+                            key_fingerprint: res.fingerprint,
+                          });
+                        }
+                      } catch {
+                        // ignore
+                      } finally {
+                        setIsRotating(false);
+                      }
+                    }}
+                    disabled={isRotating}
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-600/20 hover:bg-amber-600/30 text-amber-300 border border-amber-500/40 rounded-lg text-xs font-semibold transition-colors cursor-pointer disabled:opacity-50"
+                  >
+                    <RefreshCw className={`w-3.5 h-3.5 ${isRotating ? 'animate-spin' : ''}`} />
+                    <span>{isRotating ? 'Generating RSA-2048…' : 'Rotate Keypair'}</span>
+                  </button>
+                  <button
+                    onClick={() => setSelectedKeyDev(null)}
+                    className="px-4 py-1.5 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-xs font-semibold transition-colors cursor-pointer"
+                  >
+                    Close Key
+                  </button>
+                </div>
               </div>
             </div>
           </div>

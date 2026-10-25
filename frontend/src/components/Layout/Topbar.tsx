@@ -29,33 +29,6 @@ interface NotificationItem {
   unread: boolean;
 }
 
-const INITIAL_NOTIFICATIONS: NotificationItem[] = [
-  {
-    id: 'notif-1',
-    title: 'Rogue Write Blocked',
-    description: 'Unauthorized write attempt (0x06) from Rogue Tap to PLC-01 was rejected by RBAC policy.',
-    time: '2m ago',
-    type: 'warning',
-    unread: true,
-  },
-  {
-    id: 'notif-2',
-    title: 'Crypto Session Established',
-    description: 'SCADA Server established AES-256-GCM authenticated session with RTU/Switch.',
-    time: '14m ago',
-    type: 'success',
-    unread: false,
-  },
-  {
-    id: 'notif-3',
-    title: 'Topology Synchronized',
-    description: 'Industrial nodes active with zero packet drop in Purdue Levels 0-3.5.',
-    time: '1h ago',
-    type: 'info',
-    unread: false,
-  },
-];
-
 export const Topbar: React.FC = () => {
   const {
     saveTopology,
@@ -68,7 +41,7 @@ export const Topbar: React.FC = () => {
 
   const [backendStatus, setBackendStatus] = useState<'checking' | 'connected' | 'disconnected'>('checking');
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
-  const [notifications, setNotifications] = useState<NotificationItem[]>(INITIAL_NOTIFICATIONS);
+  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [currentTime, setCurrentTime] = useState<string>('');
 
   const notifRef = useRef<HTMLDivElement>(null);
@@ -106,9 +79,33 @@ export const Topbar: React.FC = () => {
         setBackendStatus('disconnected');
       }
     };
+    const fetchNotifications = async () => {
+      try {
+        const res = await api.getNotifications(12);
+        if (res.notifications) {
+          const mapped: NotificationItem[] = res.notifications.map((n: any) => ({
+            id: n.id,
+            title: n.title,
+            description: n.description,
+            time: n.time ? new Date(n.time).toLocaleTimeString('en-US', { hour12: false }) : '',
+            type: n.type || 'info',
+            unread: Boolean(n.unread),
+          }));
+          setNotifications(mapped);
+        }
+      } catch {
+        // ignore
+      }
+    };
+
     checkHealth();
-    const interval = setInterval(checkHealth, 15000);
-    return () => clearInterval(interval);
+    fetchNotifications();
+    const intervalHealth = setInterval(checkHealth, 15000);
+    const intervalNotifs = setInterval(fetchNotifications, 8000);
+    return () => {
+      clearInterval(intervalHealth);
+      clearInterval(intervalNotifs);
+    };
   }, []);
 
   const unreadCount = notifications.filter((n) => n.unread).length;
@@ -261,7 +258,12 @@ export const Topbar: React.FC = () => {
               </div>
 
               <div className="divide-y divide-slate-800/60 max-h-80 overflow-y-auto">
-                {notifications.map((item) => (
+                {notifications.length === 0 ? (
+                  <div className="p-6 text-center text-slate-400 font-mono text-xs">
+                    No active system alerts. All ICS nodes running nominal.
+                  </div>
+                ) : (
+                  notifications.map((item) => (
                   <div
                     key={item.id}
                     onClick={() => {
@@ -305,7 +307,7 @@ export const Topbar: React.FC = () => {
                       <span className="w-1.5 h-1.5 rounded-full bg-blue-400 shrink-0 mt-1.5"></span>
                     )}
                   </div>
-                ))}
+                )))}
               </div>
 
               <div className="p-2 border-t border-slate-800/80 bg-[#090f1c]/90 flex items-center justify-center">

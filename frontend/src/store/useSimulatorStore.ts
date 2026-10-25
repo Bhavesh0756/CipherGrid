@@ -674,12 +674,12 @@ export const useSimulatorStore = create<SimulatorStore>((set, get) => {
               status: ev.decision === 'ACCEPTED' ? 'ACCEPTED' : 'REJECTED',
               rejection_reason: ev.rejection_reason,
             })),
-            devices_summary: {
-              trusted: stats.trusted_devices,
-              untrusted: stats.total_devices - stats.trusted_devices,
-              quarantined: 0,
-              online: stats.total_devices,
-              offline: 0,
+            devices_summary: stats.devices_summary || {
+              trusted: stats.trusted_devices ?? 0,
+              untrusted: stats.untrusted_devices ?? 0,
+              quarantined: stats.quarantined_devices ?? 0,
+              online: stats.online_devices ?? 0,
+              offline: stats.offline_devices ?? 0,
             },
           },
         });

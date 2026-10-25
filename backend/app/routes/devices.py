@@ -52,6 +52,68 @@ def get_device(device_id):
     device["key_fingerprint"] = compute_key_fingerprint(device.get("public_key_pem"))
     return jsonify({"success": True, "device": device})
 
+@devices_bp.route("/<device_id>/public-key", methods=["GET"])
+def get_device_public_key(device_id):
+    """Retrieves device public key specifications, verifying private key is strictly isolated."""
+    device = query_db(
+        "SELECT id, name, type, ip_address, trust_status, public_key_pem, updated_at FROM devices WHERE id = ?",
+        (device_id,),
+        one=True
+    )
+    if not device:
+        return jsonify({"success": False, "error": f"Device '{device_id}' not found."}), 404
+
+    pub_pem = device.get("public_key_pem")
+    fingerprint = compute_key_fingerprint(pub_pem)
+
+    return jsonify({
+        "success": True,
+        "device_id": device["id"],
+        "name": device["name"],
+        "ip_address": device["ip_address"],
+        "trust_status": device["trust_status"],
+        "algorithm": "RSA-2048",
+        "signature_scheme": "RSA-PSS (SHA-256 / MGF1)",
+        "public_exponent": 65537,
+        "public_key_pem": pub_pem,
+        "key_fingerprint_sha256": fingerprint,
+        "format": "X.509 SubjectPublicKeyInfo PEM",
+        "updated_at": device["updated_at"]
+    })
+
+@devices_bp.route("/<device_id>/rotate-keys", methods=["POST"])
+def rotate_device_keys(device_id):
+    """Rotates cryptographic RSA-2048 keypair and AES-256 key for a registered device."""
+    device = query_db("SELECT id, name FROM devices WHERE id = ?", (device_id,), one=True)
+    if not device:
+        return jsonify({"success": False, "error": f"Device '{device_id}' not found."}), 404
+
+    now = datetime.now(timezone.utc).isoformat()
+    pub_pem, priv_pem, aes_key_hex = generate_device_keys(device_id)
+
+    execute_db(
+        "UPDATE devices SET public_key_pem = ?, private_key_pem = ?, aes_key_hex = ?, updated_at = ? WHERE id = ?",
+        (pub_pem, priv_pem, aes_key_hex, now, device_id)
+    )
+
+    fingerprint = compute_key_fingerprint(pub_pem)
+
+    execute_db(
+        """INSERT INTO audit_logs (timestamp, source_device, event_type, security_result, decision, details_json)
+           VALUES (?, ?, 'DEVICE_KEY_ROTATED', 'SUCCESS', 'INFO', ?)""",
+        (now, device_id, json.dumps({"action": "KEY_ROTATION", "new_fingerprint": fingerprint}))
+    )
+
+    return jsonify({
+        "success": True,
+        "message": f"Cryptographic keys for device '{device_id}' successfully rotated.",
+        "device_id": device_id,
+        "public_key_pem": pub_pem,
+        "fingerprint": fingerprint,
+        "key_fingerprint_sha256": fingerprint,
+        "rotated_at": now
+    })
+
 @devices_bp.route("", methods=["POST"])
 def register_device():
     """Enrolls a new virtual device into the industrial simulator."""

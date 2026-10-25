@@ -105,10 +105,10 @@ def save_topology():
             pub_pem, priv_pem, aes_key = generate_device_keys(node_id)
             execute_db(
                 """INSERT INTO devices 
-                   (id, name, type, ip_address, mac_address, purdue_level, role, trust_status, enabled, allowed_actions, public_key_pem, private_key_pem, aes_key_hex, x_pos, y_pos, created_at, updated_at)
-                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                   (id, name, type, ip_address, mac_address, role, trust_status, enabled, allowed_actions, public_key_pem, private_key_pem, aes_key_hex, x_pos, y_pos, created_at, updated_at)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
                 (
-                    node_id, name, dev_type, ip, mac, purdue, role, trust, enabled,
+                    node_id, name, dev_type, ip, mac, role, trust, enabled,
                     json.dumps(["Sensor Reading", "Device Status", "Controller Command", "Alarm Notification"]),
                     pub_pem, priv_pem, aes_key, x, y, now, now
                 )

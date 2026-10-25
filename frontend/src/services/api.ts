@@ -180,10 +180,85 @@ export const api = {
     return handleResponse(res);
   },
 
+  // Dedicated Cryptographic Services (100% Backend-Driven)
+  async computeHash(payload: string): Promise<{
+    success: boolean;
+    algorithm: string;
+    canonical_payload: string;
+    digest: string;
+    input_length_bytes: number;
+    timestamp: string;
+  }> {
+    const res = await fetch(`${BASE_URL}/security/hash`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ payload }),
+    });
+    return handleResponse(res);
+  },
+
+  async verifyHash(payload: string, expectedDigest: string): Promise<{
+    success: boolean;
+    valid: boolean;
+    computed_digest: string;
+    expected_digest: string;
+    message: string;
+  }> {
+    const res = await fetch(`${BASE_URL}/security/hash/verify`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ payload, expected_digest: expectedDigest }),
+    });
+    return handleResponse(res);
+  },
+
+  async signPayload(deviceId: string, payload: string): Promise<{
+    success: boolean;
+    device_id: string;
+    algorithm: string;
+    digest: string;
+    signature_b64: string;
+    public_key_pem?: string;
+  }> {
+    const res = await fetch(`${BASE_URL}/security/sign`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ device_id: deviceId, payload }),
+    });
+    return handleResponse(res);
+  },
+
+  async verifySignature(params: {
+    deviceId?: string;
+    payload: string;
+    signatureB64: string;
+    publicKeyPem?: string;
+  }): Promise<{
+    success: boolean;
+    valid: boolean;
+    message: string;
+    algorithm: string;
+    digest: string;
+  }> {
+    const res = await fetch(`${BASE_URL}/security/verify-signature`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        device_id: params.deviceId,
+        payload: params.payload,
+        signature_b64: params.signatureB64,
+        public_key_pem: params.publicKeyPem,
+      }),
+    });
+    return handleResponse(res);
+  },
+
   async verifyCryptoWorkbench(params: {
     payload: string;
     device_id?: string;
+    tamper_payload?: boolean;
     tamper_ciphertext?: boolean;
+    tamper_tag?: boolean;
     tamper_signature?: boolean;
   }): Promise<any> {
     const res = await fetch(`${BASE_URL}/security/verify`, {
@@ -191,6 +266,24 @@ export const api = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(params),
     });
+    return handleResponse(res);
+  },
+
+  async getDevicePublicKey(deviceId: string): Promise<any> {
+    const res = await fetch(`${BASE_URL}/devices/${deviceId}/public-key`);
+    return handleResponse(res);
+  },
+
+  async rotateDeviceKeys(deviceId: string): Promise<any> {
+    const res = await fetch(`${BASE_URL}/devices/${deviceId}/rotate-keys`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+    });
+    return handleResponse(res);
+  },
+
+  async getNotifications(limit = 15): Promise<{ success: boolean; notifications: any[] }> {
+    const res = await fetch(`${BASE_URL}/events/notifications?limit=${limit}`);
     return handleResponse(res);
   },
 
