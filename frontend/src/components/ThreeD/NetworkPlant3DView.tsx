@@ -108,6 +108,41 @@ function createDeviceLabelSprite(device: Device, isSelected: boolean, isActiveHo
   return sprite;
 }
 
+// Helper to create high-visibility 3D directional arrow with glowing head and stem
+function create3DArrow(color: number, scale = 1.0): THREE.Group {
+  const group = new THREE.Group();
+
+  // 1. Arrowhead Cone (Tip points forward along +Z)
+  const headGeo = new THREE.ConeGeometry(0.38 * scale, 0.75 * scale, 16);
+  headGeo.rotateX(Math.PI / 2);
+  const headMat = new THREE.MeshBasicMaterial({
+    color,
+    depthTest: false,
+    transparent: true,
+    opacity: 0.98,
+  });
+  const head = new THREE.Mesh(headGeo, headMat);
+  head.position.set(0, 0, 0.38 * scale);
+  head.renderOrder = 950;
+  group.add(head);
+
+  // 2. Arrow Shaft / Stem (Cylinder extends backwards along -Z)
+  const shaftGeo = new THREE.CylinderGeometry(0.12 * scale, 0.12 * scale, 0.55 * scale, 12);
+  shaftGeo.rotateX(Math.PI / 2);
+  const shaftMat = new THREE.MeshBasicMaterial({
+    color,
+    depthTest: false,
+    transparent: true,
+    opacity: 0.98,
+  });
+  const shaft = new THREE.Mesh(shaftGeo, shaftMat);
+  shaft.position.set(0, 0, -0.22 * scale);
+  shaft.renderOrder = 950;
+  group.add(shaft);
+
+  return group;
+}
+
 export const NetworkPlant3DView: React.FC<NetworkPlant3DViewProps> = ({
   onSelectDevice,
   onOpenDigitalTwin,
@@ -128,6 +163,12 @@ export const NetworkPlant3DView: React.FC<NetworkPlant3DViewProps> = ({
 
   const mountRef = useRef<HTMLDivElement>(null);
   const [hoveredDev, setHoveredDev] = useState<Device | null>(null);
+
+  // Preserve user's camera view across path updates
+  const lastCameraPos = useRef<THREE.Vector3>(new THREE.Vector3(0, 24, 30));
+  const lastControlsTarget = useRef<THREE.Vector3>(new THREE.Vector3(0, 0, 0));
+  const activeHopIdRef = useRef<string | null>(activeHopId);
+  activeHopIdRef.current = activeHopId;
 
   // Security status for packet trail styling
   const secStatus = (selectedEvent?.security_status || lastResult?.status || '').toLowerCase();
@@ -155,7 +196,7 @@ export const NetworkPlant3DView: React.FC<NetworkPlant3DViewProps> = ({
     scene.fog = new THREE.FogExp2(0x060913, 0.018);
 
     const camera = new THREE.PerspectiveCamera(45, width / height, 0.5, 300);
-    camera.position.set(0, 24, 30);
+    camera.position.copy(lastCameraPos.current);
 
     // 2. WebGL Renderer
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
@@ -175,7 +216,7 @@ export const NetworkPlant3DView: React.FC<NetworkPlant3DViewProps> = ({
     controls.maxDistance = 60;
     controls.minDistance = 6;
     controls.maxPolarAngle = Math.PI / 2 - 0.05; // Stay above ground plane
-    controls.target.set(0, 0, 0);
+    controls.target.copy(lastControlsTarget.current);
 
     // 4. Lighting Rig
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.75);
@@ -590,22 +631,15 @@ export const NetworkPlant3DView: React.FC<NetworkPlant3DViewProps> = ({
       }
     }
 
-    // ─── 9.1 DIRECTIONAL 3D ARROWS ALONG TRANSMISSION ROUTE (MATCHING 2D ARROWS) ───
+    // ─── 9.1 PROMINENT DIRECTIONAL 3D ARROWS ALONG TRANSMISSION ROUTE (MATCHING 2D) ───
     const routeArrows: {
-      mesh: THREE.Mesh;
+      group: THREE.Group;
       start: THREE.Vector3;
       end: THREE.Vector3;
       progress: number;
     }[] = [];
 
-    const arrowHeadGeo = new THREE.ConeGeometry(0.18, 0.42, 16);
-    arrowHeadGeo.rotateX(Math.PI / 2); // Orient cone tip along +Z so lookAt points in direction of travel
-    const arrowColor = isPacketTampered ? 0xf43f5e : 0x38bdf8;
-    const arrowMat = new THREE.MeshBasicMaterial({
-      color: arrowColor,
-      transparent: true,
-      opacity: 0.95,
-    });
+    const arrowColor = isPacketTampered ? 0xf43f5e : 0x00e5ff;
 
     if (highlightedPath.length > 1) {
       for (let i = 0; i < highlightedPath.length - 1; i++) {
@@ -617,23 +651,26 @@ export const NetworkPlant3DView: React.FC<NetworkPlant3DViewProps> = ({
           const startHop = new THREE.Vector3(p1.x, conduitY, p1.z);
           const endHop = new THREE.Vector3(p2.x, conduitY, p2.z);
 
-          // 1. Static Terminal Arrowhead at destination port (like 2D markerEnd: ArrowClosed)
-          const termArrow = new THREE.Mesh(arrowHeadGeo, arrowMat);
-          termArrow.position.lerpVectors(startHop, endHop, 0.84);
-          termArrow.lookAt(endHop.x, conduitY, endHop.z);
+          // 1. Static Terminal Arrowhead at destination port (pointing directly into device, like 2D markerEnd: ArrowClosed)
+          const termArrow = create3DArrow(arrowColor, 1.25);
+          termArrow.position.lerpVectors(startHop, endHop, 0.88);
+          termArrow.position.y += 0.32;
+          termArrow.lookAt(endHop.x, conduitY + 0.32, endHop.z);
           scene.add(termArrow);
 
-          // 2. Animated Flow Arrows streaming towards target device in direction of transmission
-          for (let a = 0; a < 3; a++) {
-            const flowArrow = new THREE.Mesh(arrowHeadGeo, arrowMat);
+          // 2. Streaming Directional Flow Arrows advancing along the straight conduit
+          // 4 arrows per hop for a continuous, prominent marching stream: >>> >>>>
+          for (let a = 0; a < 4; a++) {
+            const flowArrow = create3DArrow(arrowColor, 0.95);
             flowArrow.position.copy(startHop);
-            flowArrow.lookAt(endHop.x, conduitY, endHop.z);
+            flowArrow.position.y += 0.32;
+            flowArrow.lookAt(endHop.x, conduitY + 0.32, endHop.z);
             scene.add(flowArrow);
             routeArrows.push({
-              mesh: flowArrow,
+              group: flowArrow,
               start: startHop,
               end: endHop,
-              progress: a * 0.28,
+              progress: a * 0.25,
             });
           }
         }
@@ -748,12 +785,13 @@ export const NetworkPlant3DView: React.FC<NetworkPlant3DViewProps> = ({
 
       // 2. Animate 3D directional flow arrows moving towards target in direction of transfer
       routeArrows.forEach((arr) => {
-        arr.progress += delta * 0.55;
-        if (arr.progress >= 0.82) {
+        arr.progress += delta * 0.45;
+        if (arr.progress >= 0.86) {
           arr.progress = 0.08;
         }
-        arr.mesh.position.lerpVectors(arr.start, arr.end, arr.progress);
-        arr.mesh.lookAt(arr.end.x, arr.start.y, arr.end.z);
+        arr.group.position.lerpVectors(arr.start, arr.end, arr.progress);
+        arr.group.position.y += 0.32;
+        arr.group.lookAt(arr.end.x, arr.start.y + 0.32, arr.end.z);
       });
 
       // 3. Animate background ambient particles along straight conduits
@@ -781,13 +819,15 @@ export const NetworkPlant3DView: React.FC<NetworkPlant3DViewProps> = ({
     window.addEventListener('resize', handleResize);
 
     return () => {
+      lastCameraPos.current.copy(camera.position);
+      lastControlsTarget.current.copy(controls.target);
       window.removeEventListener('resize', handleResize);
       renderer.domElement.removeEventListener('mousemove', handlePointerMove);
       renderer.domElement.removeEventListener('click', handleClick);
       cancelAnimationFrame(frameId);
       renderer.dispose();
     };
-  }, [devices, connections, highlightedPath, activeHopId, selectedDevice?.id, isPacketTampered]);
+  }, [devices, connections, highlightedPath, isPacketTampered]);
 
   return (
     <div className="relative w-full h-full flex flex-col bg-[#060913] select-none overflow-hidden">
